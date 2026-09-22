@@ -206,16 +206,22 @@ STRUCT Config:
 
     # konfigurasi PCA
     pca_n_components       = 8
+    pca_random_state       = 42               # = config.seed; menjaga determinisme FIT_PCA
+    pca_svd_solver         = "auto"           # default sklearn; deterministik selama random_state dikunci
 
     # konfigurasi Hu
     hu_raw_dim             = 7                # sifat intrinsik Hu Moments
-    hu_padding_value       = 0.0              # kanal ke-8 netral -> RY(0)
-    hu_use_signed_log      = TRUE             # stabilisasi dynamic range sebelum scaler
+    hu_input_mode          = "grayscale"      # DIKUNCI: grayscale ternormalisasi, BUKAN biner/Otsu
+    hu_padding_value        = 0.0              # kanal ke-8 netral -> RY(0); DIKUNCI final (menang atas pi/2 di noa3.ipynb)
+    hu_use_signed_log       = TRUE             # stabilisasi dynamic range sebelum scaler
+    hu_signed_log_epsilon   = 1e-30            # DIKUNCI: h' = -sign(h) * log10(|h| + epsilon)
+    hu_clip_after_scaling   = FALSE            # DIKUNCI: tidak clip, konsisten dengan PCA
 
     # konfigurasi Zernike -- 8 term tetap, tidak dipilih berdasarkan hasil test
-    zernike_terms          = [(0,0), (1,1), (2,0), (2,2),
-                              (3,1), (3,3), (4,0), (4,2)]
+    zernike_terms          = [(2,0), (2,2), (3,1), (3,3),
+                              (4,0), (4,2), (5,1), (5,5)]   # DIREVISI: (0,0) & (1,1) dibuang (kurang diskriminatif)
     zernike_use_magnitude  = TRUE             # |Z_nm| untuk invariansi rotasi
+    zernike_clip_after_scaling = FALSE        # DIKUNCI: tidak clip, konsisten dengan PCA dan Hu
 
     cobyla_tol             = 1e-4
     seed                   = 42
@@ -223,8 +229,8 @@ STRUCT Config:
     active_dim_threshold   = 1e-6
 
     # dataset lokal / pilot download
-    mnist_root             = "data/"
-    mnist_download         = FALSE             # TRUE hanya saat pilot/initial download
+    mnist_root              = "data/"
+    mnist_download          = FALSE             # TRUE hanya saat pilot/initial download
 
     run_id = GENERATE_RUN_ID(classes, feature_method, architecture)
 
@@ -384,23 +390,34 @@ FUNCTION DATA_PIPELINE(config):
         X_test_flat  = FLATTEN_IMAGES(X_test_norm)
 
         feature_model = FIT_PCA(
-            X_train_flat, n_components=config.pca_n_components
+            X_train_flat,
+            n_components=config.pca_n_components,
+            svd_solver=config.pca_svd_solver,
+            random_state=config.pca_random_state
         )
         X_train_feat = feature_model.TRANSFORM(X_train_flat)
         X_test_feat  = feature_model.TRANSFORM(X_test_flat)
         # shape akhir sebelum scaler: (N, 8)
+        # Catatan: svd_solver="auto" pada sklearn kemungkinan memilih randomized SVD
+        # untuk n_components=8 << 784 dimensi; determinisme tetap terjaga karena
+        # random_state dikunci = config.seed (mengikuti kode referensi noa3.ipynb).
+        # Tidak ada clipping eksplisit yang diterapkan setelah scaling untuk PCA --
+        # X_test_scaled boleh sedikit keluar dari [0, PI] akibat proyeksi test di
+        # luar rentang train, konsisten dengan kode referensi tersebut.
 
         SAVE(feature_model, config.run_dir + "/artifacts/pca_model.joblib")
 
     ELSE IF config.feature_method == "HU":
         # Hu Moments tidak di-fit ke distribusi data.
+        # Input citra DIKUNCI: grayscale ternormalisasi (X_*_norm langsung),
+        # BUKAN dibinerkan/Otsu -- lihat 2.8.2.
         # Dihitung langsung per gambar -> tepat 7 descriptor.
         X_train_hu7 = [HU_MOMENTS(img) FOR img IN X_train_norm]
         X_test_hu7  = [HU_MOMENTS(img) FOR img IN X_test_norm]
 
         IF config.hu_use_signed_log == TRUE:
-            X_train_hu7 = SIGNED_LOG_TRANSFORM(X_train_hu7)
-            X_test_hu7  = SIGNED_LOG_TRANSFORM(X_test_hu7)
+            X_train_hu7 = SIGNED_LOG_TRANSFORM(X_train_hu7, epsilon=config.hu_signed_log_epsilon)
+            X_test_hu7  = SIGNED_LOG_TRANSFORM(X_test_hu7,  epsilon=config.hu_signed_log_epsilon)
 
         # Tambahkan SATU kanal netral; bukan Hu moment ke-8.
         X_train_feat = APPEND_CONSTANT_COLUMN(
@@ -454,7 +471,13 @@ FUNCTION DATA_PIPELINE(config):
     ELSE:
         scaler_params = FIT_MINMAX(X_train_feat, range=[0, PI])
         X_train_scaled = scaler_params.TRANSFORM(X_train_feat)
-        X_test_scaled  = scaler_params.TRANSFORM(X_test_feat)
+        X_test_scaled = scaler_params.TRANSFORM(X_test_feat)
+
+    # 2.5.1 Kebijakan clipping -- DIKUNCI SERAGAM untuk ketiga feature_method:
+    # TIDAK ADA clipping eksplisit setelah scaling (PCA, HU, ZERNIKE semua sama).
+    # X_test_scaled boleh sedikit keluar dari [0, PI] akibat proyeksi/rentang
+    # test yang berbeda dari train. Ini keputusan sadar supaya feature_method
+    # tidak jadi confound tersembunyi lewat perlakuan clipping yang berbeda-beda.
 
     # 2.6 Simpan artefak preprocessing
     SAVE(scaler_params, config.run_dir + "/artifacts/scaler_params.joblib")
@@ -467,8 +490,14 @@ FUNCTION DATA_PIPELINE(config):
             LENGTH(config.zernike_terms)
         ),
         "quantum_input_dim": config.n_input_channels,
+        "pca_svd_solver": config.pca_svd_solver IF config.feature_method == "PCA" ELSE NULL,
+        "pca_random_state": config.pca_random_state IF config.feature_method == "PCA" ELSE NULL,
+        "hu_input_mode": config.hu_input_mode IF config.feature_method == "HU" ELSE NULL,
         "hu_padding_value": config.hu_padding_value IF config.feature_method == "HU" ELSE NULL,
-        "zernike_terms": config.zernike_terms IF config.feature_method == "ZERNIKE" ELSE NULL
+        "hu_signed_log_epsilon": config.hu_signed_log_epsilon IF config.feature_method == "HU" ELSE NULL,
+        "n_non_finite_hu": n_non_finite_hu_counter IF config.feature_method == "HU" ELSE NULL,
+        "zernike_terms": config.zernike_terms IF config.feature_method == "ZERNIKE" ELSE NULL,
+        "clip_after_scaling": FALSE
     }
     SAVE(feature_metadata, config.run_dir + "/artifacts/feature_metadata.json")
 
@@ -486,7 +515,131 @@ Catatan metodologis:
 - PCA: model PCA dan scaler hanya di-fit dari data train.
 - Hu dan Zernike: extractor bersifat deterministik per gambar dan tidak belajar distribusi train; namun scaler tetap di-fit hanya pada train.
 - Kanal ke-8 Hu adalah kanal netral `0.0`, sehingga angle encoding pada qubit ke-8 adalah `RY(0)`. Kanal ini tidak dianggap sebagai Hu Moment baru.
+- Kebijakan clipping (2.5.1) sudah diseragamkan: tidak ada clipping untuk PCA, HU, maupun ZERNIKE.
 - `feature_method` memengaruhi juga matriks korelasi `S`, karena `CORRELATION_MATRIX` menerima `X_train_scaled` dari representasi yang dipilih.
+
+---
+
+## 2.8 RINGKASAN PENGATURAN PER METODE REPRESENTASI FITUR
+
+Bagian ini merinci pengaturan teknis tiap `feature_method` secara terpisah,
+supaya setiap keputusan preprocessing bisa direview dan dikunci satu per
+satu (sejalan dengan Gate G2 pada `MORE_HD_RESEARCH_READINESS_GATES`).
+Status **DIKUNCI** berarti keputusan desain sudah final; untuk Hu dan
+Zernike, status ini dicapai pada sesi 2026-09-22 dan masih menunggu
+implementasi kode nyata + unit test sebelum Gate G2-01/G2-02 bisa ditutup
+(`CLOSED`) — pseudocode fungsi ekstraksi sudah tersedia di 2.8.4.
+
+### 2.8.1 PCA — Status: DIKUNCI
+
+| Aspek | Pengaturan |
+|---|---|
+| Preprocessing sebelum fit | Flatten citra `(N, 784)`; normalisasi piksel `/255.0` ke `[0,1]`. Tidak ada standardisasi z-score — PCA hanya mean-center otomatis. |
+| Jumlah komponen | `pca_n_components = 8` |
+| `svd_solver` | `"auto"` (default sklearn; untuk `n_components=8 << 784` kemungkinan besar memilih randomized SVD) |
+| `random_state` | `42` (= `config.seed`), menjaga determinisme meski solver randomized |
+| Fit | Hanya pada train (`fit_transform` di train, `transform` di test) — tidak ada data leakage |
+| Scaler akhir | `MinMaxScaler(feature_range=(0, PI))`, di-fit hanya pada `X_train_pca` |
+| Clipping setelah scaling | **Tidak ada.** `X_test_scaled` boleh sedikit keluar dari `[0, PI]` akibat proyeksi test di luar rentang train |
+| Sumber keputusan | Disamakan dengan kode referensi `noa3.ipynb` |
+| Artefak yang disimpan | `pca_model.joblib`, dicatat di `feature_metadata.json` dan manifest run (`pca_svd_solver`, `pca_random_state`) |
+
+### 2.8.2 HU MOMENTS — Status: DIKUNCI (menunggu implementasi & unit test — lihat Gate G2-01)
+
+| Aspek | Pengaturan final | Keputusan diambil |
+|---|---|---|
+| Input citra | Grayscale ternormalisasi (`X_train_norm`/`X_test_norm` langsung, piksel `[0,1]`) dipakai sebagai peta massa ke `HU_MOMENTS`. **Bukan** dibinerkan/Otsu. | Sesi 2026-09-22: dipilih grayscale karena mempertahankan info ketebalan stroke digit dan tidak menambah hyperparameter threshold yang belum dikunci. |
+| Fungsi ekstraksi `HU_MOMENTS(img)` | Didefinisikan penuh di 2.8.4 — raw image moments -> central moments -> 7 Hu descriptors standar (Hu, 1962). | Pseudocode fungsi ditambahkan 2026-09-22, sebelumnya black-box. |
+| Formula signed-log | `h' = -sign(h) x log10(\|h\| + epsilon)`, `epsilon = 1e-30`. Lihat `SIGNED_LOG_TRANSFORM` di 2.8.4. | Formula standar Hu Moments log-stabilization; epsilon sekecil ini hanya berpengaruh saat `h` benar-benar nol eksak. |
+| Penanganan non-finite | Jika `h'` NaN/Inf, diganti `0.0` dan dicatat sebagai `n_non_finite_hu` di `feature_metadata.json` (counter warning, bukan error yang menghentikan proses). | Selaras dengan kriteria penerimaan G2-01 ("nilai finite"). |
+| Kanal ke-8 (padding) | `hu_padding_value = 0.0` — **final, menggantikan referensi pi/2 di `noa3.ipynb`.** | BAB 1 sudah menulis 0.0 sebagai keputusan formal (RY(0) = identitas, benar-benar netral secara rotasi); `noa3.ipynb` dianggap versi lama yang belum disinkronkan. |
+| Scaler | `MinMaxScaler(0, PI)` fit hanya 7 kolom Hu asli (kolom padding dikecualikan dari fitting). | Sudah dikunci sebelumnya, tidak berubah. |
+| Clipping setelah scaling | **Tidak ada** — konsisten dengan PCA. | Sesi 2026-09-22: kebijakan clipping diseragamkan lintas ketiga `feature_method` supaya tidak jadi confound tersembunyi. |
+
+### 2.8.3 ZERNIKE MOMENTS — Status: DIKUNCI (menunggu implementasi & unit test — lihat Gate G2-02)
+
+| Aspek | Pengaturan final | Keputusan diambil |
+|---|---|---|
+| Fungsi `MAP_IMAGE_TO_UNIT_DISK(img)` | Didefinisikan di 2.8.4 — pusat = pusat geometris citra `((W-1)/2, (H-1)/2)`; radius = `MIN(H,W)/2 = 14`; piksel dengan `r > 1` (di luar disk satuan) di-mask ke `0`; tanpa interpolasi (koordinat piksel dipakai langsung). | Konvensi standar `mahotas.features.zernike_moments`, konsisten dengan eksplorasi awal (`radius=14`) di `/areas/more-hd.md`. |
+| Fungsi `EXTRACT_ZERNIKE_TERMS(...)` | Didefinisikan di 2.8.4 — piksel di luar disk sudah `0` sejak tahap mapping; magnitude `\|Z_nm\|` diambil per pasangan `(n,m)` dari hasil komputasi Zernike hingga derajat maksimum yang dibutuhkan. | Pseudocode fungsi ditambahkan 2026-09-22, sebelumnya black-box. |
+| 8 pasangan `(n,m)` | **Direvisi**: `[(2,0), (2,2), (3,1), (3,3), (4,0), (4,2), (5,1), (5,5)]`. | Sesi 2026-09-22: `(0,0)` (momen area, nyaris konstan pada citra ternormalisasi) dan `(1,1)` (terkait pusat massa, mendekati nol karena citra sudah disentralkan ke pusat disk) dibuang dan diganti derajat 5, supaya seluruh 8 dimensi berpotensi diskriminatif antar kelas digit. |
+| Magnitude | `zernike_use_magnitude = TRUE` — dikunci (pakai `\|Z_nm\|` untuk invariansi rotasi). | Tidak berubah. |
+| Scaler | `MinMaxScaler(0, PI)` fit pada seluruh 8 kolom — konsisten dengan PCA (tidak ada perlakuan khusus seperti Hu). | Tidak berubah. |
+| Clipping setelah scaling | **Tidak ada** — sama seperti Hu dan PCA. | Sesi 2026-09-22: kebijakan clipping diseragamkan lintas ketiga `feature_method`. |
+
+**Catatan penyelarasan dengan eksplorasi lama:** eksplorasi Zernike sebelumnya (`/areas/more-hd.md`) memakai skema 7 magnitude + 1 kanal padding konstan, mirip perlakuan Hu. Desain final di dokumen ini **sengaja berbeda**: Zernike menghasilkan 8 koefisien asli tanpa kanal padding (hanya Hu yang memakai interface-compromise padding), sesuai `D-01` di `MORE_HD_RESEARCH_READINESS_GATES`. BAB 1 dan FRD-09 perlu disamakan ke versi ini (lihat `D-01`, `D-03`).
+
+### 2.8.4 PSEUDOCODE FUNGSI EKSTRAKSI HU DAN ZERNIKE
+
+Sebelumnya `HU_MOMENTS`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS`
+dipanggil sebagai black-box di bagian 2 (`DATA_PIPELINE`). Berikut definisi
+pseudocode-nya, mengikuti keputusan yang dikunci di 2.8.2 dan 2.8.3.
+
+```
+FUNCTION HU_MOMENTS(img):
+    # img: array grayscale ternormalisasi (H, W), nilai piksel di [0,1].
+    # Tidak dibinerkan -- nilai piksel dipakai langsung sebagai "massa".
+    raw_moments = IMAGE_MOMENTS(img)              # m00, m10, m01, mu20, mu11, mu02, ... (central moments)
+    hu = CENTRAL_MOMENTS_TO_HU(raw_moments)        # h1..h7, formula standar Hu (1962)
+    RETURN hu   # vector panjang 7; float64; bisa sangat kecil dan bertanda
+
+
+FUNCTION SIGNED_LOG_TRANSFORM(hu_batch, epsilon):
+    # Menstabilkan dynamic range Hu Moments yang bisa sangat kecil (~1e-20) dan bertanda.
+    n_non_finite = 0
+    FOR each h IN hu_batch (elementwise):
+        h_transformed = -SIGN(h) * LOG10(ABS(h) + epsilon)
+        IF NOT IS_FINITE(h_transformed):
+            h_transformed = 0.0
+            n_non_finite = n_non_finite + 1
+
+    RECORD_COUNTER("n_non_finite_hu", n_non_finite)   # diteruskan ke feature_metadata.json
+    RETURN h_transformed_batch
+
+
+FUNCTION MAP_IMAGE_TO_UNIT_DISK(img):
+    # img: citra grayscale ternormalisasi (H, W); untuk MNIST, H = W = 28.
+    center_x, center_y = (WIDTH(img) - 1) / 2, (HEIGHT(img) - 1) / 2   # pusat geometris, BUKAN pusat massa
+    radius = MIN(HEIGHT(img), WIDTH(img)) / 2                          # = 14 untuk 28x28
+
+    masked_img = ZEROS_LIKE(img)
+    FOR each pixel (x, y) IN img:
+        r = DISTANCE((x, y), (center_x, center_y)) / radius
+        IF r <= 1.0:
+            masked_img[y][x] = img[y][x]     # tanpa interpolasi -- koordinat piksel dipakai langsung
+        # ELSE: tetap 0 (di luar disk satuan, tidak berkontribusi ke integral momen)
+
+    RETURN { "pixels": masked_img, "center": (center_x, center_y), "radius": radius }
+
+
+FUNCTION EXTRACT_ZERNIKE_TERMS(disk_image, terms, use_magnitude):
+    max_degree = MAX(n FOR (n, m) IN terms)
+
+    all_moments = COMPUTE_ZERNIKE_MOMENTS(
+        disk_image["pixels"],
+        radius = disk_image["radius"],
+        degree = max_degree,
+        center = disk_image["center"]
+    )
+    # all_moments: dict {(n,m): complex_value}, dihitung sekali hingga max_degree
+
+    result = []
+    FOR each (n, m) IN terms:
+        z = all_moments[(n, m)]
+        IF use_magnitude == TRUE:
+            result.APPEND( ABS(z) )     # |Z_nm| -- invarian rotasi
+        ELSE:
+            result.APPEND( z )
+
+    RETURN result   # vector panjang 8
+```
+
+Catatan implementasi: `IMAGE_MOMENTS` / `CENTRAL_MOMENTS_TO_HU` dan
+`COMPUTE_ZERNIKE_MOMENTS` di atas mewakili library yang dipakai saat kode
+asli ditulis (mis. `cv2.moments` + `cv2.HuMoments` untuk Hu, atau
+`mahotas.features.zernike_moments` untuk Zernike) — pemilihan library
+persis akan dikunci saat implementasi Python dimulai, bukan di tahap
+pseudocode ini.
 
 ---
 
@@ -1121,7 +1274,10 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "n_input_channels": config.n_input_channels,
 
         "pca_n_components": config.pca_n_components IF config.feature_method == "PCA" ELSE NULL,
+        "pca_svd_solver": config.pca_svd_solver IF config.feature_method == "PCA" ELSE NULL,
+        "pca_random_state": config.pca_random_state IF config.feature_method == "PCA" ELSE NULL,
         "hu_raw_dim": config.hu_raw_dim IF config.feature_method == "HU" ELSE NULL,
+        "hu_input_mode": config.hu_input_mode IF config.feature_method == "HU" ELSE NULL,
         "hu_padding_value": config.hu_padding_value IF config.feature_method == "HU" ELSE NULL,
         "zernike_terms": config.zernike_terms IF config.feature_method == "ZERNIKE" ELSE NULL,
 
@@ -1420,10 +1576,11 @@ MAIN_FROM_SELECTED_CLUSTERING(
  
 ## Hal yang Sengaja Belum Ditentukan (Perlu Keputusan Anda)
  
-Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Item yang masih terbuka untuk pilot saat ini:
+Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22. Item yang masih terbuka untuk pilot saat ini:
  
 1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat kalau `n_train_per_class` besar nanti. Untuk pilot (100 data) ini masih ringan, tapi perlu dicatat sebagai potensi bottleneck di skala penuh.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_iter_idx` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
 5. **Konsolidasi 48 spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Training hanya menghasilkan `run_result.xlsx` per-run; penggabungan akhir dilakukan setelah seluruh run yang diperlukan selesai.
+6. **Implementasi Python nyata** untuk `HU_MOMENTS`, `SIGNED_LOG_TRANSFORM`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS` (2.8.4) — pseudocode-nya sudah dikunci, tapi pemilihan library persis (`cv2`, `mahotas`, atau lainnya) dan unit test terhadap kriteria penerimaan Gate G2-01/G2-02 belum dikerjakan.
