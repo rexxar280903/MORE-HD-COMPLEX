@@ -9,7 +9,7 @@ Tujuannya untuk direview dulu sebelum implementasi asli ditulis.
  
 ```
 CONFIG
-  -> DATA_PIPELINE            (+ simpan artefak: pca, scaler_params, X/y transformed arrays)
+  -> DATA_PIPELINE            (+ simpan artefak: pca, scaler_params, X/y transformed arrays train/val/test)
   -> CORRELATION_MATRIX       (+ simpan artefak: correlation_matrix)
   -> MODEL_SETUP              (+ simpan artefak: initial_params)
   -> CLUSTERING_LOOP          (+ simpan artefak: clustering_log.jsonl, clustering_params.bin)
@@ -22,6 +22,14 @@ CONFIG
 Prinsip: setiap tahap adalah fungsi terpisah, menerima output tahap sebelumnya,
 dan langsung menuliskan artefaknya sendiri ke folder run — supaya kalau
 program berhenti di tengah, tahap sebelumnya tidak perlu diulang.
+
+**Update (G0-01, sesi 2026-09-22 — three-way split):** Pipeline sekarang membedakan
+tiga split data secara eksplisit: **train** (dipakai COBYLA untuk optimasi),
+**validation** (dipakai untuk semua monitoring pasif dan pemilihan checkpoint,
+baik di `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, maupun pemilihan manual Jalur B), dan
+**official test** (HANYA dipanggil oleh `FINAL_EVALUATION`, setelah protokol
+dibekukan). `CLUSTERING_LOOP` dan `SUPERVISED_LOOP` tidak lagi menerima
+`X_test`/`y_test` sama sekali di signature-nya — lihat bagian 2, 5, 7, 9, dan 10.
  
 **Update (crash-safe append-only log):** Parameter tiap iterasi (baik di
 `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke **satu file binary
@@ -114,13 +122,13 @@ project/
 │   └── MORE_HD_master_48runs_seed42.xlsx
 │
 └── runs/
-    ├── cls-0-1-2_ntrain100_ntest20_PCA_MORE-HD_seed42/
+    ├── cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42/
     │   ├── artifacts/
     │   ├── logs/
     │   ├── config.json
     │   └── run_result.xlsx        # salinan lokal; hanya ditulis oleh run ini
     │
-    ├── cls-0-1-2_ntrain100_ntest20_PCA_MORE-HD-C_seed42/
+    ├── cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD-C_seed42/
     │   ├── artifacts/
     │   ├── logs/
     │   ├── config.json
@@ -128,7 +136,7 @@ project/
     │
     ├── ...
     │
-    └── cls-0-1-2-3-4-5-6-7-8-9_ntrain100_ntest20_ZERNIKE_MORE-HD-C_seed42/
+    └── cls-0-1-2-3-4-5-6-7-8-9_ntrain100_nval20_ntest20_ZERNIKE_MORE-HD-C_seed42/
         ├── artifacts/
         ├── logs/
         ├── config.json
@@ -193,7 +201,13 @@ FUNCTION GENERATE_RUN_ID(classes, feature_method, architecture):
 STRUCT Config:
     classes                = [0, 1, 2]        # dipilih user; benchmark utama memakai 0..K-1 untuk K=3..10
     n_train_per_class      = 100
-    n_test_per_class       = 20
+    n_val_per_class        = 20                # DIKUNCI (G0-01, sesi 2026-09-22): secara ATURAN sama dengan
+                                                # n_test_per_class (bukan angka independen). Validation diambil
+                                                # dari POOL TRAINING (bukan pool test), disjoint dari
+                                                # n_train_per_class, dan HANYA dipakai untuk monitoring pasif /
+                                                # checkpoint selection selama CLUSTERING_LOOP dan SUPERVISED_LOOP,
+                                                # serta untuk pemilihan manual di Jalur B.
+    n_test_per_class       = 20                # official test -- TIDAK diakses sebelum FINAL_EVALUATION (G0-01)
     n_iter_clustering      = 10
     n_iter_supervised      = 10
 
@@ -235,19 +249,20 @@ STRUCT Config:
     run_id = GENERATE_RUN_ID(classes, feature_method, architecture)
 
     run_name = AUTO_GENERATE(
-        classes, n_train_per_class, n_test_per_class,
+        classes, n_train_per_class, n_val_per_class, n_test_per_class,
         architecture, feature_method, seed
     )
     run_dir = "runs/" + run_name
     local_spreadsheet_path = run_dir + "/" + LOCAL_RUN_SPREADSHEET_NAME
 
 
-FUNCTION AUTO_GENERATE(classes, n_train, n_test, architecture, feature_method, seed):
+FUNCTION AUTO_GENERATE(classes, n_train, n_val, n_test, architecture, feature_method, seed):
     # contoh:
-    # cls-0-1-2_ntrain100_ntest20_PCA_MORE-HD_seed42
-    # cls-0-1-2_ntrain100_ntest20_HU_MORE-HD-C_seed42
+    # cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42
+    # cls-0-1-2_ntrain100_nval20_ntest20_HU_MORE-HD-C_seed42
     RETURN "cls-" + JOIN(classes, "-") +
            "_ntrain" + n_train +
+           "_nval" + n_val +
            "_ntest" + n_test +
            "_" + feature_method +
            "_" + architecture +
@@ -263,6 +278,9 @@ FUNCTION VALIDATE_CONFIG(config):
 
     IF config.n_data_qubits != 8 OR config.n_input_channels != 8:
         RAISE_ERROR("eksperimen utama mengunci interface input pada 8 channel / 8 data qubit")
+
+    IF config.n_val_per_class <= 0:
+        RAISE_ERROR("n_val_per_class harus lebih besar dari 0 -- validation wajib ada untuk G0-01")
 
     IF LENGTH(config.classes) < 3 OR LENGTH(config.classes) > 10:
         PRINT_WARNING("benchmark utama dirancang untuk 3 sampai 10 kelas")
@@ -344,7 +362,7 @@ deterministik terlepas dari urutan pemanggilan fungsi.
  
 ## 2. DATA PIPELINE
 
-Semua metode representasi harus berakhir pada matriks fitur berukuran `(N, 8)` supaya sirkuit kuantum tetap identik lintas metode. Perbedaan hanya terjadi pada cara membentuk representasi fitur sebelum scaling ke `[0, PI]`.
+Semua metode representasi harus berakhir pada matriks fitur berukuran `(N, 8)` supaya sirkuit kuantum tetap identik lintas metode. Perbedaan hanya terjadi pada cara membentuk representasi fitur sebelum scaling ke `[0, PI]`. Sejak revisi G0-01 (sesi 2026-09-22), fungsi ini menghasilkan **tiga** split -- train, validation, dan official test -- bukan dua.
 
 ```
 FUNCTION DATA_PIPELINE(config):
@@ -371,22 +389,38 @@ FUNCTION DATA_PIPELINE(config):
             download=FALSE
         )
 
-    # 2.2 Filter kelas dan sampling -- aturan sama untuk semua feature_method
+    # 2.2 Filter kelas dan sampling -- tiga split: train, validation, official test (G0-01, sesi 2026-09-22)
+    # Train dan validation SAMA-SAMA berasal dari mnist_train_raw; validation WAJIB disjoint
+    # dari train (exclude eksplisit setelah sampling train, bukan sampling independen dari pool
+    # penuh, supaya tidak ada satu sampel pun yang bocor ke dua split sekaligus).
+    # Official test berasal dari mnist_test_raw asli, sumber terpisah total, dan TIDAK diakses
+    # oleh CLUSTERING_LOOP, SUPERVISED_LOOP, maupun Jalur B -- hanya oleh FINAL_EVALUATION.
     X_train_img, y_train = FILTER_AND_SAMPLE(
         mnist_train_raw, classes=config.classes, n_per_class=config.n_train_per_class
     )
+
+    mnist_train_pool_sisa = EXCLUDE_SAMPLED(
+        mnist_train_raw, already_sampled_indices=INDICES_OF(X_train_img)
+    )
+    X_val_img, y_val = FILTER_AND_SAMPLE(
+        mnist_train_pool_sisa, classes=config.classes, n_per_class=config.n_val_per_class
+    )
+    ASSERT NO_OVERLAP(INDICES_OF(X_train_img), INDICES_OF(X_val_img))
+
     X_test_img, y_test = FILTER_AND_SAMPLE(
         mnist_test_raw, classes=config.classes, n_per_class=config.n_test_per_class
     )
 
     # 2.3 Normalisasi citra ke [0,1] -- common preprocessing
     X_train_norm = NORMALIZE_PIXELS(X_train_img, range=[0,1])
+    X_val_norm   = NORMALIZE_PIXELS(X_val_img,   range=[0,1])
     X_test_norm  = NORMALIZE_PIXELS(X_test_img,  range=[0,1])
 
     # 2.4 Ekstraksi / reduksi fitur menurut metode yang dipilih user
     IF config.feature_method == "PCA":
         # PCA bersifat data-driven: FIT hanya pada train
         X_train_flat = FLATTEN_IMAGES(X_train_norm)      # (N, 784)
+        X_val_flat   = FLATTEN_IMAGES(X_val_norm)
         X_test_flat  = FLATTEN_IMAGES(X_test_norm)
 
         feature_model = FIT_PCA(
@@ -396,14 +430,15 @@ FUNCTION DATA_PIPELINE(config):
             random_state=config.pca_random_state
         )
         X_train_feat = feature_model.TRANSFORM(X_train_flat)
+        X_val_feat   = feature_model.TRANSFORM(X_val_flat)
         X_test_feat  = feature_model.TRANSFORM(X_test_flat)
         # shape akhir sebelum scaler: (N, 8)
         # Catatan: svd_solver="auto" pada sklearn kemungkinan memilih randomized SVD
         # untuk n_components=8 << 784 dimensi; determinisme tetap terjaga karena
         # random_state dikunci = config.seed (mengikuti kode referensi noa3.ipynb).
         # Tidak ada clipping eksplisit yang diterapkan setelah scaling untuk PCA --
-        # X_test_scaled boleh sedikit keluar dari [0, PI] akibat proyeksi test di
-        # luar rentang train, konsisten dengan kode referensi tersebut.
+        # X_val_scaled dan X_test_scaled boleh sedikit keluar dari [0, PI] akibat
+        # proyeksi val/test di luar rentang train, konsisten dengan kode referensi tersebut.
 
         SAVE(feature_model, config.run_dir + "/artifacts/pca_model.joblib")
 
@@ -413,15 +448,20 @@ FUNCTION DATA_PIPELINE(config):
         # BUKAN dibinerkan/Otsu -- lihat 2.8.2.
         # Dihitung langsung per gambar -> tepat 7 descriptor.
         X_train_hu7 = [HU_MOMENTS(img) FOR img IN X_train_norm]
+        X_val_hu7   = [HU_MOMENTS(img) FOR img IN X_val_norm]
         X_test_hu7  = [HU_MOMENTS(img) FOR img IN X_test_norm]
 
         IF config.hu_use_signed_log == TRUE:
             X_train_hu7 = SIGNED_LOG_TRANSFORM(X_train_hu7, epsilon=config.hu_signed_log_epsilon)
+            X_val_hu7   = SIGNED_LOG_TRANSFORM(X_val_hu7,   epsilon=config.hu_signed_log_epsilon)
             X_test_hu7  = SIGNED_LOG_TRANSFORM(X_test_hu7,  epsilon=config.hu_signed_log_epsilon)
 
         # Tambahkan SATU kanal netral; bukan Hu moment ke-8.
         X_train_feat = APPEND_CONSTANT_COLUMN(
             X_train_hu7, value=config.hu_padding_value
+        )
+        X_val_feat = APPEND_CONSTANT_COLUMN(
+            X_val_hu7, value=config.hu_padding_value
         )
         X_test_feat = APPEND_CONSTANT_COLUMN(
             X_test_hu7, value=config.hu_padding_value
@@ -432,6 +472,7 @@ FUNCTION DATA_PIPELINE(config):
         # Zernike juga tidak di-fit ke data.
         # Semua gambar dipetakan ke disk satuan dengan prosedur identik.
         X_train_disk = [MAP_IMAGE_TO_UNIT_DISK(img) FOR img IN X_train_norm]
+        X_val_disk   = [MAP_IMAGE_TO_UNIT_DISK(img) FOR img IN X_val_norm]
         X_test_disk  = [MAP_IMAGE_TO_UNIT_DISK(img) FOR img IN X_test_norm]
 
         X_train_feat = [
@@ -440,6 +481,13 @@ FUNCTION DATA_PIPELINE(config):
                 use_magnitude=config.zernike_use_magnitude
             )
             FOR img IN X_train_disk
+        ]
+        X_val_feat = [
+            EXTRACT_ZERNIKE_TERMS(
+                img, terms=config.zernike_terms,
+                use_magnitude=config.zernike_use_magnitude
+            )
+            FOR img IN X_val_disk
         ]
         X_test_feat = [
             EXTRACT_ZERNIKE_TERMS(
@@ -454,29 +502,34 @@ FUNCTION DATA_PIPELINE(config):
         RAISE_ERROR("feature_method tidak dikenali")
 
     ASSERT NUM_COLUMNS(X_train_feat) == config.n_input_channels
+    ASSERT NUM_COLUMNS(X_val_feat)   == config.n_input_channels
     ASSERT NUM_COLUMNS(X_test_feat)  == config.n_input_channels
 
     # 2.5 Scaling akhir ke sudut quantum encoding.
-    # FIT scaler HANYA pada TRAIN untuk SEMUA metode.
+    # FIT scaler HANYA pada TRAIN untuk SEMUA metode -- val dan test sama-sama
+    # hanya di-TRANSFORM, tidak pernah ikut fitting (G0-01 / G2-03).
     # Penting: pada HU, kolom padding netral TIDAK diikutkan ke fitting scaler.
     IF config.feature_method == "HU":
         scaler_params = FIT_MINMAX(
             X_train_feat[:, 0:7], range=[0, PI]
         )
         X_train_scaled7 = scaler_params.TRANSFORM(X_train_feat[:, 0:7])
+        X_val_scaled7   = scaler_params.TRANSFORM(X_val_feat[:, 0:7])
         X_test_scaled7  = scaler_params.TRANSFORM(X_test_feat[:, 0:7])
 
         X_train_scaled = APPEND_CONSTANT_COLUMN(X_train_scaled7, value=0.0)
+        X_val_scaled   = APPEND_CONSTANT_COLUMN(X_val_scaled7,   value=0.0)
         X_test_scaled  = APPEND_CONSTANT_COLUMN(X_test_scaled7,  value=0.0)
     ELSE:
         scaler_params = FIT_MINMAX(X_train_feat, range=[0, PI])
         X_train_scaled = scaler_params.TRANSFORM(X_train_feat)
-        X_test_scaled = scaler_params.TRANSFORM(X_test_feat)
+        X_val_scaled   = scaler_params.TRANSFORM(X_val_feat)
+        X_test_scaled  = scaler_params.TRANSFORM(X_test_feat)
 
     # 2.5.1 Kebijakan clipping -- DIKUNCI SERAGAM untuk ketiga feature_method:
     # TIDAK ADA clipping eksplisit setelah scaling (PCA, HU, ZERNIKE semua sama).
-    # X_test_scaled boleh sedikit keluar dari [0, PI] akibat proyeksi/rentang
-    # test yang berbeda dari train. Ini keputusan sadar supaya feature_method
+    # X_val_scaled / X_test_scaled boleh sedikit keluar dari [0, PI] akibat proyeksi/rentang
+    # val/test yang berbeda dari train. Ini keputusan sadar supaya feature_method
     # tidak jadi confound tersembunyi lewat perlakuan clipping yang berbeda-beda.
 
     # 2.6 Simpan artefak preprocessing
@@ -504,10 +557,12 @@ FUNCTION DATA_PIPELINE(config):
     # 2.7 Simpan array final yang benar-benar diberikan ke circuit
     SAVE(X_train_scaled, config.run_dir + "/artifacts/X_train_scaled.npy")
     SAVE(y_train,        config.run_dir + "/artifacts/y_train.npy")
+    SAVE(X_val_scaled,   config.run_dir + "/artifacts/X_val_scaled.npy")
+    SAVE(y_val,          config.run_dir + "/artifacts/y_val.npy")
     SAVE(X_test_scaled,  config.run_dir + "/artifacts/X_test_scaled.npy")
     SAVE(y_test,         config.run_dir + "/artifacts/y_test.npy")
 
-    RETURN X_train_scaled, y_train, X_test_scaled, y_test
+    RETURN X_train_scaled, y_train, X_val_scaled, y_val, X_test_scaled, y_test
 ```
 
 Catatan metodologis:
@@ -517,6 +572,8 @@ Catatan metodologis:
 - Kanal ke-8 Hu adalah kanal netral `0.0`, sehingga angle encoding pada qubit ke-8 adalah `RY(0)`. Kanal ini tidak dianggap sebagai Hu Moment baru.
 - Kebijakan clipping (2.5.1) sudah diseragamkan: tidak ada clipping untuk PCA, HU, maupun ZERNIKE.
 - `feature_method` memengaruhi juga matriks korelasi `S`, karena `CORRELATION_MATRIX` menerima `X_train_scaled` dari representasi yang dipilih.
+- **Validation** (`X_val_scaled`, `y_val`) diambil dari pool `mnist_train_raw`, disjoint dari train, BUKAN dipotong dari pool test. Validation dipakai untuk semua monitoring/checkpoint selection selama `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, dan pemilihan manual Jalur B (G0-01, sesi 2026-09-22).
+- **Official test** (`X_test_scaled`, `y_test`) hanya boleh dipanggil oleh `FINAL_EVALUATION`. `DATA_PIPELINE` tetap men-load dan menyimpan array test di sini (2.7) karena fungsi ini dijalankan sekali per run, tapi tidak ada pemanggilan `circuit_fn` atau perhitungan metrik apa pun terhadap `X_test_scaled`/`y_test` sebelum `FINAL_EVALUATION` dipanggil.
 
 ---
 
@@ -538,9 +595,9 @@ implementasi kode nyata + unit test sebelum Gate G2-01/G2-02 bisa ditutup
 | Jumlah komponen | `pca_n_components = 8` |
 | `svd_solver` | `"auto"` (default sklearn; untuk `n_components=8 << 784` kemungkinan besar memilih randomized SVD) |
 | `random_state` | `42` (= `config.seed`), menjaga determinisme meski solver randomized |
-| Fit | Hanya pada train (`fit_transform` di train, `transform` di test) — tidak ada data leakage |
+| Fit | Hanya pada train (`fit_transform` di train, `transform` di val dan test) — tidak ada data leakage |
 | Scaler akhir | `MinMaxScaler(feature_range=(0, PI))`, di-fit hanya pada `X_train_pca` |
-| Clipping setelah scaling | **Tidak ada.** `X_test_scaled` boleh sedikit keluar dari `[0, PI]` akibat proyeksi test di luar rentang train |
+| Clipping setelah scaling | **Tidak ada.** `X_val_scaled`/`X_test_scaled` boleh sedikit keluar dari `[0, PI]` akibat proyeksi val/test di luar rentang train |
 | Sumber keputusan | Disamakan dengan kode referensi `noa3.ipynb` |
 | Artefak yang disimpan | `pca_model.joblib`, dicatat di `feature_metadata.json` dan manifest run (`pca_svd_solver`, `pca_random_state`) |
 
@@ -548,7 +605,7 @@ implementasi kode nyata + unit test sebelum Gate G2-01/G2-02 bisa ditutup
 
 | Aspek | Pengaturan final | Keputusan diambil |
 |---|---|---|
-| Input citra | Grayscale ternormalisasi (`X_train_norm`/`X_test_norm` langsung, piksel `[0,1]`) dipakai sebagai peta massa ke `HU_MOMENTS`. **Bukan** dibinerkan/Otsu. | Sesi 2026-09-22: dipilih grayscale karena mempertahankan info ketebalan stroke digit dan tidak menambah hyperparameter threshold yang belum dikunci. |
+| Input citra | Grayscale ternormalisasi (`X_train_norm`/`X_val_norm`/`X_test_norm` langsung, piksel `[0,1]`) dipakai sebagai peta massa ke `HU_MOMENTS`. **Bukan** dibinerkan/Otsu. | Sesi 2026-09-22: dipilih grayscale karena mempertahankan info ketebalan stroke digit dan tidak menambah hyperparameter threshold yang belum dikunci. |
 | Fungsi ekstraksi `HU_MOMENTS(img)` | Didefinisikan penuh di 2.8.4 — raw image moments -> central moments -> 7 Hu descriptors standar (Hu, 1962). | Pseudocode fungsi ditambahkan 2026-09-22, sebelumnya black-box. |
 | Formula signed-log | `h' = -sign(h) x log10(\|h\| + epsilon)`, `epsilon = 1e-30`. Lihat `SIGNED_LOG_TRANSFORM` di 2.8.4. | Formula standar Hu Moments log-stabilization; epsilon sekecil ini hanya berpengaruh saat `h` benar-benar nol eksak. |
 | Penanganan non-finite | Jika `h'` NaN/Inf, diganti `0.0` dan dicatat sebagai `n_non_finite_hu` di `feature_metadata.json` (counter warning, bukan error yang menghentikan proses). | Selaras dengan kriteria penerimaan G2-01 ("nilai finite"). |
@@ -910,9 +967,16 @@ Tujuan tahap ini: melatih parameter agar *output* sirkuit dari kelas yang sama
 saling berdekatan, dan kelas berbeda saling menjauh — **bukan** untuk
 meminimalkan "loss test", makanya evaluasi generalisasinya diganti jadi
 cek struktur centroid (pseudo-accuracy + margin), bukan angka loss test.
+
+**G0-01 (sesi 2026-09-22):** fungsi ini hanya menerima `X_val`/`y_val`, TIDAK
+`X_test`/`y_test` sama sekali — bukan cuma "tidak dipakai untuk optimasi",
+tapi benar-benar tidak ada akses ke official test di dalam fungsi ini,
+termasuk untuk logging pasif. Cek generalisasi di langkah (c) di bawah
+memakai validation set, yang disjoint dari train tapi tetap terpisah dari
+official test.
  
 ```
-FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_test, y_test, S, config):
+FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_val, S, config):
     SET_RANDOM_SEED(config.seed)
  
     # 5.1 Bangun dataset pasangan untuk training (ambil subset kecil per kelas, dikombinasikan)
@@ -947,10 +1011,11 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_test, y
             temp_centroids[c] = MEAN(outputs_c)
             temp_centroids[c] = NORMALIZE_VECTOR(temp_centroids[c])   # jadi unit vector
  
-        # --- (c) proyeksikan TEST set ke centroid sementara -> cek generalisasi (PASIF, tidak masuk optimasi) ---
+        # --- (c) proyeksikan VALIDATION set ke centroid sementara -> cek generalisasi (PASIF, tidak masuk optimasi) ---
+        # G0-01: X_val/y_val, BUKAN official test -- lihat catatan di atas fungsi ini.
         correct = 0
         margins = []
-        FOR each (x, true_class) IN ZIP(X_test, y_test):
+        FOR each (x, true_class) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
             distances = { c: COSINE_DISTANCE(v, temp_centroids[c]) FOR c IN config.classes }
             predicted_class = ARGMIN(distances)
@@ -960,8 +1025,8 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_test, y
             dist_other = MIN(distances[c] FOR c IN config.classes IF c != true_class)
             margins.APPEND(dist_other - dist_true)     # positif = aman, negatif = rawan salah
  
-        pseudo_accuracy_test = correct / LENGTH(X_test)
-        avg_margin_test      = MEAN(margins)
+        pseudo_accuracy_val = correct / LENGTH(X_val)
+        avg_margin_val      = MEAN(margins)
  
         # --- (d) metrik struktur label kuantum sementara ---
         min_separation = MIN( COSINE_DISTANCE(temp_centroids[a], temp_centroids[b])
@@ -982,8 +1047,8 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_test, y
         log_entry = {
             "iter": iter_idx,
             "train_loss": train_loss,
-            "pseudo_accuracy_test": pseudo_accuracy_test,
-            "avg_margin_test": avg_margin_test,
+            "pseudo_accuracy_val": pseudo_accuracy_val,
+            "avg_margin_val": avg_margin_val,
             "min_separation": min_separation,
             "correlation_consistency": correlation_consistency,
             "active_dimensions": active_dimensions
@@ -1024,17 +1089,22 @@ berbeda — berikut rinciannya:
 | Metrik | Fungsi (untuk apa dipakai) | Satuan / Rentang Nilai |
 |---|---|---|
 | `train_loss` | Arah optimasi utama yang dibaca COBYLA — mengukur seberapa jauh output kelas berbeda sudah saling menjauh dan output kelas sama sudah saling mendekat, dikalikan bobot dari matriks korelasi. Ini satu-satunya nilai yang benar-benar dipakai optimizer, sisanya cuma dicatat (pasif). | Skalar tak berdimensi, hasil dari `-S_ij × cosine_distance`. Karena pasangan antar-kelas (S positif) jauh lebih banyak dari pasangan sekelas (S = -1), nilainya biasanya **negatif** dan bergerak makin negatif seiring training (konsisten dengan pola di skripsi lama). |
-| `pseudo_accuracy_test` | Pengganti "test_loss" — cek apakah struktur centroid yang baru terbentuk di iterasi ini mampu memisahkan data test (belum pernah dilihat) dengan benar. Ini proxy generalisasi paling langsung, karena tujuan clustering memang membentuk centroid yang terpisah, bukan menurunkan angka loss semata. | Proporsi, rentang **0 sampai 1** (bisa ditampilkan sebagai persen, misal 0,72 → 72%). Semakin dekat 1 semakin baik. |
-| `avg_margin_test` | Mengukur seberapa "aman" jarak data test ke centroid kelas yang benar dibanding ke centroid kelas pengganggu terdekat. Berguna untuk melihat tren kepercayaan model, bahkan sebelum prediksi benar-benar salah (margin bisa mulai mengecil sebagai sinyal dini sebelum akurasi ikut turun). | Selisih dua cosine distance, jadi rentang teoretis **-2 sampai +2**. Positif = aman (jarak ke kelas benar lebih dekat dari kelas pengganggu), negatif = rawan salah klasifikasi. |
+| `pseudo_accuracy_val` | Pengganti "test_loss" — cek apakah struktur centroid yang baru terbentuk di iterasi ini mampu memisahkan data **validation** (belum pernah dilihat oleh optimasi) dengan benar. Ini proxy generalisasi paling langsung, karena tujuan clustering memang membentuk centroid yang terpisah, bukan menurunkan angka loss semata. Dihitung dari validation, BUKAN official test (G0-01). | Proporsi, rentang **0 sampai 1** (bisa ditampilkan sebagai persen, misal 0,72 → 72%). Semakin dekat 1 semakin baik. |
+| `avg_margin_val` | Mengukur seberapa "aman" jarak data **validation** ke centroid kelas yang benar dibanding ke centroid kelas pengganggu terdekat. Berguna untuk melihat tren kepercayaan model, bahkan sebelum prediksi benar-benar salah (margin bisa mulai mengecil sebagai sinyal dini sebelum akurasi ikut turun). | Selisih dua cosine distance, jadi rentang teoretis **-2 sampai +2**. Positif = aman (jarak ke kelas benar lebih dekat dari kelas pengganggu), negatif = rawan salah klasifikasi. |
 | `min_separation` | Mendeteksi dini kemunculan *curse of density* — mengambil jarak cosine **terkecil** di antara seluruh pasangan centroid kelas pada iterasi tersebut. Kalau angka ini terus mengecil mendekati 0 seiring iterasi, itu tanda dua kelas mulai berhimpitan. | Cosine distance, rentang **0 sampai 2**. Semakin kecil semakin berisiko (0 = dua centroid nyaris berhimpit sempurna). |
 | `correlation_consistency` | Validasi apakah urutan jarak antar centroid yang dihasilkan model **sesuai** dengan urutan yang "direncanakan" lewat matriks korelasi S (dulu di skripsi lama ini dicek manual dengan membaca tabel satu-satu — sekarang diringkas jadi satu angka). | Koefisien korelasi Spearman, rentang **-1 sampai +1**. Mendekati +1 = urutan jarak label kuantum sangat sesuai matriks korelasi; mendekati 0 atau negatif = pemetaan gagal mengikuti rencana. |
 | `active_dimensions` | Metrik khusus untuk riset MORE-HD-C — menghitung berapa dari 15 dimensi output yang benar-benar bernilai signifikan (bukan nol/noise numerik) pada centroid kelas, memakai `config.active_dim_threshold`. Ini yang langsung menjawab apakah modifikasi ansatz (V1/V2/V3) berhasil mengaktifkan dimensi yang tadinya mati di MORE-HD. | Cacah (bilangan bulat), rentang **0 sampai 15**. Baseline MORE-HD idealnya menunjukkan ~9; kalau varian kompleks berhasil, angka ini harus naik mendekati 15. |
  
 Enam metrik ini sengaja dipantau **bersamaan setiap iterasi** (bukan hanya di akhir),
 supaya kalau nanti dilihat trennya sebagai grafik, kita bisa amati misalnya:
-apakah `active_dimensions` sudah naik duluan sebelum `pseudo_accuracy_test` ikut naik,
+apakah `active_dimensions` sudah naik duluan sebelum `pseudo_accuracy_val` ikut naik,
 atau apakah `min_separation` mulai turun tajam justru saat `train_loss` masih terlihat membaik
 (indikasi *curse of density* yang tidak akan terlihat kalau cuma memantau train_loss saja).
+
+Kelima metrik pasif ini (semua kecuali `train_loss`) dihitung dari **validation**,
+bukan official test — inilah yang membuat `CLUSTERING_LOOP` patuh terhadap G0-01
+sekaligus tetap punya sinyal generalisasi untuk dianalisis pasca-training, termasuk
+untuk pemilihan manual di Jalur B (bagian 10).
  
 ---
  
@@ -1063,13 +1133,18 @@ sendiri tidak tahu dan tidak perlu tahu sumbernya.
  
 ## 7. SUPERVISED LOOP
  
-Berbeda dari clustering: di sini **train_loss dan test_loss tetap dipakai**
+Berbeda dari clustering: di sini **train_loss dan val_loss tetap dipakai**
 karena keduanya langsung relevan — loss memang didefinisikan sebagai jarak
-ke target label kuantum, sama persis makna di train dan di test.
+ke target label kuantum, sama persis maknanya di train dan di validation.
+
+**G0-01 (sesi 2026-09-22):** fungsi ini hanya menerima `X_val`/`y_val` untuk
+monitoring, TIDAK `X_test`/`y_test`. Official test tidak diakses di sini
+sama sekali — baru dipanggil oleh `FINAL_EVALUATION` setelah fungsi ini
+selesai (baik dari Jalur A maupun Jalur B).
  
 ```
 FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
-                          X_train, y_train, X_test, y_test, config):
+                          X_train, y_train, X_val, y_val, config):
  
     n_recorded_iters = 0
     CREATE_EMPTY_BINARY_LOG(run_dir + "/artifacts/supervised_params.bin", record_size = SIZEOF(trained_params_clustering))
@@ -1086,12 +1161,12 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
             train_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
         train_loss = MEAN(train_losses)
  
-        # --- test loss (pasif, tidak memengaruhi arah optimasi) ---
-        test_losses = []
-        FOR each (x, c) IN ZIP(X_test, y_test):
+        # --- val loss (pasif, tidak memengaruhi arah optimasi; G0-01: BUKAN official test) ---
+        val_losses = []
+        FOR each (x, c) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
-            test_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
-        test_loss = MEAN(test_losses)
+            val_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
+        val_loss = MEAN(val_losses)
  
         # --- tulis parameter iterasi ini LANGSUNG ke log binary append-only ---
         APPEND_PARAM_RECORD(run_dir + "/artifacts/supervised_params.bin", theta)
@@ -1100,7 +1175,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         log_entry = {
             "iter": iter_idx,
             "train_loss": train_loss,
-            "test_loss": test_loss
+            "val_loss": val_loss
         }
         APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))   # <- ditulis SEKARANG
  
@@ -1127,6 +1202,12 @@ argumen (lihat bagian 10), bukan di logika `SUPERVISED_LOOP` itu sendiri.
 ---
  
 ## 8. FINAL EVALUATION
+
+**G0-01 (sesi 2026-09-22):** ini SATU-SATUNYA fungsi dalam seluruh pipeline
+yang boleh memanggil `circuit_fn` terhadap `X_test`/`y_test`. Baik Jalur A
+maupun Jalur B memanggil fungsi ini persis sekali, di akhir, setelah
+`SUPERVISED_LOOP` selesai — sesuai dengan definisi "protokol dibekukan"
+pada kriteria penerimaan G0-01.
  
 ```
 FUNCTION FINAL_EVALUATION(circuit_fn, trained_params_final, quantum_labels, X_test, y_test, config):
@@ -1166,6 +1247,7 @@ secara terpisah. Input utama yang ditetapkan untuk setiap run adalah:
 
 - `classes`
 - `n_train_per_class`
+- `n_val_per_class`
 - `n_test_per_class`
 - `n_iter_clustering`
 - `n_iter_supervised`
@@ -1190,26 +1272,29 @@ FUNCTION MAIN(config):
     # Master spreadsheet tidak pernah ditulis langsung oleh proses training.
     INITIALIZE_LOCAL_RUN_SPREADSHEET(config)
 
-    X_train, y_train, X_test, y_test = DATA_PIPELINE(config)
+    X_train, y_train, X_val, y_val, X_test, y_test = DATA_PIPELINE(config)
 
-    # S dihitung dari representasi fitur milik run ini
+    # S dihitung dari representasi fitur milik run ini (train saja)
     S = CORRELATION_MATRIX(X_train, y_train, config.classes)
 
     circuit_fn, initial_params = MODEL_SETUP(config)
 
+    # G0-01: CLUSTERING_LOOP menerima X_val/y_val, BUKAN X_test/y_test.
     params_after_clustering = CLUSTERING_LOOP(
-        circuit_fn, initial_params, X_train, y_train, X_test, y_test, S, config
+        circuit_fn, initial_params, X_train, y_train, X_val, y_val, S, config
     )
 
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
         circuit_fn, params_after_clustering, X_train, y_train, config
     )
 
+    # G0-01: SUPERVISED_LOOP menerima X_val/y_val untuk monitoring, BUKAN test.
     params_final = SUPERVISED_LOOP(
         circuit_fn, params_after_clustering, quantum_labels,
-        X_train, y_train, X_test, y_test, config
+        X_train, y_train, X_val, y_val, config
     )
 
+    # G0-01: satu-satunya pemanggilan yang menyentuh official test di seluruh Jalur A.
     metrics, confusion_matrix = FINAL_EVALUATION(
         circuit_fn, params_final, quantum_labels, X_test, y_test, config
     )
@@ -1235,6 +1320,8 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "scaler_params": "artifacts/scaler_params.joblib",
         "X_train_scaled": "artifacts/X_train_scaled.npy",
         "y_train": "artifacts/y_train.npy",
+        "X_val_scaled": "artifacts/X_val_scaled.npy",
+        "y_val": "artifacts/y_val.npy",
         "X_test_scaled": "artifacts/X_test_scaled.npy",
         "y_test": "artifacts/y_test.npy",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
@@ -1263,6 +1350,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "classes": config.classes,
         "n_classes": LENGTH(config.classes),
         "n_train_per_class": config.n_train_per_class,
+        "n_val_per_class": config.n_val_per_class,
         "n_test_per_class": config.n_test_per_class,
         "n_iter_clustering": config.n_iter_clustering,
         "n_iter_supervised": config.n_iter_supervised,
@@ -1306,6 +1394,7 @@ dipanggil.
 config_user = Config(
     classes=[0,1,2],
     n_train_per_class=100,
+    n_val_per_class=20,
     n_test_per_class=20,
     n_iter_clustering=10,
     n_iter_supervised=10,
@@ -1321,7 +1410,7 @@ MAIN(config_user)
 Run tersebut akan mempunyai identitas unik, misalnya:
 
 ```
-cls-0-1-2_ntrain100_ntest20_PCA_MORE-HD_seed42
+cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42
 ```
 
 Pilot pertama dapat sekaligus menjadi run resmi `R001` apabila konfigurasi dan jumlah iterasinya memang sudah final. Setelah MNIST selesai diunduh dan pipeline telah tervalidasi, semua run berikutnya memakai:
@@ -1398,25 +1487,45 @@ memakai `theta` dari iterasi pilihan manual.
  
 **Prinsip apple-to-apple:** satu-satunya variabel yang berbeda antara
 Jalur A dan Jalur B adalah `theta` mana yang dipakai sebagai output
-clustering. Data train/test, matriks korelasi, arsitektur sirkuit, dan
+clustering. Data train/validation/test, matriks korelasi, arsitektur sirkuit, dan
 seluruh tahap supervised+evaluasi harus identik — makanya Jalur B memuat
 `X_train_scaled.npy` dkk. langsung dari `source_run_dir` (bagian 2.7),
 bukan menjalankan ulang `DATA_PIPELINE` yang bergantung pada asumsi
 determinisme sampling ulang.
+
+**Kriteria pemilihan manual (dikunci sesi 2026-09-22, G0-01):**
+`selected_iter_idx` dipilih oleh Ken melalui inspeksi visual/tabular
+terhadap `clustering_log.jsonl` milik run sumber — membaca kombinasi
+`min_separation`, `correlation_consistency`, `active_dimensions`,
+`avg_margin_val`, dan `pseudo_accuracy_val` per iterasi, lalu memilih
+iterasi yang menurut penilaiannya paling baik secara struktural. Tidak
+ada rumus/skor otomatis; ini murni judgment call manusia berdasarkan
+metrik train/validation di atas. **Official test tidak pernah dilihat
+sebagai bagian dari proses pemilihan ini.**
+
+**Catatan status G0-02 (FLAG, belum terselesaikan):** kriteria penerimaan
+G0-02 pada `MORE_HD_RESEARCH_READINESS_GATES` meminta "fungsi pemilihan
+OTOMATIS ... menghasilkan keputusan yang sama untuk input yang sama" —
+ini secara eksplisit bertentangan dengan keputusan pemilihan manual di
+atas. Revisi ini TIDAK menutup (CLOSE) G0-02; statusnya tetap terbuka
+sebagai keputusan metodologis yang perlu disepakati ulang sebelum Gate A
+(generate kode utama) ditutup — lihat log keputusan di
+`MORE_HD_RESEARCH_READINESS_GATES`.
  
 **Input manual dari pengguna, dua-duanya:**
  
 1. `selected_iter_idx` — nomor iterasi clustering yang dipilih setelah
-   membaca `clustering_log.jsonl` milik run sumber.
+   membaca `clustering_log.jsonl` milik run sumber, berdasarkan kriteria
+   di atas.
 2. `n_iter_supervised` — jumlah iterasi supervised untuk run Jalur B ini,
    diinput manual per klasifikasi kelas (tidak mewarisi begitu saja nilai
    `n_iter_supervised` dari run sumber, karena Jalur B bisa dipakai untuk
    mencoba durasi fine-tuning yang berbeda).
-Konfigurasi lain (`classes`, `n_train_per_class`, `n_test_per_class`,
-`architecture`, `seed`, `cobyla_tol`, dst.) **diwarisi otomatis** dari
-manifest run sumber (`config.json`) — tidak diinput ulang, supaya tidak
-ada celah salah ketik yang membuat Jalur B diam-diam tidak apple-to-apple
-lagi dengan Jalur A.
+Konfigurasi lain (`classes`, `n_train_per_class`, `n_val_per_class`,
+`n_test_per_class`, `architecture`, `seed`, `cobyla_tol`, dst.) **diwarisi
+otomatis** dari manifest run sumber (`config.json`) — tidak diinput ulang,
+supaya tidak ada celah salah ketik yang membuat Jalur B diam-diam tidak
+apple-to-apple lagi dengan Jalur A.
  
 Tidak ada penyalinan artefak besar (`X_*.npy`, `pca_model.joblib` (jika PCA), `feature_metadata.json`, dsb.)
 ke folder run Jalur B — semuanya dibaca langsung dari `source_run_dir`.
@@ -1434,6 +1543,7 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter
     config = Config(
         classes                = source_manifest.classes,
         n_train_per_class      = source_manifest.n_train_per_class,
+        n_val_per_class        = source_manifest.n_val_per_class,
         n_test_per_class       = source_manifest.n_test_per_class,
         n_iter_clustering      = source_manifest.n_iter_clustering,   # dicatat saja, tidak dipakai ulang di sini
         n_iter_supervised      = n_iter_supervised,                    # <- INPUT MANUAL #2
@@ -1467,8 +1577,12 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter
         # TIDAK RAISE_ERROR -- proses tetap lanjut ke langkah berikutnya sesuai keputusan pengguna
  
     # === 3. Muat LANGSUNG array data yang sudah ditransformasi (tanpa re-run DATA_PIPELINE) ===
+    # G0-01: X_test_scaled/y_test dimuat di sini agar tersedia untuk FINAL_EVALUATION di
+    # langkah 6, TAPI tidak diakses/dihitung apa pun sebelum pemanggilan itu.
     X_train_scaled = LOAD(source_run_dir + "/artifacts/X_train_scaled.npy")
     y_train        = LOAD(source_run_dir + "/artifacts/y_train.npy")
+    X_val_scaled   = LOAD(source_run_dir + "/artifacts/X_val_scaled.npy")
+    y_val          = LOAD(source_run_dir + "/artifacts/y_val.npy")
     X_test_scaled  = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
     y_test         = LOAD(source_run_dir + "/artifacts/y_test.npy")
  
@@ -1480,7 +1594,8 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter
     ELSE:
         RAISE_ERROR("architecture tidak dikenali di manifest run sumber")
  
-    # === 5. Ambil theta pada iterasi yang dipilih manusia -- SATU-SATUNYA SUMBER PERBEDAAN DARI JALUR A ===
+    # === 5. Ambil theta pada iterasi yang dipilih manusia -- berdasarkan metrik train/val
+    #        di clustering_log.jsonl milik run sumber (lihat 10.1); TIDAK melihat test. ===
     record_size    = GET_RECORD_SIZE(source_run_dir + "/artifacts/clustering_params.bin")
     selected_theta = READ_PARAM_RECORD(
         source_run_dir + "/artifacts/clustering_params.bin",
@@ -1494,11 +1609,13 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter
         circuit_fn, selected_theta, X_train_scaled, y_train, config
     )
  
+    # G0-01: monitoring supervised memakai val, BUKAN test.
     trained_params_final = SUPERVISED_LOOP(
         circuit_fn, selected_theta, quantum_labels,
-        X_train_scaled, y_train, X_test_scaled, y_test, config
+        X_train_scaled, y_train, X_val_scaled, y_val, config
     )
  
+    # G0-01: satu-satunya pemanggilan yang menyentuh official test di seluruh Jalur B.
     metrics, confusion_matrix = FINAL_EVALUATION(
         circuit_fn, trained_params_final, quantum_labels, X_test_scaled, y_test, config
     )
@@ -1520,8 +1637,10 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_
         "timestamp": NOW(),
         "source_run_dir": source_run_dir,             # provenance -- run mana yang jadi sumber
         "selected_iter_idx": selected_iter_idx,       # provenance -- iterasi mana yang dipilih manusia
+        "selection_basis": "manual_visual_inspection_train_val_metrics",   # G0-01/G0-02 -- lihat 10.1
         "classes": config.classes,
         "n_train_per_class": config.n_train_per_class,
+        "n_val_per_class": config.n_val_per_class,
         "n_test_per_class": config.n_test_per_class,
         "n_iter_supervised": config.n_iter_supervised,   # nilai manual, dicatat eksplisit
         "architecture": config.architecture,
@@ -1549,11 +1668,11 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_
  
  
 # Contoh pemanggilan Jalur B:
-# Pengguna sudah membaca runs/cls-0-1-2_ntrain100_ntest20_PCA_MORE-HD_seed42/logs/clustering_log.jsonl
+# Pengguna sudah membaca runs/cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42/logs/clustering_log.jsonl
 # secara manual, lalu memutuskan iterasi #7 punya kombinasi min_separation dan
 # active_dimensions paling baik (bukan iterasi dengan train_loss terkecil).
 MAIN_FROM_SELECTED_CLUSTERING(
-    source_run_dir      = "runs/cls-0-1-2_ntrain100_ntest20_PCA_MORE-HD_seed42",
+    source_run_dir      = "runs/cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42",
     selected_iter_idx   = 7,
     n_iter_supervised   = 15
 )
@@ -1563,20 +1682,21 @@ MAIN_FROM_SELECTED_CLUSTERING(
  
 | Aspek | Jalur A (otomatis) | Jalur B (manual) |
 |---|---|---|
-| Sumber `theta` clustering | `result.x` dari COBYLA (train_loss terbaik) | `READ_PARAM_RECORD` pada `selected_iter_idx` pilihan manusia |
-| `DATA_PIPELINE` dijalankan ulang? | Ya (bagian dari alur normal) | Tidak — baca `X_*.npy` langsung dari `source_run_dir` |
+| Sumber `theta` clustering | `result.x` dari COBYLA (train_loss terbaik) | `READ_PARAM_RECORD` pada `selected_iter_idx` pilihan manusia, berbasis metrik train/val (10.1) |
+| `DATA_PIPELINE` dijalankan ulang? | Ya (bagian dari alur normal) | Tidak — baca `X_*.npy` (train/val/test) langsung dari `source_run_dir` |
 | `CLUSTERING_LOOP` dijalankan ulang? | Ya | Tidak — baca `clustering_params.bin` milik run sumber |
 | `n_iter_supervised` | Dari `config` awal | Input manual terpisah, tidak mewarisi run sumber |
+| Akses official test | Hanya di `FINAL_EVALUATION` | Hanya di `FINAL_EVALUATION` (sama seperti Jalur A) |
 | `QUANTUM_LABEL_EXTRACTION`, `SUPERVISED_LOOP`, `FINAL_EVALUATION` | Dipanggil langsung | Dipanggil fungsi yang **sama persis**, tidak ada duplikasi logika |
 | Duplikasi artefak besar ke `run_dir` baru | — | Tidak — hanya membaca dari `source_run_dir` |
 | Validasi `selected_iter_idx` di luar rentang | — | Warning saja, proses tetap lanjut (bukan error yang menghentikan) |
-| `path_type` di manifest | `"jalur_a_automatic"` | `"jalur_b_manual_selection"` (+ field provenance `source_run_dir`, `selected_iter_idx`) |
+| `path_type` di manifest | `"jalur_a_automatic"` | `"jalur_b_manual_selection"` (+ field provenance `source_run_dir`, `selected_iter_idx`, `selection_basis`) |
  
 ---
  
 ## Hal yang Sengaja Belum Ditentukan (Perlu Keputusan Anda)
  
-Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22. Item yang masih terbuka untuk pilot saat ini:
+Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10). Item yang masih terbuka untuk pilot saat ini:
  
 1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat kalau `n_train_per_class` besar nanti. Untuk pilot (100 data) ini masih ringan, tapi perlu dicatat sebagai potensi bottleneck di skala penuh.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
@@ -1584,3 +1704,6 @@ Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
 5. **Konsolidasi 48 spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Training hanya menghasilkan `run_result.xlsx` per-run; penggabungan akhir dilakukan setelah seluruh run yang diperlukan selesai.
 6. **Implementasi Python nyata** untuk `HU_MOMENTS`, `SIGNED_LOG_TRANSFORM`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS` (2.8.4) — pseudocode-nya sudah dikunci, tapi pemilihan library persis (`cv2`, `mahotas`, atau lainnya) dan unit test terhadap kriteria penerimaan Gate G2-01/G2-02 belum dikerjakan.
+7. **Angka final `n_train_per_class`/`n_test_per_class` untuk protokol publikasi** — nilai pilot di dokumen ini (100/20) belum tentu sama dengan angka yang dibahas untuk protokol final (mis. 1000/200 mengikuti skala FRD-09). `n_val_per_class` sudah dikunci mengikuti aturan `= n_test_per_class`, tapi angka dasarnya sendiri masih menunggu keputusan G0-03.
+8. **Implementasi kode nyata + unit test untuk G0-01** — skema split train/validation/test dan penghapusan akses test dari `CLUSTERING_LOOP`/`SUPERVISED_LOOP`/Jalur B sudah dikunci di level pseudocode (bagian 2, 5, 7, 9, 10), tapi unit test yang memverifikasi tidak ada pemanggilan `circuit_fn` terhadap `X_test`/`y_test` sebelum `FINAL_EVALUATION` belum ditulis.
+9. **Konflik G0-02** — kriteria penerimaan G0-02 meminta fungsi pemilihan checkpoint Jalur B yang otomatis dan deterministik, sementara keputusan yang dikunci di bagian 10.1 adalah pemilihan manual oleh Ken. Ini belum diselesaikan; lihat catatan di 10.1 dan log keputusan `MORE_HD_RESEARCH_READINESS_GATES`.
