@@ -30,6 +30,18 @@ baik di `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, maupun pemilihan manual Jalur B), 
 **official test** (HANYA dipanggil oleh `FINAL_EVALUATION`, setelah protokol
 dibekukan). `CLUSTERING_LOOP` dan `SUPERVISED_LOOP` tidak lagi menerima
 `X_test`/`y_test` sama sekali di signature-nya — lihat bagian 2, 5, 7, 9, dan 10.
+
+**Update (G0-03, sesi 2026-09-22 — ukuran dataset final dikunci):** Protokol
+eksperimen final mengunci `n_train_per_class=1000`, `n_val_per_class=100`,
+`n_test_per_class=200` — lihat bagian 1 (`CONFIG`). Ini menggantikan nilai
+pilot sebelumnya (100/20/20) di seluruh dokumen ini, termasuk contoh `run_id`
+dan pemanggilan `MAIN(config)`/Jalur B. **Revisi G0-01:** aturan lama
+"`n_val_per_class = n_test_per_class`" (proporsi) DICABUT dan diganti angka
+independen `n_val_per_class = 100` (separuh dari `n_test_per_class`), dengan
+alasan validation hanya dipakai untuk monitoring/checkpoint selection
+(bukan klaim akhir publikasi) sehingga tidak butuh presisi statistik setara
+test set — lihat rasionalisasi di `MORE_HD_RESEARCH_READINESS_GATES.md`
+log keputusan G0-03.
  
 **Update (crash-safe append-only log):** Parameter tiap iterasi (baik di
 `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke **satu file binary
@@ -122,13 +134,13 @@ project/
 │   └── MORE_HD_master_48runs_seed42.xlsx
 │
 └── runs/
-    ├── cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42/
+    ├── cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42/
     │   ├── artifacts/
     │   ├── logs/
     │   ├── config.json
     │   └── run_result.xlsx        # salinan lokal; hanya ditulis oleh run ini
     │
-    ├── cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD-C_seed42/
+    ├── cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42/
     │   ├── artifacts/
     │   ├── logs/
     │   ├── config.json
@@ -136,7 +148,7 @@ project/
     │
     ├── ...
     │
-    └── cls-0-1-2-3-4-5-6-7-8-9_ntrain100_nval20_ntest20_ZERNIKE_MORE-HD-C_seed42/
+    └── cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed42/
         ├── artifacts/
         ├── logs/
         ├── config.json
@@ -200,14 +212,15 @@ FUNCTION GENERATE_RUN_ID(classes, feature_method, architecture):
 ```
 STRUCT Config:
     classes                = [0, 1, 2]        # dipilih user; benchmark utama memakai 0..K-1 untuk K=3..10
-    n_train_per_class      = 100
-    n_val_per_class        = 20                # DIKUNCI (G0-01, sesi 2026-09-22): secara ATURAN sama dengan
-                                                # n_test_per_class (bukan angka independen). Validation diambil
-                                                # dari POOL TRAINING (bukan pool test), disjoint dari
+    n_train_per_class      = 1000              # DIKUNCI (G0-03, sesi 2026-09-22): protokol final, mengikuti skala FRD-09
+    n_val_per_class         = 100               # DIKUNCI (G0-03, sesi 2026-09-22): angka INDEPENDEN, bukan lagi mengikuti
+                                                # n_test_per_class (revisi atas aturan proporsi G0-01 sebelumnya).
+                                                # Validation diambil dari POOL TRAINING (bukan pool test), disjoint dari
                                                 # n_train_per_class, dan HANYA dipakai untuk monitoring pasif /
                                                 # checkpoint selection selama CLUSTERING_LOOP dan SUPERVISED_LOOP,
                                                 # serta untuk pemilihan manual di Jalur B.
-    n_test_per_class       = 20                # official test -- TIDAK diakses sebelum FINAL_EVALUATION (G0-01)
+    n_test_per_class       = 200               # DIKUNCI (G0-03, sesi 2026-09-22): official test -- TIDAK diakses
+                                                # sebelum FINAL_EVALUATION (G0-01)
     n_iter_clustering      = 10
     n_iter_supervised      = 10
 
@@ -257,9 +270,9 @@ STRUCT Config:
 
 
 FUNCTION AUTO_GENERATE(classes, n_train, n_val, n_test, architecture, feature_method, seed):
-    # contoh:
-    # cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42
-    # cls-0-1-2_ntrain100_nval20_ntest20_HU_MORE-HD-C_seed42
+    # contoh (dengan protokol final G0-03: n_train=1000, n_val=100, n_test=200):
+    # cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42
+    # cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed42
     RETURN "cls-" + JOIN(classes, "-") +
            "_ntrain" + n_train +
            "_nval" + n_val +
@@ -1387,15 +1400,16 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
 ### 9.2 Contoh satu run berdasarkan input user
 
 Contoh berikut adalah kondisi pertama: klasifikasi 3 kelas (`0,1,2`) menggunakan
-PCA dan arsitektur MORE-HD. Hanya kondisi ini yang dijalankan ketika `MAIN(config)`
+PCA dan arsitektur MORE-HD, memakai protokol final G0-03 (`n_train=1000`,
+`n_val=100`, `n_test=200`). Hanya kondisi ini yang dijalankan ketika `MAIN(config)`
 dipanggil.
 
 ```
 config_user = Config(
     classes=[0,1,2],
-    n_train_per_class=100,
-    n_val_per_class=20,
-    n_test_per_class=20,
+    n_train_per_class=1000,
+    n_val_per_class=100,
+    n_test_per_class=200,
     n_iter_clustering=10,
     n_iter_supervised=10,
     architecture="MORE-HD",
@@ -1410,7 +1424,7 @@ MAIN(config_user)
 Run tersebut akan mempunyai identitas unik, misalnya:
 
 ```
-cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42
+cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42
 ```
 
 Pilot pertama dapat sekaligus menjadi run resmi `R001` apabila konfigurasi dan jumlah iterasinya memang sudah final. Setelah MNIST selesai diunduh dan pipeline telah tervalidasi, semua run berikutnya memakai:
@@ -1509,8 +1523,13 @@ OTOMATIS ... menghasilkan keputusan yang sama untuk input yang sama" —
 ini secara eksplisit bertentangan dengan keputusan pemilihan manual di
 atas. Revisi ini TIDAK menutup (CLOSE) G0-02; statusnya tetap terbuka
 sebagai keputusan metodologis yang perlu disepakati ulang sebelum Gate A
-(generate kode utama) ditutup — lihat log keputusan di
-`MORE_HD_RESEARCH_READINESS_GATES`.
+(generate kode utama) ditutup. Ken memutuskan akan menentukan sendiri
+resolusi G0-02 (skor otomatis, dua jalur manual+auto, atau revisi
+kriteria gate) berdasarkan analisisnya sendiri — lihat log keputusan di
+`MORE_HD_RESEARCH_READINESS_GATES`. Keputusan struktur file (Jalur B tetap
+di `main_selected_clustering.py`, terpisah dari Jalur A) tidak
+menyelesaikan konflik ini — itu murni soal organisasi kode, bukan soal
+logika pemilihan `selected_iter_idx` di dalamnya.
  
 **Input manual dari pengguna, dua-duanya:**
  
@@ -1668,11 +1687,11 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_
  
  
 # Contoh pemanggilan Jalur B:
-# Pengguna sudah membaca runs/cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42/logs/clustering_log.jsonl
+# Pengguna sudah membaca runs/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42/logs/clustering_log.jsonl
 # secara manual, lalu memutuskan iterasi #7 punya kombinasi min_separation dan
 # active_dimensions paling baik (bukan iterasi dengan train_loss terkecil).
 MAIN_FROM_SELECTED_CLUSTERING(
-    source_run_dir      = "runs/cls-0-1-2_ntrain100_nval20_ntest20_PCA_MORE-HD_seed42",
+    source_run_dir      = "runs/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42",
     selected_iter_idx   = 7,
     n_iter_supervised   = 15
 )
@@ -1696,14 +1715,14 @@ MAIN_FROM_SELECTED_CLUSTERING(
  
 ## Hal yang Sengaja Belum Ditentukan (Perlu Keputusan Anda)
  
-Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10). Item yang masih terbuka untuk pilot saat ini:
+Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
-1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat kalau `n_train_per_class` besar nanti. Untuk pilot (100 data) ini masih ringan, tapi perlu dicatat sebagai potensi bottleneck di skala penuh.
+1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 48 run bisa diproyeksikan realistis.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_iter_idx` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
 5. **Konsolidasi 48 spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Training hanya menghasilkan `run_result.xlsx` per-run; penggabungan akhir dilakukan setelah seluruh run yang diperlukan selesai.
 6. **Implementasi Python nyata** untuk `HU_MOMENTS`, `SIGNED_LOG_TRANSFORM`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS` (2.8.4) — pseudocode-nya sudah dikunci, tapi pemilihan library persis (`cv2`, `mahotas`, atau lainnya) dan unit test terhadap kriteria penerimaan Gate G2-01/G2-02 belum dikerjakan.
-7. **Angka final `n_train_per_class`/`n_test_per_class` untuk protokol publikasi** — nilai pilot di dokumen ini (100/20) belum tentu sama dengan angka yang dibahas untuk protokol final (mis. 1000/200 mengikuti skala FRD-09). `n_val_per_class` sudah dikunci mengikuti aturan `= n_test_per_class`, tapi angka dasarnya sendiri masih menunggu keputusan G0-03.
+7. **[SELESAI, sesi 2026-09-22] Angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi** — dikunci ke `n_train_per_class=1000`, `n_val_per_class=100`, `n_test_per_class=200`. `n_train`/`n_test` mengikuti skala FRD-09 (komparabilitas dengan thesis lama + presisi statistik confidence interval yang memadai untuk klaim G1-04 pada K=3..10). `n_val_per_class` DIREVISI dari aturan proporsi G0-01 sebelumnya (`= n_test_per_class`) menjadi angka independen lebih kecil (separuh dari test), karena validation hanya berperan untuk monitoring/checkpoint selection (bukan klaim akhir publikasi) sehingga tidak memerlukan presisi setara test set; ketersediaan pool MNIST per digit (train ~5.400–6.700, test resmi ~980–1.135) dicek dan mencukupi untuk kombinasi `1000 (train) + 100 (val) = 1100` dan `200 (test)` di semua digit. Waktu komputasi sengaja TIDAK menjadi pertimbangan pada keputusan ini (akan diuji lewat pilot timing terpisah, lihat poin 1); keputusan murni berbasis presisi statistik dan komparabilitas metodologis.
 8. **Implementasi kode nyata + unit test untuk G0-01** — skema split train/validation/test dan penghapusan akses test dari `CLUSTERING_LOOP`/`SUPERVISED_LOOP`/Jalur B sudah dikunci di level pseudocode (bagian 2, 5, 7, 9, 10), tapi unit test yang memverifikasi tidak ada pemanggilan `circuit_fn` terhadap `X_test`/`y_test` sebelum `FINAL_EVALUATION` belum ditulis.
-9. **Konflik G0-02** — kriteria penerimaan G0-02 meminta fungsi pemilihan checkpoint Jalur B yang otomatis dan deterministik, sementara keputusan yang dikunci di bagian 10.1 adalah pemilihan manual oleh Ken. Ini belum diselesaikan; lihat catatan di 10.1 dan log keputusan `MORE_HD_RESEARCH_READINESS_GATES`.
+9. **Konflik G0-02** — kriteria penerimaan G0-02 meminta fungsi pemilihan checkpoint Jalur B yang otomatis dan deterministik, sementara keputusan yang dikunci di bagian 10.1 adalah pemilihan manual oleh Ken. Ini belum diselesaikan; Ken akan menentukan sendiri resolusinya (skor otomatis / dua jalur manual+auto / revisi kriteria) berdasarkan analisisnya sendiri. Lihat catatan di 10.1 dan log keputusan `MORE_HD_RESEARCH_READINESS_GATES`.
