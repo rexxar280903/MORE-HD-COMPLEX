@@ -44,6 +44,19 @@ test set — lihat rasionalisasi di `MORE_HD_RESEARCH_READINESS_GATES.md`
 log keputusan G0-03.
  
 
+**Update (G1-02, sesi 2026-09-26 — terminologi dan provenance optimasi):**
+Setiap pemanggilan fungsi objektif COBYLA sekarang disebut **objective-function
+evaluation**, bukan iterasi. Counter utama adalah `eval_id`; progress optimizer yang
+dilaporkan callback memakai `callback_id` terpisah; jumlah evaluasi resmi diambil dari
+`result.nfev`. Titik akhir optimizer (`result.x`) disimpan terpisah dari titik terbaik
+yang pernah teramati pada log objective (`best_observed_point`). Untuk clustering dan
+supervised, hasil terminasi COBYLA juga wajib menyimpan `success`, `status`,
+`message`, `fun`, dan `nfev`. Nama konfigurasi budget diubah menjadi
+`max_nfev_clustering` dan `max_nfev_supervised`. Jalur B memilih
+`selected_eval_id`, bukan "iteration". Spreadsheet per-run wajib memakai header
+`Eval ID` / `Objective Evaluation` dan tidak boleh menyebut setiap objective call
+sebagai `Iteration`.
+
 **Update (G0-04, sesi 2026-09-26 — protokol multi-seed konfirmatori dikunci):**
 Seed `42` hanya digunakan untuk `PILOT` (smoke test, debugging, pilot konvergensi,
 dan penetapan budget COBYLA) dan **tidak pernah masuk agregasi hasil final**.
@@ -64,23 +77,22 @@ kelas yang sudah ada.
 bukan replikasi. Identitas eksekusi unik adalah
 `run_uid = condition_id + "-S" + seed`, misalnya `R001-S101`.
 
-**Update (crash-safe append-only log):** Parameter tiap iterasi (baik di
-`CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke **satu file binary
-append-only** (`clustering_params.bin`, `supervised_params.bin`) dengan
-ukuran record tetap, bukan satu file `.npy` terpisah per iterasi. Format
-`.npz` sudah ditolak untuk kasus ini karena risiko *zip central directory
-corruption* kalau proses berhenti di tengah penulisan. Dengan record
-berukuran tetap, iterasi tertentu bisa langsung diakses lewat
-`READ_PARAM_RECORD(log, iter_idx, record_size)` tanpa membaca ulang
-seluruh file — inilah yang dipakai Jalur B (bagian 10) untuk mengambil
-`theta` dari iterasi pilihan manual tanpa perlu melatih ulang.
- 
-Metrik evaluasi (`clustering_log`, `supervised_log`) memakai format
-**JSON Lines (`.jsonl`)** — satu baris JSON per iterasi, di-append ke file
-setiap iterasi selesai. Ini juga crash-safe: histori evaluasi sampai
-iterasi terakhir yang sempat jalan tetap aman di disk meski proses
-berhenti mendadak.
- 
+**Update (crash-safe append-only log):** Parameter pada setiap **objective-function
+evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
+**satu file binary append-only** (`clustering_params.bin`,
+`supervised_params.bin`) dengan ukuran record tetap. Posisi record sama dengan
+`eval_id`, sehingga evaluasi tertentu dapat diakses dengan
+`READ_PARAM_RECORD(log, eval_id, record_size)` tanpa membaca ulang seluruh file.
+Format `.npz` tetap tidak dipakai karena risiko *zip central directory corruption*
+jika proses berhenti di tengah penulisan.
+
+Metrik objective memakai **JSON Lines (`.jsonl`)** — satu baris JSON per
+`eval_id`. Progress callback optimizer disimpan pada file terpisah
+(`clustering_callback_log.jsonl` / `supervised_callback_log.jsonl`) dengan
+`callback_id`; callback tidak boleh memanggil objective ulang. Dengan demikian,
+`eval_id`, `callback_id`, dan `result.nfev` tidak pernah diperlakukan sebagai
+istilah yang sama.
+
 **Restart dari crash:** dilakukan manual di folder run baru yang kosong.
 `TRUNCATE_INCOMPLETE_TAIL()` tidak diperlukan. Tabrakan nama folder saat
 restart adalah tanggung jawab pengguna, karena `AUTO_GENERATE()` bersifat
@@ -144,7 +156,7 @@ Seluruh source code, dataset lokal, artefak per-run, dan data penelitian konsoli
 project/
 │
 ├── main_train.py                  # Jalur A: satu run training lengkap
-├── main_selected_clustering.py    # Jalur B: lanjut dari iterasi clustering pilihan manual
+├── main_selected_clustering.py    # Jalur B: lanjut dari objective evaluation clustering pilihan manual
 │
 ├── core/
 │   ├── config.py
@@ -353,8 +365,8 @@ STRUCT Config:
                                                 # serta untuk pemilihan manual di Jalur B.
     n_test_per_class       = 200               # DIKUNCI (G0-03, sesi 2026-09-22): official test -- TIDAK diakses
                                                 # sebelum FINAL_EVALUATION (G0-01)
-    n_iter_clustering      = 10
-    n_iter_supervised      = 10
+    max_nfev_clustering      = 10               # smoke test saja; budget final dikunci lewat pilot G1-01
+    max_nfev_supervised      = 10               # jumlah maksimum objective-function evaluations, BUKAN iterasi
 
     architecture           = "MORE-HD"        # "MORE-HD" | "MORE-HD-C"
     feature_method         = "PCA"            # "PCA" | "HU" | "ZERNIKE"
@@ -429,6 +441,9 @@ FUNCTION VALIDATE_CONFIG(config):
     IF config.n_val_per_class <= 0:
         RAISE_ERROR("n_val_per_class harus lebih besar dari 0 -- validation wajib ada untuk G0-01")
 
+    IF config.max_nfev_clustering <= 0 OR config.max_nfev_supervised <= 0:
+        RAISE_ERROR("max_nfev_clustering dan max_nfev_supervised harus > 0")
+
     IF LENGTH(config.classes) < 3 OR LENGTH(config.classes) > 10:
         PRINT_WARNING("benchmark utama dirancang untuk 3 sampai 10 kelas")
 
@@ -471,17 +486,29 @@ FUNCTION UPDATE_LOCAL_RUN_SPREADSHEET(local_spreadsheet_path, run_id, run_dir):
     ASSERT local_spreadsheet_path STARTS_WITH run_dir
     ASSERT FILE_EXISTS(local_spreadsheet_path)
 
-    manifest         = LOAD_JSON(run_dir + "/config.json")
-    metrics_final    = LOAD_JSON(run_dir + "/logs/metrics_final.json")
-    clustering_log   = READ_JSONL(run_dir + "/logs/clustering_log.jsonl")
-    supervised_log   = READ_JSONL(run_dir + "/logs/supervised_log.jsonl")
-    quantum_labels   = LOAD_JSON(run_dir + "/artifacts/quantum_labels.json")
-    correlation_mat  = LOAD(run_dir + "/artifacts/correlation_matrix.npy")
-    confusion_matrix = LOAD(run_dir + "/logs/confusion_matrix.npy")
+    manifest                    = LOAD_JSON(run_dir + "/config.json")
+    metrics_final               = LOAD_JSON(run_dir + "/logs/metrics_final.json")
+    clustering_log              = READ_JSONL(run_dir + "/logs/clustering_log.jsonl")
+    supervised_log              = READ_JSONL(run_dir + "/logs/supervised_log.jsonl")
+    clustering_callback_log     = READ_JSONL(run_dir + "/logs/clustering_callback_log.jsonl")
+    supervised_callback_log     = READ_JSONL(run_dir + "/logs/supervised_callback_log.jsonl")
+    clustering_optimizer_result = LOAD_JSON(run_dir + "/logs/clustering_optimizer_result.json")
+    supervised_optimizer_result = LOAD_JSON(run_dir + "/logs/supervised_optimizer_result.json")
+    quantum_labels              = LOAD_JSON(run_dir + "/artifacts/quantum_labels.json")
+    correlation_mat             = LOAD(run_dir + "/artifacts/correlation_matrix.npy")
+    confusion_matrix            = LOAD(run_dir + "/logs/confusion_matrix.npy")
 
     workbook = OPEN_WORKBOOK(local_spreadsheet_path, mode="write_local_only")
 
-    # Struktur workbook mengikuti template yang sudah tersedia.
+    # G1-02: terminology spreadsheet harus membedakan objective evaluation vs callback.
+    NORMALIZE_OPTIMIZATION_HEADERS(
+        workbook,
+        objective_evaluation_header = "Eval ID",
+        callback_header             = "Callback ID",
+        nfev_header                 = "nfev",
+        forbid_legacy_objective_header = "Iteration"
+    )
+
     # Hanya bagian/row milik run_id ini yang diisi; run lain tidak disentuh.
     WRITE_RUN_DATA_TO_EXISTING_TEMPLATE(
         workbook=workbook,
@@ -490,6 +517,10 @@ FUNCTION UPDATE_LOCAL_RUN_SPREADSHEET(local_spreadsheet_path, run_id, run_dir):
         metrics_final=metrics_final,
         clustering_log=clustering_log,
         supervised_log=supervised_log,
+        clustering_callback_log=clustering_callback_log,
+        supervised_callback_log=supervised_callback_log,
+        clustering_optimizer_result=clustering_optimizer_result,
+        supervised_optimizer_result=supervised_optimizer_result,
         quantum_labels=quantum_labels,
         correlation_matrix=correlation_mat,
         confusion_matrix=confusion_matrix
@@ -497,6 +528,7 @@ FUNCTION UPDATE_LOCAL_RUN_SPREADSHEET(local_spreadsheet_path, run_id, run_dir):
 
     SAVE_WORKBOOK(workbook, local_spreadsheet_path)
     CLOSE_WORKBOOK(workbook)
+
 
 ```
 
@@ -1116,50 +1148,54 @@ meminimalkan "loss test", makanya evaluasi generalisasinya diganti jadi
 cek struktur centroid (pseudo-accuracy + margin), bukan angka loss test.
 
 **G0-01 (sesi 2026-09-22):** fungsi ini hanya menerima `X_val`/`y_val`, TIDAK
-`X_test`/`y_test` sama sekali — bukan cuma "tidak dipakai untuk optimasi",
-tapi benar-benar tidak ada akses ke official test di dalam fungsi ini,
-termasuk untuk logging pasif. Cek generalisasi di langkah (c) di bawah
-memakai validation set, yang disjoint dari train tapi tetap terpisah dari
-official test.
+`X_test`/`y_test` sama sekali. **G1-02 (2026-09-26):** satu pemanggilan
+`objective_clustering(theta)` adalah satu **objective-function evaluation** dan
+dicatat dengan `eval_id`; ini tidak disebut sebagai iterasi COBYLA.
  
 ```
 FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_val, S, config):
     SET_RANDOM_SEED(config.seed)
  
-    # 5.1 Bangun dataset pasangan untuk training (ambil subset kecil per kelas, dikombinasikan)
     pairing_dataset = BUILD_PAIRING_DATASET(
         X_train, y_train, n_samples_per_class=config.n_cluster_pair_samples
     )
-    # pairing_dataset = list of (x_i, x_j, class_i, class_j)
  
-    n_recorded_iters = 0          # pengganti LENGTH(clustering_log) -- log tidak lagi dipegang penuh di memori
-    CREATE_EMPTY_BINARY_LOG(run_dir + "/artifacts/clustering_params.bin", record_size = SIZEOF(initial_params))
-    CREATE_EMPTY_FILE(run_dir + "/logs/clustering_log.jsonl")     # log per-baris, di-append tiap iterasi
+    n_objective_evals = 0
+    callback_id = 0
+    best_observed_fun = +INFINITY
+    best_observed_eval_id = NULL
+    best_observed_theta = NULL
+
+    CREATE_EMPTY_BINARY_LOG(
+        run_dir + "/artifacts/clustering_params.bin",
+        record_size = SIZEOF(initial_params)
+    )
+    CREATE_EMPTY_FILE(run_dir + "/logs/clustering_log.jsonl")
+    CREATE_EMPTY_FILE(run_dir + "/logs/clustering_callback_log.jsonl")
  
-    # 5.2 Fungsi objektif yang DIBUNGKUS -- inilah kunci logging per-iterasi
     FUNCTION objective_clustering(theta):
-        NONLOCAL n_recorded_iters
-        iter_idx = n_recorded_iters    # index iterasi saat ini (0, 1, 2, ...)
+        NONLOCAL n_objective_evals
+        NONLOCAL best_observed_fun, best_observed_eval_id, best_observed_theta
+
+        eval_id = n_objective_evals
  
-        # --- (a) hitung train_loss, WAJIB untuk dikembalikan ke optimizer ---
+        # --- (a) objective train_loss yang dibaca COBYLA ---
         pair_losses = []
         FOR each (x_i, x_j, class_i, class_j) IN pairing_dataset:
-            v_i = circuit_fn(x_i, theta)              # output 15 dimensi
+            v_i = circuit_fn(x_i, theta)
             v_j = circuit_fn(x_j, theta)
             dist = COSINE_DISTANCE(v_i, v_j)
             s_ij = S[class_i][class_j]
             pair_losses.APPEND(-s_ij * dist)
         train_loss = MEAN(pair_losses)
  
-        # --- (b) hitung centroid sementara dari SELURUH data train (pakai theta saat ini) ---
+        # --- (b) centroid sementara dari seluruh train ---
         temp_centroids = {}
         FOR each c IN config.classes:
             outputs_c = [circuit_fn(x, theta) FOR x IN X_train WHERE y_train == c]
-            temp_centroids[c] = MEAN(outputs_c)
-            temp_centroids[c] = NORMALIZE_VECTOR(temp_centroids[c])   # jadi unit vector
+            temp_centroids[c] = NORMALIZE_VECTOR(MEAN(outputs_c))
  
-        # --- (c) proyeksikan VALIDATION set ke centroid sementara -> cek generalisasi (PASIF, tidak masuk optimasi) ---
-        # G0-01: X_val/y_val, BUKAN official test -- lihat catatan di atas fungsi ini.
+        # --- (c) monitoring VALIDATION, pasif; tidak masuk objective ---
         correct = 0
         margins = []
         FOR each (x, true_class) IN ZIP(X_val, y_val):
@@ -1170,29 +1206,36 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
                 correct += 1
             dist_true  = distances[true_class]
             dist_other = MIN(distances[c] FOR c IN config.classes IF c != true_class)
-            margins.APPEND(dist_other - dist_true)     # positif = aman, negatif = rawan salah
+            margins.APPEND(dist_other - dist_true)
  
         pseudo_accuracy_val = correct / LENGTH(X_val)
-        avg_margin_val      = MEAN(margins)
- 
-        # --- (d) metrik struktur label kuantum sementara ---
-        min_separation = MIN( COSINE_DISTANCE(temp_centroids[a], temp_centroids[b])
-                               FOR all pairs (a, b) IN config.classes WHERE a != b )
- 
+        avg_margin_val = MEAN(margins)
+        min_separation = MIN(
+            COSINE_DISTANCE(temp_centroids[a], temp_centroids[b])
+            FOR all pairs (a, b) IN config.classes WHERE a != b
+        )
         correlation_consistency = SPEARMAN_CORRELATION(
             pairwise_values_of(S),
             pairwise_cosine_distances_of(temp_centroids)
         )
- 
-        active_dimensions = COUNT( dim IN range(15)
-            WHERE ANY( ABS(temp_centroids[c][dim]) > config.active_dim_threshold FOR c IN config.classes ) )
- 
-        # --- (e) tulis parameter iterasi ini LANGSUNG ke log binary append-only ---
+        active_dimensions = COUNT(
+            dim IN range(15)
+            WHERE ANY(
+                ABS(temp_centroids[c][dim]) > config.active_dim_threshold
+                FOR c IN config.classes
+            )
+        )
+
+        # Record ke-eval_id di binary log berisi theta yang benar-benar dievaluasi.
         APPEND_PARAM_RECORD(run_dir + "/artifacts/clustering_params.bin", theta)
- 
-        # --- (f) catat metrik ke log JSONL (append, TIDAK dipegang penuh di memori) ---
+
+        IF train_loss < best_observed_fun:
+            best_observed_fun = train_loss
+            best_observed_eval_id = eval_id
+            best_observed_theta = COPY(theta)
+
         log_entry = {
-            "iter": iter_idx,
+            "eval_id": eval_id,
             "train_loss": train_loss,
             "pseudo_accuracy_val": pseudo_accuracy_val,
             "avg_margin_val": avg_margin_val,
@@ -1200,58 +1243,85 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             "correlation_consistency": correlation_consistency,
             "active_dimensions": active_dimensions
         }
-        APPEND_LINE(run_dir + "/logs/clustering_log.jsonl", TO_JSON(log_entry))   # <- ditulis SEKARANG, tiap iterasi
+        APPEND_LINE(run_dir + "/logs/clustering_log.jsonl", TO_JSON(log_entry))
+
+        n_objective_evals = n_objective_evals + 1
+        RETURN train_loss
+
+    FUNCTION clustering_callback(callback_state):
+        NONLOCAL callback_id
+        theta_callback = EXTRACT_THETA_FROM_COBYLA_CALLBACK(callback_state)
+
+        callback_entry = {
+            "callback_id": callback_id,
+            "objective_evals_seen": n_objective_evals,
+            "theta_source": "optimizer_callback"
+        }
+        APPEND_LINE(
+            run_dir + "/logs/clustering_callback_log.jsonl",
+            TO_JSON(callback_entry)
+        )
+        callback_id = callback_id + 1
  
-        n_recorded_iters = n_recorded_iters + 1
-        RETURN train_loss   # hanya train_loss yang dipakai optimizer untuk arah pencarian
- 
-    # 5.3 Jalankan optimasi
-    # CATATAN: maxiter adalah BATAS ATAS jumlah panggilan objective, BUKAN jaminan
-    # persis N kali -- COBYLA bisa berhenti lebih awal kalau radius trust-region
-    # sudah turun di bawah cobyla_tol sebelum mencapai maxiter.
+    # maxiter milik wrapper SciPy diperlakukan sebagai budget maksimum nfev.
     result = COBYLA_MINIMIZE(
-        objective_clustering, x0=initial_params,
-        options={ "maxiter": config.n_iter_clustering, "tol": config.cobyla_tol }
+        objective_clustering,
+        x0=initial_params,
+        callback=clustering_callback,
+        options={
+            "maxiter": config.max_nfev_clustering,
+            "tol": config.cobyla_tol
+        }
     )
+
     trained_params_clustering = result.x
- 
-    # 5.4 Simpan artefak sisa (parameter & log tiap iterasi SUDAH tersimpan sejak di dalam loop)
-    SAVE(trained_params_clustering, run_dir + "/artifacts/clustering_params_final.npy")
-    # NOTE: clustering_log.jsonl dan clustering_params.bin sudah lengkap sejak iterasi
-    # terakhir selesai (di-append tiap baris/record), jadi TIDAK perlu ditulis ulang
-    # di sini. clustering_params_final.npy pada dasarnya salinan dari record iterasi
-    # terakhir di clustering_params.bin, disimpan lagi terpisah supaya gampang
-    # dipanggil tanpa perlu tahu berapa total iterasinya (dipakai Jalur A / otomatis).
-    # Untuk mengambil theta dari iterasi TERTENTU secara manual (bukan iterasi
-    # terakhir), lihat Jalur B di bagian 10 yang memakai READ_PARAM_RECORD.
- 
+    ASSERT result.nfev == n_objective_evals
+
+    # final point resmi dari optimizer dan best observed point disimpan TERPISAH.
+    SAVE(result.x, run_dir + "/artifacts/clustering_params_final.npy")
+    SAVE(best_observed_theta, run_dir + "/artifacts/clustering_params_best_observed.npy")
+
+    optimizer_summary = {
+        "optimizer": "COBYLA",
+        "max_nfev": config.max_nfev_clustering,
+        "success": result.success,
+        "status": result.status,
+        "message": STRING(result.message),
+        "fun": result.fun,
+        "nfev": result.nfev,
+        "callback_count": callback_id,
+        "final_point_path": "artifacts/clustering_params_final.npy",
+        "best_observed_eval_id": best_observed_eval_id,
+        "best_observed_fun": best_observed_fun,
+        "best_observed_point_path": "artifacts/clustering_params_best_observed.npy"
+    }
+    SAVE_JSON(
+        optimizer_summary,
+        run_dir + "/logs/clustering_optimizer_result.json"
+    )
+
     RETURN trained_params_clustering
 ```
  
 ### Penjelasan Metrik Evaluasi pada Clustering Loop
  
-Enam nilai yang dicatat di `clustering_log` tiap iterasi punya fungsi dan satuan
-berbeda — berikut rinciannya:
+Enam nilai pada `clustering_log.jsonl` dicatat **per objective evaluation
+(`eval_id`)**, bukan per iterasi optimizer:
  
 | Metrik | Fungsi (untuk apa dipakai) | Satuan / Rentang Nilai |
 |---|---|---|
-| `train_loss` | Arah optimasi utama yang dibaca COBYLA — mengukur seberapa jauh output kelas berbeda sudah saling menjauh dan output kelas sama sudah saling mendekat, dikalikan bobot dari matriks korelasi. Ini satu-satunya nilai yang benar-benar dipakai optimizer, sisanya cuma dicatat (pasif). | Skalar tak berdimensi, hasil dari `-S_ij × cosine_distance`. Karena pasangan antar-kelas (S positif) jauh lebih banyak dari pasangan sekelas (S = -1), nilainya biasanya **negatif** dan bergerak makin negatif seiring training (konsisten dengan pola di skripsi lama). |
-| `pseudo_accuracy_val` | Pengganti "test_loss" — cek apakah struktur centroid yang baru terbentuk di iterasi ini mampu memisahkan data **validation** (belum pernah dilihat oleh optimasi) dengan benar. Ini proxy generalisasi paling langsung, karena tujuan clustering memang membentuk centroid yang terpisah, bukan menurunkan angka loss semata. Dihitung dari validation, BUKAN official test (G0-01). | Proporsi, rentang **0 sampai 1** (bisa ditampilkan sebagai persen, misal 0,72 → 72%). Semakin dekat 1 semakin baik. |
-| `avg_margin_val` | Mengukur seberapa "aman" jarak data **validation** ke centroid kelas yang benar dibanding ke centroid kelas pengganggu terdekat. Berguna untuk melihat tren kepercayaan model, bahkan sebelum prediksi benar-benar salah (margin bisa mulai mengecil sebagai sinyal dini sebelum akurasi ikut turun). | Selisih dua cosine distance, jadi rentang teoretis **-2 sampai +2**. Positif = aman (jarak ke kelas benar lebih dekat dari kelas pengganggu), negatif = rawan salah klasifikasi. |
-| `min_separation` | Mendeteksi dini kemunculan *curse of density* — mengambil jarak cosine **terkecil** di antara seluruh pasangan centroid kelas pada iterasi tersebut. Kalau angka ini terus mengecil mendekati 0 seiring iterasi, itu tanda dua kelas mulai berhimpitan. | Cosine distance, rentang **0 sampai 2**. Semakin kecil semakin berisiko (0 = dua centroid nyaris berhimpit sempurna). |
-| `correlation_consistency` | Validasi apakah urutan jarak antar centroid yang dihasilkan model **sesuai** dengan urutan yang "direncanakan" lewat matriks korelasi S (dulu di skripsi lama ini dicek manual dengan membaca tabel satu-satu — sekarang diringkas jadi satu angka). | Koefisien korelasi Spearman, rentang **-1 sampai +1**. Mendekati +1 = urutan jarak label kuantum sangat sesuai matriks korelasi; mendekati 0 atau negatif = pemetaan gagal mengikuti rencana. |
-| `active_dimensions` | Metrik khusus untuk riset MORE-HD-C — menghitung berapa dari 15 dimensi output yang benar-benar bernilai signifikan (bukan nol/noise numerik) pada centroid kelas, memakai `config.active_dim_threshold`. Ini yang langsung menjawab apakah modifikasi ansatz (V1/V2/V3) berhasil mengaktifkan dimensi yang tadinya mati di MORE-HD. | Cacah (bilangan bulat), rentang **0 sampai 15**. Baseline MORE-HD idealnya menunjukkan ~9; kalau varian kompleks berhasil, angka ini harus naik mendekati 15. |
- 
-Enam metrik ini sengaja dipantau **bersamaan setiap iterasi** (bukan hanya di akhir),
-supaya kalau nanti dilihat trennya sebagai grafik, kita bisa amati misalnya:
-apakah `active_dimensions` sudah naik duluan sebelum `pseudo_accuracy_val` ikut naik,
-atau apakah `min_separation` mulai turun tajam justru saat `train_loss` masih terlihat membaik
-(indikasi *curse of density* yang tidak akan terlihat kalau cuma memantau train_loss saja).
+| `train_loss` | Objective utama yang dibaca COBYLA. | Skalar tak berdimensi dari `-S_ij × cosine_distance`. |
+| `pseudo_accuracy_val` | Proxy generalisasi pada validation terhadap centroid sementara. | Proporsi 0–1. |
+| `avg_margin_val` | Margin validation antara kelas benar dan pengganggu terdekat. | Selisih cosine distance; teoretis -2 sampai +2. |
+| `min_separation` | Jarak cosine minimum antar centroid kelas. | 0–2. |
+| `correlation_consistency` | Konsistensi urutan jarak centroid terhadap matriks korelasi S. | Spearman -1 sampai +1. |
+| `active_dimensions` | Jumlah dimensi observable aktif pada centroid. | Integer 0–15. |
 
-Kelima metrik pasif ini (semua kecuali `train_loss`) dihitung dari **validation**,
-bukan official test — inilah yang membuat `CLUSTERING_LOOP` patuh terhadap G0-01
-sekaligus tetap punya sinyal generalisasi untuk dianalisis pasca-training, termasuk
-untuk pemilihan manual di Jalur B (bagian 10).
+Kelima metrik selain `train_loss` bersifat monitoring pasif. Semuanya memakai
+train/validation saja; official test tetap hanya digunakan di
+`FINAL_EVALUATION`. Grafik loss, separation, margin, dan active dimensions
+yang berasal dari log ini harus memakai sumbu-X **Objective Evaluation
+(`eval_id`)**, bukan "Iteration".
  
 ---
  
@@ -1280,71 +1350,121 @@ sendiri tidak tahu dan tidak perlu tahu sumbernya.
  
 ## 7. SUPERVISED LOOP
  
-Berbeda dari clustering: di sini **train_loss dan val_loss tetap dipakai**
-karena keduanya langsung relevan — loss memang didefinisikan sebagai jarak
-ke target label kuantum, sama persis maknanya di train dan di validation.
-
-**G0-01 (sesi 2026-09-22):** fungsi ini hanya menerima `X_val`/`y_val` untuk
-monitoring, TIDAK `X_test`/`y_test`. Official test tidak diakses di sini
-sama sekali — baru dipanggil oleh `FINAL_EVALUATION` setelah fungsi ini
-selesai (baik dari Jalur A maupun Jalur B).
+Berbeda dari clustering, objective supervised adalah jarak keluaran ke quantum
+label. `val_loss` tetap hanya monitoring pasif. G1-02 menerapkan aturan yang sama:
+setiap pemanggilan `objective_supervised(theta)` adalah satu objective-function
+evaluation dengan `eval_id`, sedangkan callback optimizer memakai
+`callback_id` terpisah.
  
 ```
 FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
-                          X_train, y_train, X_val, y_val, config):
- 
-    n_recorded_iters = 0
-    CREATE_EMPTY_BINARY_LOG(run_dir + "/artifacts/supervised_params.bin", record_size = SIZEOF(trained_params_clustering))
-    CREATE_EMPTY_FILE(run_dir + "/logs/supervised_log.jsonl")     # log per-baris, di-append tiap iterasi
+                         X_train, y_train, X_val, y_val, config):
+
+    n_objective_evals = 0
+    callback_id = 0
+    best_observed_fun = +INFINITY
+    best_observed_eval_id = NULL
+    best_observed_theta = NULL
+
+    CREATE_EMPTY_BINARY_LOG(
+        run_dir + "/artifacts/supervised_params.bin",
+        record_size = SIZEOF(trained_params_clustering)
+    )
+    CREATE_EMPTY_FILE(run_dir + "/logs/supervised_log.jsonl")
+    CREATE_EMPTY_FILE(run_dir + "/logs/supervised_callback_log.jsonl")
  
     FUNCTION objective_supervised(theta):
-        NONLOCAL n_recorded_iters
-        iter_idx = n_recorded_iters    # index iterasi saat ini
+        NONLOCAL n_objective_evals
+        NONLOCAL best_observed_fun, best_observed_eval_id, best_observed_theta
+
+        eval_id = n_objective_evals
  
-        # --- train loss ---
         train_losses = []
         FOR each (x, c) IN ZIP(X_train, y_train):
             v = circuit_fn(x, theta)
             train_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
         train_loss = MEAN(train_losses)
  
-        # --- val loss (pasif, tidak memengaruhi arah optimasi; G0-01: BUKAN official test) ---
         val_losses = []
         FOR each (x, c) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
             val_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
         val_loss = MEAN(val_losses)
  
-        # --- tulis parameter iterasi ini LANGSUNG ke log binary append-only ---
         APPEND_PARAM_RECORD(run_dir + "/artifacts/supervised_params.bin", theta)
+
+        IF train_loss < best_observed_fun:
+            best_observed_fun = train_loss
+            best_observed_eval_id = eval_id
+            best_observed_theta = COPY(theta)
  
-        # --- catat log JSONL (append) ---
         log_entry = {
-            "iter": iter_idx,
+            "eval_id": eval_id,
             "train_loss": train_loss,
             "val_loss": val_loss
         }
-        APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))   # <- ditulis SEKARANG
+        APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))
  
-        n_recorded_iters = n_recorded_iters + 1
+        n_objective_evals = n_objective_evals + 1
         RETURN train_loss
+
+    FUNCTION supervised_callback(callback_state):
+        NONLOCAL callback_id
+        theta_callback = EXTRACT_THETA_FROM_COBYLA_CALLBACK(callback_state)
+
+        callback_entry = {
+            "callback_id": callback_id,
+            "objective_evals_seen": n_objective_evals,
+            "theta_source": "optimizer_callback"
+        }
+        APPEND_LINE(
+            run_dir + "/logs/supervised_callback_log.jsonl",
+            TO_JSON(callback_entry)
+        )
+        callback_id = callback_id + 1
  
     result = COBYLA_MINIMIZE(
-        objective_supervised, x0=trained_params_clustering,
-        options={ "maxiter": config.n_iter_supervised, "tol": config.cobyla_tol }
+        objective_supervised,
+        x0=trained_params_clustering,
+        callback=supervised_callback,
+        options={
+            "maxiter": config.max_nfev_supervised,
+            "tol": config.cobyla_tol
+        }
     )
+
     trained_params_final = result.x
- 
-    SAVE(trained_params_final, run_dir + "/artifacts/supervised_params_final.npy")
-    # NOTE: supervised_log.jsonl dan supervised_params.bin sudah lengkap sejak
-    # iterasi terakhir (di-append tiap baris/record).
+    ASSERT result.nfev == n_objective_evals
+
+    SAVE(result.x, run_dir + "/artifacts/supervised_params_final.npy")
+    SAVE(best_observed_theta, run_dir + "/artifacts/supervised_params_best_observed.npy")
+
+    optimizer_summary = {
+        "optimizer": "COBYLA",
+        "max_nfev": config.max_nfev_supervised,
+        "success": result.success,
+        "status": result.status,
+        "message": STRING(result.message),
+        "fun": result.fun,
+        "nfev": result.nfev,
+        "callback_count": callback_id,
+        "final_point_path": "artifacts/supervised_params_final.npy",
+        "best_observed_eval_id": best_observed_eval_id,
+        "best_observed_fun": best_observed_fun,
+        "best_observed_point_path": "artifacts/supervised_params_best_observed.npy"
+    }
+    SAVE_JSON(
+        optimizer_summary,
+        run_dir + "/logs/supervised_optimizer_result.json"
+    )
  
     RETURN trained_params_final
 ```
- 
-Fungsi ini juga dipakai identik oleh Jalur A dan Jalur B — perbedaan
-keduanya berhenti di `trained_params_clustering` mana yang dioper sebagai
-argumen (lihat bagian 10), bukan di logika `SUPERVISED_LOOP` itu sendiri.
+
+`supervised_log.jsonl` harus diplot terhadap `eval_id`. `result.x` adalah
+**final point yang dikembalikan COBYLA**; ia tidak boleh otomatis disebut
+"best observed point". Titik terbaik yang benar-benar terlihat selama evaluasi
+disimpan terpisah sebagai `supervised_params_best_observed.npy`.
  
 ---
  
@@ -1389,34 +1509,22 @@ FUNCTION FINAL_EVALUATION(circuit_fn, trained_params_final, quantum_labels, X_te
 ### 9.1 MAIN(config) — menjalankan satu kombinasi eksperimen
 
 `MAIN(config)` adalah unit eksperimen utama dan selalu menjalankan tepat **satu kondisi**.
-Pengguna menentukan konfigurasi run secara manual agar setiap eksperimen dapat dipantau
-secara terpisah. Input utama yang ditetapkan untuk setiap run adalah:
+Input budget optimasi dinyatakan sebagai maksimum objective-function evaluations:
 
 - `classes`
 - `n_train_per_class`
 - `n_val_per_class`
 - `n_test_per_class`
-- `n_iter_clustering`
-- `n_iter_supervised`
+- `max_nfev_clustering`
+- `max_nfev_supervised`
 - `architecture`
 - `feature_method`
 - `seed`
 
-Konfigurasi teknis lain dapat memakai nilai default yang dikunci dalam `Config`, kecuali
-memang ada keputusan eksperimen yang mengharuskan perubahan. Setiap pemanggilan
-`MAIN(config)` menghasilkan `run_dir` sendiri sehingga log dan artefak satu kondisi tidak
-bercampur dengan kondisi lain.
-
 ```
 FUNCTION MAIN(config):
     VALIDATE_CONFIG(config)
-
-    # 1. Collision guard paling awal.
-    # Jika run_dir sudah ada, STOP sebelum training dimulai.
     CREATE_RUN_DIRECTORY_EXCLUSIVE(config)
-
-    # 2. Buat salinan spreadsheet lokal khusus run ini.
-    # Master spreadsheet tidak pernah ditulis langsung oleh proses training.
     INITIALIZE_LOCAL_RUN_SPREADSHEET(config)
 
     VALIDATE_SEED_PROTOCOL(config)
@@ -1425,13 +1533,9 @@ FUNCTION MAIN(config):
         CREATE_OR_LOAD_SPLIT_MANIFEST(config.seed)
 
     X_train, y_train, X_val, y_val, X_test, y_test = DATA_PIPELINE(config)
-
-    # S dihitung dari representasi fitur milik run ini (train saja)
     S = CORRELATION_MATRIX(X_train, y_train, config.classes)
-
     circuit_fn, initial_params = MODEL_SETUP(config)
 
-    # G0-01: CLUSTERING_LOOP menerima X_val/y_val, BUKAN X_test/y_test.
     params_after_clustering = CLUSTERING_LOOP(
         circuit_fn, initial_params, X_train, y_train, X_val, y_val, S, config
     )
@@ -1440,22 +1544,17 @@ FUNCTION MAIN(config):
         circuit_fn, params_after_clustering, X_train, y_train, config
     )
 
-    # G0-01: SUPERVISED_LOOP menerima X_val/y_val untuk monitoring, BUKAN test.
     params_final = SUPERVISED_LOOP(
         circuit_fn, params_after_clustering, quantum_labels,
         X_train, y_train, X_val, y_val, config
     )
 
-    # G0-01: satu-satunya pemanggilan yang menyentuh official test di seluruh Jalur A.
     metrics, confusion_matrix = FINAL_EVALUATION(
         circuit_fn, params_final, quantum_labels, X_test, y_test, config
     )
 
     SAVE_ARTIFACT_BUNDLE(config, metrics)
 
-    # Update HANYA spreadsheet lokal milik run ini.
-    # Fungsi membaca artefak/log dari config.run_dir dan mengisi bagian run_id terkait.
-    # Tidak ada write ke MASTER_SPREADSHEET_PATH pada saat training.
     UPDATE_LOCAL_RUN_SPREADSHEET(
         local_spreadsheet_path = config.local_spreadsheet_path,
         run_id                 = config.run_id,
@@ -1478,13 +1577,23 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "y_test": "artifacts/y_test.npy",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
         "initial_params": "artifacts/initial_params.npy",
+
         "clustering_params_bin": "artifacts/clustering_params.bin",
         "clustering_params_final": "artifacts/clustering_params_final.npy",
+        "clustering_params_best_observed": "artifacts/clustering_params_best_observed.npy",
+        "clustering_log": "logs/clustering_log.jsonl",
+        "clustering_callback_log": "logs/clustering_callback_log.jsonl",
+        "clustering_optimizer_result": "logs/clustering_optimizer_result.json",
+
         "quantum_labels": "artifacts/quantum_labels.json",
+
         "supervised_params_bin": "artifacts/supervised_params.bin",
         "supervised_params_final": "artifacts/supervised_params_final.npy",
-        "clustering_log": "logs/clustering_log.jsonl",
+        "supervised_params_best_observed": "artifacts/supervised_params_best_observed.npy",
         "supervised_log": "logs/supervised_log.jsonl",
+        "supervised_callback_log": "logs/supervised_callback_log.jsonl",
+        "supervised_optimizer_result": "logs/supervised_optimizer_result.json",
+
         "metrics_final": "logs/metrics_final.json",
         "confusion_matrix": "logs/confusion_matrix.npy",
         "run_spreadsheet": "run_result.xlsx"
@@ -1492,6 +1601,13 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
 
     IF config.feature_method == "PCA":
         artifact_paths["pca_model"] = "artifacts/pca_model.joblib"
+
+    clustering_optimizer_result = LOAD_JSON(
+        config.run_dir + "/logs/clustering_optimizer_result.json"
+    )
+    supervised_optimizer_result = LOAD_JSON(
+        config.run_dir + "/logs/supervised_optimizer_result.json"
+    )
 
     manifest = {
         "run_id": config.run_id,
@@ -1504,8 +1620,8 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "n_train_per_class": config.n_train_per_class,
         "n_val_per_class": config.n_val_per_class,
         "n_test_per_class": config.n_test_per_class,
-        "n_iter_clustering": config.n_iter_clustering,
-        "n_iter_supervised": config.n_iter_supervised,
+        "max_nfev_clustering": config.max_nfev_clustering,
+        "max_nfev_supervised": config.max_nfev_supervised,
 
         "architecture": config.architecture,
         "feature_method": config.feature_method,
@@ -1536,6 +1652,11 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "mnist_download": config.mnist_download,
         "local_spreadsheet_path": config.local_spreadsheet_path,
 
+        "optimizer_results": {
+            "clustering": clustering_optimizer_result,
+            "supervised": supervised_optimizer_result
+        },
+
         "final_metrics": metrics,
         "artifact_paths": artifact_paths
     }
@@ -1556,8 +1677,8 @@ config_user = Config(
     n_train_per_class=1000,
     n_val_per_class=100,
     n_test_per_class=200,
-    n_iter_clustering=10,
-    n_iter_supervised=10,
+    max_nfev_clustering=10,   # smoke-test budget only; final budget ditentukan G1-01
+    max_nfev_supervised=10,
     architecture="MORE-HD",
     feature_method="PCA",
     seed=101,
@@ -1628,93 +1749,51 @@ Dengan aturan ini, sumber daya yang dibagi antar proses hanya berupa resource re
 
 ---
 
-## 10. JALUR B — Pemilihan Manual Iterasi Clustering
+## 10. JALUR B — Pemilihan Manual Objective Evaluation Clustering
  
 ### 10.1 Latar Belakang
  
-`result.x` yang dipakai Jalur A adalah iterasi dengan `train_loss` terbaik
-menurut COBYLA — **bukan** iterasi dengan struktur label kuantum terbaik.
-`train_loss` hanya mengukur seberapa jauh pasangan data sudah menjauh/
-mendekat sesuai matriks korelasi; ia tidak menjamin `min_separation` yang
-lebar atau `active_dimensions` yang tinggi. Karena `clustering_log.jsonl`
-mencatat keenam metrik ini per iterasi, seseorang bisa membaca log
-tersebut sendiri dan memilih `iter_idx` mana yang paling baik menurut
-kombinasi kriteria yang mereka anggap penting — lalu memakai `theta` di
-iterasi itu sebagai pengganti `result.x`.
- 
-Jalur B mengakomodasi alur kerja ini: memuat artefak dari run yang **sudah
-selesai dijalankan** (tidak menjalankan ulang `DATA_PIPELINE` atau
-`CLUSTERING_LOOP`), lalu melanjutkan ke tahap yang identik dengan Jalur A
-(`QUANTUM_LABEL_EXTRACTION` → `SUPERVISED_LOOP` → `FINAL_EVALUATION`)
-memakai `theta` dari iterasi pilihan manual.
- 
-**Prinsip apple-to-apple:** satu-satunya variabel yang berbeda antara
-Jalur A dan Jalur B adalah `theta` mana yang dipakai sebagai output
-clustering. Data train/validation/test, matriks korelasi, arsitektur sirkuit, dan
-seluruh tahap supervised+evaluasi harus identik — makanya Jalur B memuat
-`X_train_scaled.npy` dkk. langsung dari `source_run_dir` (bagian 2.7),
-bukan menjalankan ulang `DATA_PIPELINE` yang bergantung pada asumsi
-determinisme sampling ulang.
+`result.x` yang dipakai Jalur A adalah **final point yang dikembalikan COBYLA**.
+Ia tidak boleh disebut otomatis sebagai titik dengan `train_loss` terbaik.
+Riwayat `clustering_log.jsonl` berisi setiap parameter yang benar-benar
+dievaluasi oleh objective dan diidentifikasi dengan `eval_id`. Secara terpisah,
+`clustering_optimizer_result.json` mencatat final point, `nfev`, status
+terminasi, dan `best_observed_eval_id`.
 
-**Kriteria pemilihan manual (dikunci sesi 2026-09-22, G0-01):**
-`selected_iter_idx` dipilih oleh Ken melalui inspeksi visual/tabular
-terhadap `clustering_log.jsonl` milik run sumber — membaca kombinasi
-`min_separation`, `correlation_consistency`, `active_dimensions`,
-`avg_margin_val`, dan `pseudo_accuracy_val` per iterasi, lalu memilih
-iterasi yang menurut penilaiannya paling baik secara struktural. Tidak
-ada rumus/skor otomatis; ini murni judgment call manusia berdasarkan
-metrik train/validation di atas. **Official test tidak pernah dilihat
-sebagai bagian dari proses pemilihan ini.**
+Jalur B tetap mengizinkan inspeksi train/validation untuk memilih satu titik
+objective evaluation tertentu. Nama inputnya adalah `selected_eval_id`, bukan
+`selected_eval_id`. Official test tidak boleh digunakan pada pemilihan ini.
 
-**Catatan status G0-02 (FLAG, belum terselesaikan):** kriteria penerimaan
-G0-02 pada `MORE_HD_RESEARCH_READINESS_GATES` meminta "fungsi pemilihan
-OTOMATIS ... menghasilkan keputusan yang sama untuk input yang sama" —
-ini secara eksplisit bertentangan dengan keputusan pemilihan manual di
-atas. Revisi ini TIDAK menutup (CLOSE) G0-02; statusnya tetap terbuka
-sebagai keputusan metodologis yang perlu disepakati ulang sebelum Gate A
-(generate kode utama) ditutup. Ken memutuskan akan menentukan sendiri
-resolusi G0-02 (skor otomatis, dua jalur manual+auto, atau revisi
-kriteria gate) berdasarkan analisisnya sendiri — lihat log keputusan di
-`MORE_HD_RESEARCH_READINESS_GATES`. Keputusan struktur file (Jalur B tetap
-di `main_selected_clustering.py`, terpisah dari Jalur A) tidak
-menyelesaikan konflik ini — itu murni soal organisasi kode, bukan soal
-logika pemilihan `selected_iter_idx` di dalamnya.
+**Catatan G0-02:** pemilihan manual tetap merupakan isu metodologis terpisah dan
+belum dianggap terselesaikan hanya karena terminologi G1-02 diperbaiki.
  
-**Input manual dari pengguna, dua-duanya:**
+**Input manual dari pengguna:**
  
-1. `selected_iter_idx` — nomor iterasi clustering yang dipilih setelah
-   membaca `clustering_log.jsonl` milik run sumber, berdasarkan kriteria
-   di atas.
-2. `n_iter_supervised` — jumlah iterasi supervised untuk run Jalur B ini,
-   diinput manual per klasifikasi kelas (tidak mewarisi begitu saja nilai
-   `n_iter_supervised` dari run sumber, karena Jalur B bisa dipakai untuk
-   mencoba durasi fine-tuning yang berbeda).
-Konfigurasi lain (`classes`, `n_train_per_class`, `n_val_per_class`,
-`n_test_per_class`, `architecture`, `seed`, `cobyla_tol`, dst.) **diwarisi
-otomatis** dari manifest run sumber (`config.json`) — tidak diinput ulang,
-supaya tidak ada celah salah ketik yang membuat Jalur B diam-diam tidak
-apple-to-apple lagi dengan Jalur A.
- 
-Tidak ada penyalinan artefak besar (`X_*.npy`, `pca_model.joblib` (jika PCA), `feature_metadata.json`, dsb.)
-ke folder run Jalur B — semuanya dibaca langsung dari `source_run_dir`.
-Folder run Jalur B hanya berisi artefak baru yang dihasilkan tahap
-`QUANTUM_LABEL_EXTRACTION` dan seterusnya.
+1. `selected_eval_id` — ID objective evaluation clustering pada run sumber.
+2. `max_nfev_supervised` — budget maksimum objective evaluations supervised
+   untuk run Jalur B.
  
 ### 10.2 Pseudocode
  
 ```
-FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter_supervised):
+FUNCTION MAIN_FROM_SELECTED_CLUSTERING(
+    source_run_dir,
+    selected_eval_id,
+    max_nfev_supervised
+):
  
-    # === 1. Warisi config dari manifest run sumber ===
     source_manifest = LOAD_JSON(source_run_dir + "/config.json")
+    source_clustering_result = LOAD_JSON(
+        source_run_dir + "/logs/clustering_optimizer_result.json"
+    )
  
     config = Config(
         classes                = source_manifest.classes,
         n_train_per_class      = source_manifest.n_train_per_class,
         n_val_per_class        = source_manifest.n_val_per_class,
         n_test_per_class       = source_manifest.n_test_per_class,
-        n_iter_clustering      = source_manifest.n_iter_clustering,   # dicatat saja, tidak dipakai ulang di sini
-        n_iter_supervised      = n_iter_supervised,                    # <- INPUT MANUAL #2
+        max_nfev_clustering    = source_manifest.max_nfev_clustering,  # provenance saja
+        max_nfev_supervised    = max_nfev_supervised,
         architecture           = source_manifest.architecture,
         feature_method         = source_manifest.feature_method,
         n_data_qubits          = source_manifest.n_data_qubits,
@@ -1722,31 +1801,28 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter
         n_input_channels       = source_manifest.n_input_channels,
         cobyla_tol             = source_manifest.cobyla_tol,
         seed                   = source_manifest.seed,
+        run_mode               = source_manifest.run_mode,
         n_cluster_pair_samples = source_manifest.n_cluster_pair_samples
     )
  
-    # run_dir TERPISAH -- tidak menimpa run sumber ataupun run Jalur A
-    config.run_name = source_manifest.run_name + "_jalurB_iter" + ZERO_PAD(selected_iter_idx, 4)
-    config.run_dir  = "runs/" + config.run_name
+    config.run_name = (
+        source_manifest.run_name +
+        "_jalurB_eval" +
+        ZERO_PAD(selected_eval_id, 4)
+    )
+    config.run_dir = "runs/" + config.run_name
  
     CREATE_DIRECTORY(config.run_dir + "/artifacts")
     CREATE_DIRECTORY(config.run_dir + "/logs")
  
-    # === 2. Validasi selected_iter_idx -- WARNING, bukan error, tidak menghentikan proses ===
-    max_valid_idx = source_manifest.n_iter_clustering - 1
-    IF selected_iter_idx < 0 OR selected_iter_idx > max_valid_idx:
-        PRINT_WARNING(
-            "selected_iter_idx (" + selected_iter_idx + ") di luar rentang iterasi " +
-            "clustering run sumber (0 s.d. " + max_valid_idx + "). " +
-            "Proses tetap dilanjutkan -- READ_PARAM_RECORD dapat gagal atau " +
-            "mengembalikan data yang tidak diharapkan jika index ini benar-benar " +
-            "di luar batas file clustering_params.bin."
+    # Validasi terhadap ACTUAL nfev, bukan budget maksimum.
+    actual_nfev = source_clustering_result.nfev
+    IF selected_eval_id < 0 OR selected_eval_id >= actual_nfev:
+        RAISE_ERROR(
+            "selected_eval_id di luar objective evaluations yang benar-benar " +
+            "tersimpan. Rentang valid: 0.." + STRING(actual_nfev - 1)
         )
-        # TIDAK RAISE_ERROR -- proses tetap lanjut ke langkah berikutnya sesuai keputusan pengguna
  
-    # === 3. Muat LANGSUNG array data yang sudah ditransformasi (tanpa re-run DATA_PIPELINE) ===
-    # G0-01: X_test_scaled/y_test dimuat di sini agar tersedia untuk FINAL_EVALUATION di
-    # langkah 6, TAPI tidak diakses/dihitung apa pun sebelum pemanggilan itu.
     X_train_scaled = LOAD(source_run_dir + "/artifacts/X_train_scaled.npy")
     y_train        = LOAD(source_run_dir + "/artifacts/y_train.npy")
     X_val_scaled   = LOAD(source_run_dir + "/artifacts/X_val_scaled.npy")
@@ -1754,63 +1830,77 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, selected_iter_idx, n_iter
     X_test_scaled  = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
     y_test         = LOAD(source_run_dir + "/artifacts/y_test.npy")
  
-    # === 4. Bangun ulang sirkuit yang SAMA (arsitektur sama, TANPA random init baru) ===
     IF config.architecture == "MORE-HD":
-        circuit_fn, _ = BUILD_CIRCUIT_MORE_HD(n_data_qubits=config.n_data_qubits, n_readout_qubits=config.n_readout_qubits)
+        circuit_fn, _ = BUILD_CIRCUIT_MORE_HD(
+            n_data_qubits=config.n_data_qubits,
+            n_readout_qubits=config.n_readout_qubits
+        )
     ELSE IF config.architecture == "MORE-HD-C":
-        circuit_fn, _ = BUILD_CIRCUIT_MORE_HD_C(n_data_qubits=config.n_data_qubits, n_readout_qubits=config.n_readout_qubits)
+        circuit_fn, _ = BUILD_CIRCUIT_MORE_HD_C(
+            n_data_qubits=config.n_data_qubits,
+            n_readout_qubits=config.n_readout_qubits
+        )
     ELSE:
         RAISE_ERROR("architecture tidak dikenali di manifest run sumber")
  
-    # === 5. Ambil theta pada iterasi yang dipilih manusia -- berdasarkan metrik train/val
-    #        di clustering_log.jsonl milik run sumber (lihat 10.1); TIDAK melihat test. ===
-    record_size    = GET_RECORD_SIZE(source_run_dir + "/artifacts/clustering_params.bin")
+    record_size = GET_RECORD_SIZE(
+        source_run_dir + "/artifacts/clustering_params.bin"
+    )
     selected_theta = READ_PARAM_RECORD(
         source_run_dir + "/artifacts/clustering_params.bin",
-        iter_idx = selected_iter_idx,
+        eval_id = selected_eval_id,
         record_size = record_size
     )
- 
-    # === 6. Dari sini SELURUHNYA memanggil fungsi yang SAMA PERSIS dengan Jalur A (tidak ada duplikasi logika) ===
  
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
         circuit_fn, selected_theta, X_train_scaled, y_train, config
     )
  
-    # G0-01: monitoring supervised memakai val, BUKAN test.
     trained_params_final = SUPERVISED_LOOP(
         circuit_fn, selected_theta, quantum_labels,
         X_train_scaled, y_train, X_val_scaled, y_val, config
     )
  
-    # G0-01: satu-satunya pemanggilan yang menyentuh official test di seluruh Jalur B.
     metrics, confusion_matrix = FINAL_EVALUATION(
-        circuit_fn, trained_params_final, quantum_labels, X_test_scaled, y_test, config
+        circuit_fn, trained_params_final, quantum_labels,
+        X_test_scaled, y_test, config
     )
  
-    # === 7. Manifest Jalur B -- tambahkan info provenance yang tidak ada di manifest Jalur A ===
-    SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_iter_idx)
+    SAVE_ARTIFACT_BUNDLE_JALUR_B(
+        config, metrics, source_run_dir, selected_eval_id
+    )
  
     PRINT("Jalur B selesai. Hasil ada di: " + config.run_dir)
-    PRINT("theta diambil dari iterasi #" + selected_iter_idx + " pada run sumber: " + source_run_dir)
+    PRINT(
+        "theta diambil dari objective evaluation #" +
+        selected_eval_id +
+        " pada run sumber: " +
+        source_run_dir
+    )
  
     RETURN metrics, confusion_matrix
  
  
-FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_iter_idx):
+FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
+    config, metrics, source_run_dir, selected_eval_id
+):
  
+    supervised_optimizer_result = LOAD_JSON(
+        config.run_dir + "/logs/supervised_optimizer_result.json"
+    )
+
     manifest = {
         "run_name": config.run_name,
-        "path_type": "jalur_b_manual_selection",     # penanda ini bukan run Jalur A biasa
+        "path_type": "jalur_b_manual_selection",
         "timestamp": NOW(),
-        "source_run_dir": source_run_dir,             # provenance -- run mana yang jadi sumber
-        "selected_iter_idx": selected_iter_idx,       # provenance -- iterasi mana yang dipilih manusia
-        "selection_basis": "manual_visual_inspection_train_val_metrics",   # G0-01/G0-02 -- lihat 10.1
+        "source_run_dir": source_run_dir,
+        "selected_eval_id": selected_eval_id,
+        "selection_basis": "manual_visual_inspection_train_val_metrics",
         "classes": config.classes,
         "n_train_per_class": config.n_train_per_class,
         "n_val_per_class": config.n_val_per_class,
         "n_test_per_class": config.n_test_per_class,
-        "n_iter_supervised": config.n_iter_supervised,   # nilai manual, dicatat eksplisit
+        "max_nfev_supervised": config.max_nfev_supervised,
         "architecture": config.architecture,
         "feature_method": config.feature_method,
         "n_data_qubits": config.n_data_qubits,
@@ -1825,31 +1915,29 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_
         "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
         "label_seed": DERIVE_SUBSEED(config.seed, "quantum_labels"),
         "split_manifest": config.split_manifest_path,
+        "supervised_optimizer_result": supervised_optimizer_result,
         "final_metrics": metrics,
         "artifact_paths": {
             "quantum_labels": "artifacts/quantum_labels.json",
             "supervised_params_bin": "artifacts/supervised_params.bin",
             "supervised_params_final": "artifacts/supervised_params_final.npy",
+            "supervised_params_best_observed": "artifacts/supervised_params_best_observed.npy",
             "supervised_log": "logs/supervised_log.jsonl",
+            "supervised_callback_log": "logs/supervised_callback_log.jsonl",
+            "supervised_optimizer_result": "logs/supervised_optimizer_result.json",
             "metrics_final": "logs/metrics_final.json",
             "confusion_matrix": "logs/confusion_matrix.npy"
-            # CATATAN: tidak ada pca_model/scaler/X_*.npy/clustering_params.bin di sini --
-            # semua itu cukup dirujuk balik ke source_run_dir (lihat field di atas),
-            # tidak diduplikasi ke run_dir baru.
         }
     }
  
     SAVE(manifest, config.run_dir + "/config.json")
  
  
-# Contoh pemanggilan Jalur B:
-# Pengguna sudah membaca runs/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42/logs/clustering_log.jsonl
-# secara manual, lalu memutuskan iterasi #7 punya kombinasi min_separation dan
-# active_dimensions paling baik (bukan iterasi dengan train_loss terkecil).
+# Contoh:
 MAIN_FROM_SELECTED_CLUSTERING(
     source_run_dir      = "runs/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42",
-    selected_iter_idx   = 7,
-    n_iter_supervised   = 15
+    selected_eval_id    = 7,
+    max_nfev_supervised = 15
 )
 ```
  
@@ -1857,15 +1945,14 @@ MAIN_FROM_SELECTED_CLUSTERING(
  
 | Aspek | Jalur A (otomatis) | Jalur B (manual) |
 |---|---|---|
-| Sumber `theta` clustering | `result.x` dari COBYLA (train_loss terbaik) | `READ_PARAM_RECORD` pada `selected_iter_idx` pilihan manusia, berbasis metrik train/val (10.1) |
-| `DATA_PIPELINE` dijalankan ulang? | Ya (bagian dari alur normal) | Tidak — baca `X_*.npy` (train/val/test) langsung dari `source_run_dir` |
-| `CLUSTERING_LOOP` dijalankan ulang? | Ya | Tidak — baca `clustering_params.bin` milik run sumber |
-| `n_iter_supervised` | Dari `config` awal | Input manual terpisah, tidak mewarisi run sumber |
-| Akses official test | Hanya di `FINAL_EVALUATION` | Hanya di `FINAL_EVALUATION` (sama seperti Jalur A) |
-| `QUANTUM_LABEL_EXTRACTION`, `SUPERVISED_LOOP`, `FINAL_EVALUATION` | Dipanggil langsung | Dipanggil fungsi yang **sama persis**, tidak ada duplikasi logika |
-| Duplikasi artefak besar ke `run_dir` baru | — | Tidak — hanya membaca dari `source_run_dir` |
-| Validasi `selected_iter_idx` di luar rentang | — | Warning saja, proses tetap lanjut (bukan error yang menghentikan) |
-| `path_type` di manifest | `"jalur_a_automatic"` | `"jalur_b_manual_selection"` (+ field provenance `source_run_dir`, `selected_iter_idx`, `selection_basis`) |
+| Sumber `theta` clustering | `result.x` = final point resmi COBYLA | `READ_PARAM_RECORD` pada `selected_eval_id` pilihan manusia |
+| Riwayat objective | `clustering_log.jsonl` dengan `eval_id` | Membaca log yang sama dari run sumber |
+| Total objective calls | `result.nfev` | Validasi `selected_eval_id` memakai `source_clustering_result.nfev` |
+| Best observed | Disimpan terpisah dari final point | Dapat dilihat melalui `best_observed_eval_id`, tetapi tidak wajib dipilih |
+| Budget supervised | `max_nfev_supervised` dari config awal | Input manual `max_nfev_supervised` |
+| Akses official test | Hanya `FINAL_EVALUATION` | Hanya `FINAL_EVALUATION` |
+| Nama run | normal | suffix `_jalurB_evalXXXX` |
+| Provenance | manifest Jalur A | `source_run_dir` + `selected_eval_id` + `selection_basis` |
  
 ---
  
@@ -1875,7 +1962,7 @@ Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal
  
 1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 240 run konfirmatori bisa diproyeksikan realistis.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
-3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_iter_idx` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
+3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_eval_id` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
 5. **Konsolidasi 48 spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Training hanya menghasilkan `run_result.xlsx` per-run; penggabungan akhir dilakukan setelah seluruh run yang diperlukan selesai.
 6. **Implementasi Python nyata** untuk `HU_MOMENTS`, `SIGNED_LOG_TRANSFORM`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS` (2.8.4) — pseudocode-nya sudah dikunci, tapi pemilihan library persis (`cv2`, `mahotas`, atau lainnya) dan unit test terhadap kriteria penerimaan Gate G2-01/G2-02 belum dikerjakan.
