@@ -43,6 +43,27 @@ alasan validation hanya dipakai untuk monitoring/checkpoint selection
 test set — lihat rasionalisasi di `MORE_HD_RESEARCH_READINESS_GATES.md`
 log keputusan G0-03.
  
+
+**Update (G0-04, sesi 2026-09-26 — protokol multi-seed konfirmatori dikunci):**
+Seed `42` hanya digunakan untuk `PILOT` (smoke test, debugging, pilot konvergensi,
+dan penetapan budget COBYLA) dan **tidak pernah masuk agregasi hasil final**.
+Eksperimen `CONFIRMATORY` menggunakan tepat lima seed yang dipra-tetapkan:
+`[101, 202, 303, 404, 505]`. Desain tetap mempunyai 48 kondisi primer
+(`2 architecture × 3 feature_method × 8 skenario K`), tetapi masing-masing
+direplikasi pada lima seed sehingga totalnya **240 confirmatory runs**.
+
+Pada setiap seed, identitas sampel MNIST mentah untuk train, validation, dan
+official test dikunci dalam `splits/seed<SEED>.json`. Manifest split yang sama
+dipakai oleh PCA, HU, ZERNIKE, MORE-HD, dan MORE-HD-C. Split juga bersifat
+**nested terhadap K**: sampel digit yang sudah ada pada K lebih kecil tidak
+diacak ulang ketika K bertambah; skenario K+1 hanya menambahkan sampel kelas
+baru. Dengan demikian perubahan K tidak tercampur dengan resampling ulang
+kelas yang sudah ada.
+
+`condition_id` tetap R001–R048 dan merepresentasikan kondisi eksperimen,
+bukan replikasi. Identitas eksekusi unik adalah
+`run_uid = condition_id + "-S" + seed`, misalnya `R001-S101`.
+
 **Update (crash-safe append-only log):** Parameter tiap iterasi (baik di
 `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke **satu file binary
 append-only** (`clustering_params.bin`, `supervised_params.bin`) dengan
@@ -90,7 +111,16 @@ K=10 -> classes=[0,1,2,3,4,5,6,7,8,9]
 Total kondisi eksperimen per seed:
 
 ```
-8 skenario kelas × 2 architecture × 3 feature_method = 48 run
+8 skenario kelas × 2 architecture × 3 feature_method = 48 kondisi
+
+```
+
+Replikasi konfirmatori:
+
+```
+48 kondisi × 5 confirmatory seeds = 240 run
+confirmatory_seeds = [101, 202, 303, 404, 505]
+pilot_seed = 42  # tidak masuk agregasi final
 ```
 
 Prinsip isolasi variabel:
@@ -130,8 +160,15 @@ project/
 ├── data/
 │   └── MNIST/                     # dataset diunduh sekali saat pilot, lalu dibaca lokal
 │
+├── splits/
+│   ├── seed101.json
+│   ├── seed202.json
+│   ├── seed303.json
+│   ├── seed404.json
+│   └── seed505.json
+│
 ├── research_data/
-│   └── MORE_HD_master_48runs_seed42.xlsx
+│   └── MORE_HD_master_confirmatory_240runs.xlsx
 │
 └── runs/
     ├── cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42/
@@ -158,17 +195,17 @@ project/
 Prinsip penyimpanan untuk eksekusi paralel:
 
 1. `runs/` tetap menjadi sumber utama artefak mentah. Setiap kombinasi `classes × feature_method × architecture × seed` mempunyai `run_dir` sendiri dan **satu proses hanya boleh menulis ke satu `run_dir` miliknya**.
-2. File `research_data/MORE_HD_master_48runs_seed42.xlsx` **tidak pernah ditulis oleh proses training**. Selama 48 run berlangsung, file ini hanya dipakai sebagai sumber/template untuk membuat salinan lokal per-run.
+2. File `research_data/MORE_HD_master_confirmatory_240runs.xlsx` **tidak pernah ditulis oleh proses training**. Selama 240 run konfirmatori berlangsung, file ini hanya dipakai sebagai sumber/template untuk membuat salinan lokal per-run.
 3. Saat sebuah run baru berhasil membuat `run_dir`, program menyalin file master tersebut menjadi `runs/<run_name>/run_result.xlsx`. Setelah itu, seluruh penulisan spreadsheet oleh run tersebut hanya diarahkan ke salinan lokal `run_result.xlsx`.
 4. Karena setiap proses paralel menulis file Excel yang berbeda, tidak ada dua proses yang melakukan concurrent write ke workbook yang sama.
-5. Setelah seluruh 48 run selesai, isi hasil dari masing-masing `run_result.xlsx` dapat dikonsolidasikan kembali ke `MORE_HD_master_48runs_seed42.xlsx`. Tahap konsolidasi akhir berada **di luar proses training paralel** dan belum diotomatisasi pada pseudocode ini.
+5. Setelah seluruh 240 run konfirmatori selesai, isi hasil dari masing-masing `run_result.xlsx` dapat dikonsolidasikan kembali ke `MORE_HD_master_confirmatory_240runs.xlsx`. Tahap konsolidasi akhir berada **di luar proses training paralel** dan belum diotomatisasi pada pseudocode ini.
 6. Artefak JSON/JSONL/NPY/BIN tetap menjadi sumber data paling dasar. `run_result.xlsx` adalah representasi tabel lokal dari satu run dan tidak menggantikan artefak mentah.
 7. Pengelolaan paralel Jalur B belum diubah pada revisi ini; collision guard tambahan khusus Jalur B ditunda sesuai keputusan eksperimen saat ini.
 
 Path spreadsheet dan dataset dikunci pada level proyek:
 
 ```
-MASTER_SPREADSHEET_PATH     = "research_data/MORE_HD_master_48runs_seed42.xlsx"
+MASTER_SPREADSHEET_PATH     = "research_data/MORE_HD_master_confirmatory_240runs.xlsx"
 LOCAL_RUN_SPREADSHEET_NAME  = "run_result.xlsx"
 MNIST_ROOT                  = "data/"
 ```
@@ -204,6 +241,101 @@ FUNCTION GENERATE_RUN_ID(classes, feature_method, architecture):
     run_number = class_block + feature_offset + architecture_offset + 1
     RETURN "R" + ZERO_PAD(run_number, 3)
 ```
+
+---
+
+
+## 0.3 PROTOKOL MULTI-SEED, SPLIT MANIFEST, DAN PROPAGASI RNG
+
+Konstanta protokol yang dibekukan:
+
+```
+PILOT_SEED = 42
+CONFIRMATORY_SEEDS = [101, 202, 303, 404, 505]
+N_CONFIRMATORY_REPLICATIONS = 5
+RUN_MODE = "PILOT" | "CONFIRMATORY"
+```
+
+Aturan validasi:
+
+```
+FUNCTION VALIDATE_SEED_PROTOCOL(config):
+    IF config.run_mode == "PILOT":
+        ASSERT config.seed == PILOT_SEED
+    ELSE IF config.run_mode == "CONFIRMATORY":
+        ASSERT config.seed IN CONFIRMATORY_SEEDS
+    ELSE:
+        ERROR("run_mode tidak dikenal")
+```
+
+Satu `master_seed` tidak dipakai langsung untuk seluruh sumber randomness.
+Sub-seed diturunkan secara deterministik berdasarkan namespace agar setiap
+sumber randomness dapat direproduksi dan diaudit secara terpisah:
+
+```
+FUNCTION DERIVE_SUBSEED(master_seed, namespace):
+    digest = SHA256(STRING(master_seed) + ":" + namespace)
+    RETURN UINT32(FIRST_8_HEX_DIGITS(digest))
+
+data_seed  = DERIVE_SUBSEED(seed, "data")
+init_seed  = DERIVE_SUBSEED(seed, "init")
+pair_seed  = DERIVE_SUBSEED(seed, "cluster_pairs")
+label_seed = DERIVE_SUBSEED(seed, "quantum_labels")
+```
+
+Manifest split dibuat satu kali per confirmatory seed dan tidak dibuat ulang
+per feature method atau per architecture:
+
+```
+FUNCTION CREATE_OR_LOAD_SPLIT_MANIFEST(master_seed):
+    ASSERT master_seed IN CONFIRMATORY_SEEDS
+    path = "splits/seed" + master_seed + ".json"
+
+    IF EXISTS(path):
+        manifest = LOAD_JSON(path)
+        VALIDATE_SPLIT_MANIFEST(manifest, master_seed)
+        RETURN manifest
+
+    FOR digit IN 0..9:
+        train_pool = ALL_INDICES_OF_DIGIT(mnist_train_raw, digit)
+        test_pool  = ALL_INDICES_OF_DIGIT(mnist_test_raw, digit)
+
+        shuffled_train = SHUFFLE(train_pool, RNG(DERIVE_SUBSEED(master_seed, "data:train:" + digit)))
+        shuffled_test  = SHUFFLE(test_pool,  RNG(DERIVE_SUBSEED(master_seed, "data:test:" + digit)))
+
+        train_idx[digit] = FIRST 1000 OF shuffled_train
+        val_idx[digit]   = NEXT 100 OF shuffled_train
+        test_idx[digit]  = FIRST 200 OF shuffled_test
+
+        ASSERT DISJOINT(train_idx[digit], val_idx[digit])
+
+    manifest = {
+        "master_seed": master_seed,
+        "train_idx_by_class": train_idx,
+        "val_idx_by_class": val_idx,
+        "test_idx_by_class": test_idx,
+        "nested_k_rule": "reuse same class-specific indices for every K containing that class"
+    }
+
+    SAVE_ATOMIC_JSON(manifest, path)
+    RETURN manifest
+```
+
+Untuk skenario K tertentu, `DATA_PIPELINE` hanya mengambil indeks kelas
+`0..K-1` dari manifest tersebut. Karena indeks per kelas tidak berubah,
+K=4 mempertahankan seluruh sampel kelas 0,1,2 dari K=3 dan hanya menambahkan
+kelas 3; pola yang sama berlaku sampai K=10.
+
+```
+FUNCTION BUILD_RUN_IDENTITY(config):
+    condition_id = GENERATE_CONDITION_ID(config.K, config.feature_method, config.architecture)
+    run_uid = condition_id + "-S" + STRING(config.seed)
+    RETURN condition_id, run_uid
+```
+
+Untuk `PILOT`, seed 42 boleh menggunakan split sementara/pilot, tetapi artefak
+pilot harus ditandai `run_mode="PILOT"` dan tidak boleh dimasukkan ke workbook
+agregasi konfirmatori maupun klaim publikasi.
 
 ---
 
@@ -252,6 +384,8 @@ STRUCT Config:
 
     cobyla_tol             = 1e-4
     seed                   = 42
+    run_mode                = "PILOT"      # "PILOT" | "CONFIRMATORY"
+    confirmatory_seeds       = [101,202,303,404,505]
     n_cluster_pair_samples = 10
     active_dim_threshold   = 1e-6
 
@@ -1285,6 +1419,11 @@ FUNCTION MAIN(config):
     # Master spreadsheet tidak pernah ditulis langsung oleh proses training.
     INITIALIZE_LOCAL_RUN_SPREADSHEET(config)
 
+    VALIDATE_SEED_PROTOCOL(config)
+    config.split_manifest_path = RESOLVE_SPLIT_MANIFEST_PATH(config)
+    IF config.run_mode == "CONFIRMATORY":
+        CREATE_OR_LOAD_SPLIT_MANIFEST(config.seed)
+
     X_train, y_train, X_val, y_val, X_test, y_test = DATA_PIPELINE(config)
 
     # S dihitung dari representasi fitur milik run ini (train saja)
@@ -1384,6 +1523,13 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
 
         "cobyla_tol": config.cobyla_tol,
         "seed": config.seed,
+        "master_seed": config.seed,
+        "run_mode": config.run_mode,
+        "data_seed": DERIVE_SUBSEED(config.seed, "data"),
+        "init_seed": DERIVE_SUBSEED(config.seed, "init"),
+        "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
+        "label_seed": DERIVE_SUBSEED(config.seed, "quantum_labels"),
+        "split_manifest": config.split_manifest_path,
         "n_cluster_pair_samples": config.n_cluster_pair_samples,
         "active_dim_threshold": config.active_dim_threshold,
         "mnist_root": config.mnist_root,
@@ -1414,8 +1560,9 @@ config_user = Config(
     n_iter_supervised=10,
     architecture="MORE-HD",
     feature_method="PCA",
-    seed=42,
-    mnist_download=TRUE       # TRUE hanya untuk pilot/initial download
+    seed=101,
+    run_mode="CONFIRMATORY",
+    mnist_download=FALSE      # dataset sudah tersedia setelah pilot/initial download
 )
 
 MAIN(config_user)
@@ -1424,10 +1571,12 @@ MAIN(config_user)
 Run tersebut akan mempunyai identitas unik, misalnya:
 
 ```
-cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42
+cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
 ```
 
-Pilot pertama dapat sekaligus menjadi run resmi `R001` apabila konfigurasi dan jumlah iterasinya memang sudah final. Setelah MNIST selesai diunduh dan pipeline telah tervalidasi, semua run berikutnya memakai:
+Untuk kondisi ini: `condition_id=R001`, `run_uid=R001-S101`, dan split dibaca dari `splits/seed101.json`.
+
+Pilot seed 42 **tidak boleh** dipromosikan menjadi run konfirmatori. Setelah pipeline, budget optimizer, dan protokol dibekukan pada fase pilot, run publikasi dimulai ulang menggunakan seed konfirmatori yang sudah dipra-tetapkan.
 
 ```
 mnist_download = FALSE
@@ -1438,7 +1587,7 @@ Dengan demikian proses paralel hanya membaca dataset lokal dari `data/` dan tida
 Setelah run selesai dan hasilnya diperiksa, pengguna membuat konfigurasi berikutnya
 secara manual, misalnya `PCA + MORE-HD-C`, lalu `HU + MORE-HD`, dan seterusnya.
 Pola yang sama dilakukan untuk skenario kelas 3 sampai 10. Dengan demikian desain
-penelitian tetap terdiri dari 48 kondisi per seed, tetapi eksekusinya bersifat
+penelitian tetap terdiri dari 48 kondisi per seed. Lima seed konfirmatori menghasilkan total 240 run, tetapi eksekusinya tetap bersifat
 **controlled manual per run** agar setiap proses dapat dimonitor secara individual.
 
 Contoh urutan enam kondisi untuk skenario 3 kelas adalah:
@@ -1669,6 +1818,13 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(config, metrics, source_run_dir, selected_
         "n_input_channels": config.n_input_channels,
         "cobyla_tol": config.cobyla_tol,
         "seed": config.seed,
+        "master_seed": config.seed,
+        "run_mode": config.run_mode,
+        "data_seed": DERIVE_SUBSEED(config.seed, "data"),
+        "init_seed": DERIVE_SUBSEED(config.seed, "init"),
+        "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
+        "label_seed": DERIVE_SUBSEED(config.seed, "quantum_labels"),
+        "split_manifest": config.split_manifest_path,
         "final_metrics": metrics,
         "artifact_paths": {
             "quantum_labels": "artifacts/quantum_labels.json",
@@ -1717,7 +1873,7 @@ MAIN_FROM_SELECTED_CLUSTERING(
  
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
-1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 48 run bisa diproyeksikan realistis.
+1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 240 run konfirmatori bisa diproyeksikan realistis.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_iter_idx` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
