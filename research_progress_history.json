@@ -70,5 +70,13 @@
     "delta_pp": 1.3,
     "items": 38,
     "summary": "docs: resolve G1-09 cumulative class-sequence confound as explicit limitation"
+  },
+  {
+    "date": "2026-09-27",
+    "commit": "d7c205e00bc2e65d8a4c1938f8b3368d8a59b6cc",
+    "progress": 29.6,
+    "delta_pp": 1.3,
+    "items": 38,
+    "summary": "docs: resolve G1-10 with classical baselines and no-R MORE reference"
   }
 ]

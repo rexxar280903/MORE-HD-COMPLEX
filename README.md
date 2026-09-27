@@ -3,11 +3,11 @@
 <!-- RESEARCH_PROGRESS_START -->
 ## Research Progress
 
-![Research Progress](https://img.shields.io/badge/Research%20Progress-28.3%25-blue)
+![Research Progress](https://img.shields.io/badge/Research%20Progress-29.6%25-blue)
 
-**Current research readiness: 28.3%**
+**Current research readiness: 29.6%**
 
-`██████░░░░░░░░░░░░░░ 28.3%`
+`██████░░░░░░░░░░░░░░ 29.6%`
 
 Progress dihitung otomatis dari **38 item Research Readiness Gate** dengan bobot:
 `CLOSED = 100%`, `READY FOR VERIFICATION = 75%`, `IN PROGRESS = 50%`, `PILOT ONLY = 25%`, dan `BLOCKED = 0%`.
@@ -24,9 +24,10 @@ Progress dihitung otomatis dari **38 item Research Readiness Gate** dengan bobot
 | 2026-09-27 | [`6670319`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6670319c34497679b0781ddf0a3654319a8fe4d7) | 24.3% | 0.0 pp | docs: consolidate ablation into main pseudocode |
 | 2026-09-27 | [`7e6603c`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/7e6603cdef2adff678606b1bb721473b6cecae75) | 25.7% | +1.4 pp | docs: resolve G0-02 with deterministic Jalur B selector |
 | 2026-09-27 | [`acae2ca`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/acae2ca6eee5d7354427967dec9486afd10ba074) | 27.0% | +1.3 pp | docs: lock pilot budget protocol (G1-01) and COBYLA simplex rules (G1-06) |
-| 2026-09-27 | [`6413658`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6413658f6ae02f9b35fb060bb93cea778300fdb3) | **28.3%** | **+1.3 pp** | docs: resolve G1-09 cumulative class-sequence confound as explicit limitation |
+| 2026-09-27 | [`6413658`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6413658f6ae02f9b35fb060bb93cea778300fdb3) | 28.3% | +1.3 pp | docs: resolve G1-09 cumulative class-sequence confound as explicit limitation |
+| 2026-09-27 | [`d7c205e`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/d7c205e00bc2e65d8a4c1938f8b3368d8a59b6cc) | **29.6%** | **+1.3 pp** | docs: resolve G1-10 with classical baselines and no-R MORE reference |
 
-**Trend terbaru:** `13.9% → 10.1% → 18.2% → 20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3%`
+**Trend terbaru:** `13.9% → 10.1% → 18.2% → 20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
@@ -122,12 +123,12 @@ Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi 
 | Gate | Cakupan | Item | Closed | Ready for Verification | In Progress | Pilot Only | Blocked | Kesiapan* |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | G0 | Validitas data & evaluasi | 4 | 2 | 0 | 2 | 0 | 0 | **75.0%** |
-| G1 | Optimasi & desain eksperimen | 11 | 0 | 1 | 7 | 1 | 2 | **40.9%** |
+| G1 | Optimasi & desain eksperimen | 11 | 0 | 1 | 8 | 1 | 1 | **45.5%** |
 | G2 | Preprocessing & definisi numerik | 6 | 0 | 0 | 3 | 0 | 3 | **25.0%** |
 | G3 | Artefak & spreadsheet | 7 | 0 | 1 | 1 | 0 | 5 | **17.9%** |
 | G4 | Reproducibility & verifikasi sirkuit | 4 | 0 | 0 | 0 | 0 | 4 | **0.0%** |
 | D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 6 | 0 | 0 | 1 | 0 | 5 | **8.3%** |
-| **Total** |  | **38** | **2** | **2** | **14** | **1** | **19** | **28.3%** |
+| **Total** |  | **38** | **2** | **2** | **15** | **1** | **18** | **29.6%** |
 
 \* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `READY FOR VERIFICATION=75%`, `IN PROGRESS=50%`, `PILOT ONLY=25%`, dan `BLOCKED=0%`.
 <!-- READINESS_SUMMARY_END -->
