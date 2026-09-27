@@ -84,6 +84,7 @@ Tersedia dua jalur eksekusi:
 
 Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan; seed 42 hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED`.
 
+<!-- READINESS_SUMMARY_START -->
 ### Ringkasan Kesiapan (Readiness Gate) — per 2026-09-27
 
 | Gate | Cakupan | Item | Closed | Ready for Verification | In Progress | Pilot Only | Blocked | Kesiapan* |
@@ -97,6 +98,7 @@ Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi 
 | **Total** |  | **37** | **2** | **2** | **8** | **1** | **24** | **20.9%** |
 
 \* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `READY FOR VERIFICATION=75%`, `IN PROGRESS=50%`, `PILOT ONLY=25%`, dan `BLOCKED=0%`.
+<!-- READINESS_SUMMARY_END -->
 
 **Yang sudah dikunci (2026-09-22):** desain ekstraksi Hu Moments (input grayscale, formula signed-log, padding channel ke-8 = 0.0) dan Zernike Moments (8 pasangan `(n,m)` revisi, pemetaan unit disk, magnitude invarian rotasi), serta kebijakan clipping seragam (tidak ada clipping untuk PCA/Hu/Zernike). Ketiganya masih `IN PROGRESS` karena implementasi kode nyata + unit test belum dikerjakan.
 
