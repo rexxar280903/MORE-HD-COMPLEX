@@ -28,7 +28,7 @@ program berhenti di tengah, tahap sebelumnya tidak perlu diulang.
 **Update (G0-01, sesi 2026-09-22 — three-way split):** Pipeline sekarang membedakan
 tiga split data secara eksplisit: **train** (dipakai COBYLA untuk optimasi),
 **validation** (dipakai untuk semua monitoring pasif dan pemilihan checkpoint,
-baik di `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, maupun pemilihan manual Jalur B), dan
+baik di `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, maupun pemilihan checkpoint deterministik Jalur B), dan
 **official test** (HANYA dipanggil oleh `FINAL_EVALUATION`, setelah protokol
 dibekukan). `CLUSTERING_LOOP` dan `SUPERVISED_LOOP` tidak lagi menerima
 `X_test`/`y_test` sama sekali di signature-nya — lihat bagian 2, 5, 7, 9, dan 10.
@@ -54,8 +54,8 @@ dilaporkan callback memakai `callback_id` terpisah; jumlah evaluasi resmi diambi
 yang pernah teramati pada log objective (`best_observed_point`). Untuk clustering dan
 supervised, hasil terminasi COBYLA juga wajib menyimpan `success`, `status`,
 `message`, `fun`, dan `nfev`. Nama konfigurasi budget diubah menjadi
-`max_nfev_clustering` dan `max_nfev_supervised`. Jalur B memilih
-`selected_eval_id`, bukan "iteration". Spreadsheet per-run wajib memakai header
+`max_nfev_clustering` dan `max_nfev_supervised`. Jalur B menyimpan
+`selected_eval_id` yang dihasilkan fungsi selector deterministik, bukan "iteration". Spreadsheet per-run wajib memakai header
 `Eval ID` / `Objective Evaluation` dan tidak boleh menyebut setiap objective call
 sebagai `Iteration`.
 
@@ -183,7 +183,7 @@ Seluruh source code, dataset lokal, artefak per-run, dan data penelitian konsoli
 project/
 │
 ├── main_train.py                  # Jalur A: satu run training lengkap
-├── main_selected_clustering.py    # Jalur B: lanjut dari objective evaluation clustering pilihan manual
+├── main_selected_clustering.py    # Jalur B: secondary path dari checkpoint clustering terpilih deterministik
 ├── main_ablation.py               # targeted ablation G1-05/G1-07; hanya model B/C
 │
 ├── core/
@@ -441,7 +441,7 @@ STRUCT Config:
                                                 # Validation diambil dari POOL TRAINING (bukan pool test), disjoint dari
                                                 # n_train_per_class, dan HANYA dipakai untuk monitoring pasif /
                                                 # checkpoint selection selama CLUSTERING_LOOP dan SUPERVISED_LOOP,
-                                                # serta untuk pemilihan manual di Jalur B.
+                                                # serta untuk pemilihan checkpoint deterministik di Jalur B.
     n_test_per_class       = 200               # DIKUNCI (G0-03, sesi 2026-09-22): official test -- TIDAK diakses
                                                 # sebelum FINAL_EVALUATION (G0-01)
     max_nfev_clustering      = 10               # smoke test saja; budget final dikunci lewat pilot G1-01
@@ -832,7 +832,7 @@ Catatan metodologis:
 - Kanal ke-8 Hu adalah kanal netral `0.0`, sehingga angle encoding pada qubit ke-8 adalah `RY(0)`. Kanal ini tidak dianggap sebagai Hu Moment baru.
 - Kebijakan clipping (2.5.1) sudah diseragamkan: tidak ada clipping untuk PCA, HU, maupun ZERNIKE.
 - `feature_method` memengaruhi juga matriks korelasi `S`, karena `CORRELATION_MATRIX` menerima `X_train_scaled` dari representasi yang dipilih.
-- **Validation** (`X_val_scaled`, `y_val`) diambil dari pool `mnist_train_raw`, disjoint dari train, BUKAN dipotong dari pool test. Validation dipakai untuk semua monitoring/checkpoint selection selama `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, dan pemilihan manual Jalur B (G0-01, sesi 2026-09-22).
+- **Validation** (`X_val_scaled`, `y_val`) diambil dari pool `mnist_train_raw`, disjoint dari train, BUKAN dipotong dari pool test. Validation dipakai untuk semua monitoring/checkpoint selection selama `CLUSTERING_LOOP`, `SUPERVISED_LOOP`, dan selector deterministik Jalur B (G0-01/G0-02).
 - **Official test** (`X_test_scaled`, `y_test`) hanya boleh dipanggil oleh `FINAL_EVALUATION`. `DATA_PIPELINE` tetap men-load dan menyimpan array test di sini (2.7) karena fungsi ini dijalankan sekali per run, tapi tidak ada pemanggilan `circuit_fn` atau perhitungan metrik apa pun terhadap `X_test_scaled`/`y_test` sebelum `FINAL_EVALUATION` dipanggil.
 
 ---
@@ -1486,18 +1486,35 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         # --- (c) monitoring VALIDATION, pasif; tidak masuk objective ---
         correct = 0
         margins = []
+        true_distances_val = []
+        val_outputs_by_class = { c: [] FOR c IN config.classes }
+
         FOR each (x, true_class) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
+            val_outputs_by_class[true_class].APPEND(v)
+
             distances = { c: COSINE_DISTANCE(v, temp_centroids[c]) FOR c IN config.classes }
             predicted_class = ARGMIN(distances)
             IF predicted_class == true_class:
                 correct += 1
             dist_true  = distances[true_class]
             dist_other = MIN(distances[c] FOR c IN config.classes IF c != true_class)
+            true_distances_val.APPEND(dist_true)
             margins.APPEND(dist_other - dist_true)
  
         pseudo_accuracy_val = correct / LENGTH(X_val)
         avg_margin_val = MEAN(margins)
+        mean_true_distance_val = MEAN(true_distances_val)
+
+        val_centroids = {}
+        FOR each c IN config.classes:
+            val_centroids[c] = NORMALIZE_VECTOR(MEAN(val_outputs_by_class[c]))
+
+        min_separation_val = MIN(
+            COSINE_DISTANCE(val_centroids[a], val_centroids[b])
+            FOR all pairs (a, b) IN config.classes WHERE a != b
+        )
+
         min_separation = MIN(
             COSINE_DISTANCE(temp_centroids[a], temp_centroids[b])
             FOR all pairs (a, b) IN config.classes WHERE a != b
@@ -1527,6 +1544,8 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             "train_loss": train_loss,
             "pseudo_accuracy_val": pseudo_accuracy_val,
             "avg_margin_val": avg_margin_val,
+            "mean_true_distance_val": mean_true_distance_val,
+            "min_separation_val": min_separation_val,
             "min_separation": min_separation,
             "correlation_consistency": correlation_consistency,
             "active_dimensions": active_dimensions
@@ -1593,52 +1612,58 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
  
 ### Penjelasan Metrik Evaluasi pada Clustering Loop
 
-Enam nilai pada `clustering_log.jsonl` dicatat **per objective evaluation
-(`eval_id`)**, bukan per iterasi optimizer. Dari keenam metrik tersebut,
+Delapan nilai pada `clustering_log.jsonl` dicatat **per objective evaluation
+(`eval_id`)**, bukan per iterasi optimizer. Dari delapan metrik tersebut,
 hanya `train_loss` yang secara langsung digunakan COBYLA sebagai fungsi
-objektif. Lima metrik lainnya merupakan **monitoring pasif** untuk mengamati
+objektif. Tujuh metrik lainnya merupakan **monitoring pasif** untuk mengamati
 kualitas representasi clustering pada data train/validation tanpa memengaruhi
 langkah optimasi COBYLA.
 
 | Metrik | Fungsi (untuk apa dipakai) | Satuan / Rentang Nilai | Arah yang diharapkan | Interpretasi nilai yang lebih baik |
 |---|---|---|---|---|
-| `train_loss` | Objective utama yang diminimalkan COBYLA. | Skalar tak berdimensi dari `-S_ij × cosine_distance`. | ↓ **Semakin kecil semakin baik** | Nilai yang lebih kecil menunjukkan objective clustering semakin terpenuhi: pasangan dari kelas yang sama didorong lebih dekat, sedangkan pasangan kelas berbeda didorong lebih jauh sesuai struktur matriks korelasi `S`. |
-| `pseudo_accuracy_val` | Proxy generalisasi pada validation terhadap centroid sementara. | Proporsi 0–1. | ↑ **Semakin besar semakin baik** | Nilai mendekati 1 menunjukkan semakin banyak sampel validation yang centroid terdekatnya adalah centroid kelas yang benar. |
-| `avg_margin_val` | Margin validation antara kelas benar dan centroid kelas salah terdekat. | Selisih cosine distance; teoretis -2 sampai +2. | ↑ **Semakin besar semakin baik** | Margin positif dan semakin besar berarti sampel semakin aman dari kelas pengganggu terdekat. Nilai negatif berarti centroid kelas salah lebih dekat daripada centroid kelas benar. |
-| `min_separation` | Jarak cosine minimum antar centroid kelas. | 0–2. | ↑ **Semakin besar semakin baik** | Nilai lebih besar menunjukkan pasangan centroid yang paling berdekatan tetap memiliki pemisahan yang lebih lebar. Nilai mendekati 0 menunjukkan quantum-label crowding dan risiko `curse of density` yang lebih tinggi. |
-| `correlation_consistency` | Konsistensi urutan jarak centroid terhadap matriks korelasi `S`. | Spearman -1 sampai +1. | ↑ **Semakin mendekati +1 semakin baik** | Nilai mendekati +1 berarti struktur jarak antar-centroid semakin konsisten dengan urutan dissimilarity antar-kelas yang direpresentasikan oleh `S`; nilai sekitar 0 menunjukkan hubungan ranking lemah dan nilai negatif menunjukkan urutan yang berlawanan. |
-| `active_dimensions` | Jumlah dimensi observable aktif pada centroid. | Integer 0–15. | ↑ **Semakin besar umumnya semakin baik untuk pemanfaatan ruang observable** | Nilai yang lebih tinggi menunjukkan lebih banyak komponen dari representasi 15D benar-benar aktif. Untuk MORE-HD-C, nilai mendekati 15 diharapkan sebagai bukti bahwa penambahan RZ mengurangi structural zeros. Metrik ini bukan ukuran akurasi secara langsung. |
+| `train_loss` | Objective utama yang diminimalkan COBYLA. | Skalar tak berdimensi dari `-S_ij × cosine_distance`. | ↓ **Semakin kecil semakin baik** | Nilai yang lebih kecil menunjukkan objective clustering semakin terpenuhi. |
+| `pseudo_accuracy_val` | Nearest-centroid accuracy pada validation menggunakan centroid yang dibangun hanya dari TRAIN. | Proporsi 0–1. | ↑ **Semakin besar semakin baik** | Nilai mendekati 1 menunjukkan semakin banyak sampel validation yang paling dekat dengan centroid kelas benar. Ini menjadi kriteria pertama selector Jalur B. |
+| `avg_margin_val` | Margin validation antara centroid kelas benar dan centroid kelas salah terdekat. | Selisih cosine distance; teoretis -2 sampai +2. | ↑ **Semakin besar semakin baik** | Margin positif yang lebih besar menunjukkan keputusan nearest-centroid lebih aman. Metrik ini tetap diagnostik dan tidak dipakai sebagai kriteria selector G0-02. |
+| `mean_true_distance_val` | Rata-rata cosine distance sampel validation ke centroid TRAIN kelas benarnya. | 0–2. | ↓ **Semakin kecil semakin baik** | Mengukur compactness validation terhadap label/centroid kelas benar. Ini menjadi kriteria ketiga selector Jalur B. |
+| `min_separation_val` | Jarak cosine minimum antar centroid yang dibangun dari output validation per kelas. | 0–2. | ↑ **Semakin besar semakin baik** | Menilai apakah kelas tetap terpisah pada validation. Ini menjadi kriteria kedua selector Jalur B. |
+| `min_separation` | Jarak cosine minimum antar centroid kelas yang dibangun dari TRAIN. | 0–2. | ↑ **Semakin besar semakin baik** | Nilai lebih besar menunjukkan pasangan centroid TRAIN yang paling berdekatan masih mempunyai pemisahan lebih lebar. Tetap dipakai sebagai outcome representasi/diagnostik. |
+| `correlation_consistency` | Konsistensi urutan jarak centroid TRAIN terhadap matriks korelasi `S`. | Spearman -1 sampai +1. | ↑ **Semakin mendekati +1 semakin baik** | Mengukur kesesuaian struktur jarak dengan dissimilarity antarkelas. Metrik diagnostik, bukan kriteria pemilihan checkpoint. |
+| `active_dimensions` | Jumlah dimensi observable aktif pada centroid. | Integer 0–15. | ↑ **Semakin besar umumnya semakin baik untuk pemanfaatan ruang observable** | Dipakai untuk diagnosis structural zeros. **Tidak boleh** dipakai untuk memilih checkpoint Jalur B karena dapat secara sistematis menguntungkan MORE-HD-C terhadap MORE-HD. |
 
 Ringkasan arah interpretasi:
 
 ```text
-train_loss               -> lebih kecil lebih baik
-pseudo_accuracy_val      -> lebih besar lebih baik
-avg_margin_val           -> lebih besar lebih baik
-min_separation           -> lebih besar lebih baik
-correlation_consistency  -> lebih besar / lebih dekat ke +1 lebih baik
-active_dimensions        -> lebih besar umumnya lebih baik untuk pemanfaatan 15 observable
+train_loss                  -> lebih kecil lebih baik
+pseudo_accuracy_val         -> lebih besar lebih baik
+avg_margin_val              -> lebih besar lebih baik (diagnostik)
+mean_true_distance_val      -> lebih kecil lebih baik
+min_separation_val          -> lebih besar lebih baik
+min_separation              -> lebih besar lebih baik (diagnostik)
+correlation_consistency     -> lebih besar / lebih dekat ke +1 lebih baik (diagnostik)
+active_dimensions           -> lebih besar umumnya lebih baik; DIAGNOSTIK SAJA
 ```
 
-Khusus `min_separation`, tujuan monitoring bukan mengecilkan jarak centroid,
-melainkan memastikan pasangan centroid yang paling dekat tetap mempunyai
-pemisahan yang memadai. Karena itu tren `min_separation` yang meningkat
-umumnya merupakan sinyal yang baik, sedangkan penurunan menuju nol menunjukkan
-centroid semakin berdesakan.
+Untuk G0-02, selector Jalur B tidak menggunakan weighted score. Pemilihan
+dilakukan secara **lexicographic deterministik** pada objective evaluation yang
+eligible: (1) maksimum `pseudo_accuracy_val`; (2) jika tie, maksimum
+`min_separation_val`; (3) jika tie, minimum `mean_true_distance_val`; (4)
+jika tie, minimum `train_loss`; dan (5) jika masih tie, pilih `eval_id`
+paling awal. `active_dimensions`, `correlation_consistency`, dan
+`avg_margin_val` tidak memengaruhi keputusan selector.
 
-Kelima metrik selain `train_loss` tidak menjadi target optimasi langsung
-COBYLA, sehingga nilainya **tidak wajib membaik secara monoton** pada setiap
-`eval_id`. Interpretasi harus dilakukan secara bersama-sama; misalnya,
-`min_separation` yang besar tidak cukup jika `correlation_consistency`
-memburuk atau `pseudo_accuracy_val` rendah.
+Kebijakan objective evaluation mana yang **eligible** terhadap fase
+`initial_simplex` tetap mengikuti resolusi Gate G1-06. Dengan demikian G0-02
+mengunci aturan ranking, sedangkan G1-06 mengunci domain kandidat yang boleh
+diranking.
 
 Seluruh monitoring pada bagian ini hanya memakai train/validation. Official test
 tetap hanya digunakan di `FINAL_EVALUATION`. Grafik loss, separation, margin,
-pseudo-accuracy, correlation consistency, dan active dimensions yang berasal
-dari log ini harus memakai sumbu-X **Objective Evaluation (`eval_id`)**, bukan
+pseudo-accuracy, correlation consistency, active dimensions, dan metrik validation
+tambahan harus memakai sumbu-X **Objective Evaluation (`eval_id`)**, bukan
 "Iteration".
 
 ---
+
 ### 9.1 MAIN(config) — menjalankan satu kombinasi eksperimen
 
 `MAIN(config)` adalah unit eksperimen utama dan selalu menjalankan tepat **satu kondisi**.
@@ -1884,51 +1909,156 @@ Dengan aturan ini, sumber daya yang dibagi antar proses hanya berupa resource re
 
 ---
 
-## 10. JALUR B — Pemilihan Manual Objective Evaluation Clustering
+## 10. JALUR B — Deterministic Validation-Selected Clustering Checkpoint
  
-### 10.1 Latar Belakang
+### 10.1 Posisi Jalur B terhadap Jalur A
  
-`result.x` yang dipakai Jalur A adalah **final point yang dikembalikan COBYLA**.
-Ia tidak boleh disebut otomatis sebagai titik dengan `train_loss` terbaik.
-Riwayat `clustering_log.jsonl` berisi setiap parameter yang benar-benar
-dievaluasi oleh objective dan diidentifikasi dengan `eval_id`. Secara terpisah,
-`clustering_optimizer_result.json` mencatat final point, `nfev`, status
-terminasi, dan `best_observed_eval_id`.
+Jalur A tetap merupakan **primary execution path**. Setelah `CLUSTERING_LOOP`
+selesai, Jalur A menggunakan `result.x` — final point resmi yang dikembalikan
+COBYLA — untuk `QUANTUM_LABEL_EXTRACTION`, `SUPERVISED_LOOP`, dan
+`FINAL_EVALUATION`. Keputusan G0-02 **tidak mengganti** `result.x` pada
+Jalur A.
 
-Jalur B tetap mengizinkan inspeksi train/validation untuk memilih satu titik
-objective evaluation tertentu. Nama inputnya adalah `selected_eval_id`, bukan
-`selected_eval_id`. Official test tidak boleh digunakan pada pemilihan ini.
+Jalur B adalah **secondary/sensitivity path** yang dijalankan dari artefak run
+Jalur A yang sudah selesai. Jalur B tidak menjalankan ulang `DATA_PIPELINE`
+atau `CLUSTERING_LOOP`. Tujuannya adalah menguji apakah trajectory clustering
+mengandung objective evaluation yang, menurut aturan validation yang
+dipra-tetapkan, menghasilkan titik awal supervised yang berbeda dari final
+`result.x`.
 
-**Catatan G0-02:** pemilihan manual tetap merupakan isu metodologis terpisah dan
-belum dianggap terselesaikan hanya karena terminologi G1-02 diperbaiki.
- 
-**Input manual dari pengguna:**
- 
-1. `selected_eval_id` — ID objective evaluation clustering pada run sumber.
-2. `max_nfev_supervised` — budget maksimum objective evaluations supervised
-   untuk run Jalur B.
- 
-### 10.2 Pseudocode
- 
+Jalur B tidak termasuk dalam hitungan **330 unique confirmatory executions**
+yang telah dibekukan (240 primary A/D + 90 targeted ablation B/C). Jika Jalur B
+nanti dieksekusi pada subset atau seluruh run, eksekusi tersebut dicatat sebagai
+secondary analysis tambahan dan tidak mengganti hasil primer Jalur A.
+
+### 10.2 Aturan G0-02: selector otomatis dan deterministik
+
+Tidak ada lagi input manual `selected_eval_id`. Fungsi selector membaca
+`clustering_log.jsonl` dan memilih satu `eval_id` secara lexicographic.
+Urutan kriteria dibekukan sebagai berikut:
+
+1. maksimum `pseudo_accuracy_val`;
+2. jika tie, maksimum `min_separation_val`;
+3. jika tie, minimum `mean_true_distance_val`;
+4. jika tie, minimum `train_loss`;
+5. jika masih tie, `eval_id` paling awal.
+
+Tidak digunakan weighted score. `active_dimensions`,
+`correlation_consistency`, dan `avg_margin_val` tetap disimpan untuk analisis,
+tetapi **tidak boleh** memengaruhi pemilihan checkpoint. Pengecualian
+`active_dimensions` penting agar selector tidak secara struktural
+menguntungkan MORE-HD-C hanya karena arsitektur tersebut memang dirancang untuk
+mengaktifkan dimensi Y-odd.
+
+Domain objective evaluation yang boleh menjadi kandidat ditentukan oleh
+`ELIGIBLE_CLUSTERING_EVAL_IDS`. Aturan apakah `initial_simplex` boleh masuk
+domain kandidat tetap dikunci oleh Gate G1-06; selama G1-06 belum selesai,
+Jalur B belum boleh digunakan sebagai analisis konfirmatori.
+
+`max_nfev_supervised` Jalur B **diwarisi dari run sumber**, bukan input manual.
+Dengan demikian satu-satunya perbedaan yang disengaja antara Jalur A dan Jalur B
+adalah sumber parameter clustering awal untuk supervised:
+
+```text
+Jalur A : theta_clustering = result.x COBYLA
+Jalur B : theta_clustering = checkpoint terpilih deterministic selector
 ```
-FUNCTION MAIN_FROM_SELECTED_CLUSTERING(
-    source_run_dir,
-    selected_eval_id,
-    max_nfev_supervised
-):
- 
-    source_manifest = LOAD_JSON(source_run_dir + "/config.json")
+
+### 10.3 Pseudocode selector
+
+```
+FUNCTION SELECT_CLUSTERING_CHECKPOINT_DETERMINISTIC(source_run_dir):
     source_clustering_result = LOAD_JSON(
         source_run_dir + "/logs/clustering_optimizer_result.json"
     )
+    log_rows = LOAD_JSONL(
+        source_run_dir + "/logs/clustering_log.jsonl"
+    )
+
+    ASSERT LENGTH(log_rows) == source_clustering_result.nfev
+
+    eligible_eval_ids = ELIGIBLE_CLUSTERING_EVAL_IDS(
+        log_rows,
+        source_clustering_result
+    )
+
+    IF LENGTH(eligible_eval_ids) == 0:
+        RAISE_ERROR("Tidak ada objective evaluation eligible untuk Jalur B")
+
+    candidates = [
+        row FOR row IN log_rows
+        WHERE row.eval_id IN eligible_eval_ids
+    ]
+
+    SORT candidates BY:
+        pseudo_accuracy_val     DESCENDING,
+        min_separation_val      DESCENDING,
+        mean_true_distance_val  ASCENDING,
+        train_loss              ASCENDING,
+        eval_id                 ASCENDING
+
+    selected = candidates[0]
+
+    selection_record = {
+        "selection_method": "deterministic_lexicographic_validation",
+        "criteria_order": [
+            "pseudo_accuracy_val DESC",
+            "min_separation_val DESC",
+            "mean_true_distance_val ASC",
+            "train_loss ASC",
+            "eval_id ASC"
+        ],
+        "selected_eval_id": selected.eval_id,
+        "selected_metrics": selected,
+        "eligible_eval_ids": eligible_eval_ids,
+        "test_used_for_selection": FALSE,
+        "diagnostics_excluded_from_selection": [
+            "active_dimensions",
+            "correlation_consistency",
+            "avg_margin_val"
+        ]
+    }
+
+    SAVE_JSON(
+        selection_record,
+        source_run_dir + "/logs/selected_checkpoint.json"
+    )
+
+    SAVE_JSON(
+        {
+            "candidates": candidates,
+            "selection_method": selection_record.selection_method,
+            "criteria_order": selection_record.criteria_order
+        },
+        source_run_dir + "/logs/checkpoint_selection_log.json"
+    )
+
+    RETURN selected.eval_id
+```
+
+Untuk input artefak dan aturan eligibility yang identik, fungsi ini wajib
+menghasilkan `selected_eval_id` yang sama. Unit test G0-02 harus menjalankan
+selector minimal dua kali pada fixture yang sama dan membuktikan hasil serta
+urutan kandidat identik.
+
+### 10.4 Pseudocode Jalur B
+
+```
+FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
  
+    source_manifest = LOAD_JSON(source_run_dir + "/config.json")
+    ASSERT source_manifest.path_type == "jalur_a_automatic"
+    ASSERT EXISTS(source_run_dir + "/artifacts/clustering_params.bin")
+    ASSERT EXISTS(source_run_dir + "/logs/clustering_log.jsonl")
+    ASSERT EXISTS(source_run_dir + "/logs/clustering_optimizer_result.json")
+
     config = Config(
         classes                = source_manifest.classes,
         n_train_per_class      = source_manifest.n_train_per_class,
         n_val_per_class        = source_manifest.n_val_per_class,
         n_test_per_class       = source_manifest.n_test_per_class,
-        max_nfev_clustering    = source_manifest.max_nfev_clustering,  # provenance saja
-        max_nfev_supervised    = max_nfev_supervised,
+        max_nfev_clustering    = source_manifest.max_nfev_clustering,
+        max_nfev_supervised    = source_manifest.max_nfev_supervised,
         architecture           = source_manifest.architecture,
         feature_method         = source_manifest.feature_method,
         n_data_qubits          = source_manifest.n_data_qubits,
@@ -1939,32 +2069,29 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(
         run_mode               = source_manifest.run_mode,
         n_cluster_pair_samples = source_manifest.n_cluster_pair_samples
     )
- 
+
+    selected_eval_id = SELECT_CLUSTERING_CHECKPOINT_DETERMINISTIC(
+        source_run_dir
+    )
+
     config.run_name = (
         source_manifest.run_name +
-        "_jalurB_eval" +
+        "_jalurB_auto_eval" +
         ZERO_PAD(selected_eval_id, 4)
     )
     config.run_dir = "runs/" + config.run_name
- 
+
+    CREATE_RUN_DIRECTORY_EXCLUSIVE(config)
     CREATE_DIRECTORY(config.run_dir + "/artifacts")
     CREATE_DIRECTORY(config.run_dir + "/logs")
- 
-    # Validasi terhadap ACTUAL nfev, bukan budget maksimum.
-    actual_nfev = source_clustering_result.nfev
-    IF selected_eval_id < 0 OR selected_eval_id >= actual_nfev:
-        RAISE_ERROR(
-            "selected_eval_id di luar objective evaluations yang benar-benar " +
-            "tersimpan. Rentang valid: 0.." + STRING(actual_nfev - 1)
-        )
- 
+
     X_train_scaled = LOAD(source_run_dir + "/artifacts/X_train_scaled.npy")
     y_train        = LOAD(source_run_dir + "/artifacts/y_train.npy")
     X_val_scaled   = LOAD(source_run_dir + "/artifacts/X_val_scaled.npy")
     y_val          = LOAD(source_run_dir + "/artifacts/y_val.npy")
-    X_test_scaled  = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
-    y_test         = LOAD(source_run_dir + "/artifacts/y_test.npy")
- 
+
+    # Official test SENGAJA belum dimuat di tahap ini.
+
     IF config.architecture == "MORE-HD":
         circuit_fn, _ = BUILD_CIRCUIT_MORE_HD(
             n_data_qubits=config.n_data_qubits,
@@ -1977,7 +2104,7 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(
         )
     ELSE:
         RAISE_ERROR("architecture tidak dikenali di manifest run sumber")
- 
+
     record_size = GET_RECORD_SIZE(
         source_run_dir + "/artifacts/clustering_params.bin"
     )
@@ -1986,71 +2113,59 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(
         eval_id = selected_eval_id,
         record_size = record_size
     )
- 
+
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
         circuit_fn, selected_theta, X_train_scaled, y_train, config
     )
- 
+
     trained_params_final = SUPERVISED_LOOP(
         circuit_fn, selected_theta, quantum_labels,
         X_train_scaled, y_train, X_val_scaled, y_val, config
     )
- 
+
+    X_test_scaled = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
+    y_test        = LOAD(source_run_dir + "/artifacts/y_test.npy")
+
     metrics, confusion_matrix = FINAL_EVALUATION(
         circuit_fn, trained_params_final, quantum_labels,
         X_test_scaled, y_test, config
     )
- 
+
     SAVE_ARTIFACT_BUNDLE_JALUR_B(
         config, metrics, source_run_dir, selected_eval_id
     )
- 
-    PRINT("Jalur B selesai. Hasil ada di: " + config.run_dir)
-    PRINT(
-        "theta diambil dari objective evaluation #" +
-        selected_eval_id +
-        " pada run sumber: " +
-        source_run_dir
-    )
- 
+
     RETURN metrics, confusion_matrix
- 
- 
+
+
 FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
     config, metrics, source_run_dir, selected_eval_id
 ):
- 
+    selection_record = LOAD_JSON(
+        source_run_dir + "/logs/selected_checkpoint.json"
+    )
     supervised_optimizer_result = LOAD_JSON(
         config.run_dir + "/logs/supervised_optimizer_result.json"
     )
 
     manifest = {
         "run_name": config.run_name,
-        "path_type": "jalur_b_manual_selection",
+        "path_type": "jalur_b_deterministic_validation_selection",
+        "analysis_role": "secondary_sensitivity",
         "timestamp": NOW(),
         "source_run_dir": source_run_dir,
+        "source_primary_theta": "result.x",
         "selected_eval_id": selected_eval_id,
-        "selection_basis": "manual_visual_inspection_train_val_metrics",
-        "classes": config.classes,
-        "n_train_per_class": config.n_train_per_class,
-        "n_val_per_class": config.n_val_per_class,
-        "n_test_per_class": config.n_test_per_class,
+        "selection_method": selection_record.selection_method,
+        "selection_criteria_order": selection_record.criteria_order,
+        "test_used_for_selection": FALSE,
+        "inherits_supervised_budget_from_source": TRUE,
         "max_nfev_supervised": config.max_nfev_supervised,
         "architecture": config.architecture,
         "feature_method": config.feature_method,
-        "n_data_qubits": config.n_data_qubits,
-        "n_readout_qubits": config.n_readout_qubits,
-        "n_input_channels": config.n_input_channels,
-        "cobyla_tol": config.cobyla_tol,
+        "classes": config.classes,
         "seed": config.seed,
-        "master_seed": config.seed,
         "run_mode": config.run_mode,
-        "data_seed": DERIVE_SUBSEED(config.seed, "data"),
-        "ry_core_seed": DERIVE_SUBSEED(config.seed, "init:ry_core"),
-        "rz_phase_seed": DERIVE_SUBSEED(config.seed, "init:rz_phase"),
-        "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
-        "label_seed": DERIVE_SUBSEED(config.seed, "quantum_labels"),
-        "split_manifest": config.split_manifest_path,
         "supervised_optimizer_result": supervised_optimizer_result,
         "final_metrics": metrics,
         "artifact_paths": {
@@ -2062,36 +2177,38 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
             "supervised_callback_log": "logs/supervised_callback_log.jsonl",
             "supervised_optimizer_result": "logs/supervised_optimizer_result.json",
             "metrics_final": "logs/metrics_final.json",
-            "confusion_matrix": "logs/confusion_matrix.npy"
+            "confusion_matrix": "logs/confusion_matrix.npy",
+            "source_selected_checkpoint": source_run_dir + "/logs/selected_checkpoint.json",
+            "source_checkpoint_selection_log": source_run_dir + "/logs/checkpoint_selection_log.json"
         }
     }
- 
+
     SAVE(manifest, config.run_dir + "/config.json")
- 
- 
+
+
 # Contoh:
 MAIN_FROM_SELECTED_CLUSTERING(
-    source_run_dir      = "runs/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42",
-    selected_eval_id    = 7,
-    max_nfev_supervised = 15
+    source_run_dir = "runs/R001-S101_..."
 )
 ```
  
-### 10.3 Ringkasan Perbedaan Jalur A vs Jalur B
+### 10.5 Ringkasan Perbedaan Jalur A vs Jalur B
  
-| Aspek | Jalur A (otomatis) | Jalur B (manual) |
+| Aspek | Jalur A — primary | Jalur B — secondary sensitivity |
 |---|---|---|
-| Sumber `theta` clustering | `result.x` = final point resmi COBYLA | `READ_PARAM_RECORD` pada `selected_eval_id` pilihan manusia |
-| Riwayat objective | `clustering_log.jsonl` dengan `eval_id` | Membaca log yang sama dari run sumber |
-| Total objective calls | `result.nfev` | Validasi `selected_eval_id` memakai `source_clustering_result.nfev` |
-| Best observed | Disimpan terpisah dari final point | Dapat dilihat melalui `best_observed_eval_id`, tetapi tidak wajib dipilih |
-| Budget supervised | `max_nfev_supervised` dari config awal | Input manual `max_nfev_supervised` |
-| Akses official test | Hanya `FINAL_EVALUATION` | Hanya `FINAL_EVALUATION` |
-| Nama run | normal | suffix `_jalurB_evalXXXX` |
-| Provenance | manifest Jalur A | `source_run_dir` + `selected_eval_id` + `selection_basis` |
- 
+| Sumber `theta` clustering | `result.x` = final point resmi COBYLA | `READ_PARAM_RECORD` pada `selected_eval_id` hasil selector deterministik |
+| Pemilihan checkpoint clustering | Tidak ada; memakai final optimizer point | Lexicographic train/validation rule yang dibekukan |
+| Input manual checkpoint | Tidak ada | **Tidak ada** |
+| Budget supervised | `max_nfev_supervised` dari config | Diwarisi identik dari source Jalur A |
+| DATA_PIPELINE/CLUSTERING dijalankan ulang | Ya, sebagai run normal | Tidak |
+| Akses official test sebelum keputusan model selesai | Tidak | Tidak |
+| `active_dimensions` dipakai memilih checkpoint | Tidak | **Tidak; diagnostik saja** |
+| Nama run | normal | suffix `_jalurB_auto_evalXXXX` |
+| Peran dalam 330 execution plan | Termasuk primary 240 A/D | **Tidak termasuk**; secondary analysis tambahan |
+| Provenance | manifest Jalur A | `source_run_dir` + `selected_eval_id` + selection log deterministik |
+
 ---
- 
+
 ## 11. TARGETED ABLATION G1-05/G1-07 — IMPLEMENTASI TERPADU A/B/C/D
 
 Bagian ini adalah **source of truth teknis** untuk targeted ablation. Isi yang sebelumnya berada pada dokumen terpisah dipindahkan ke sini agar spesifikasi implementasi hanya memiliki satu sumber acuan.
@@ -2367,4 +2484,4 @@ Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal
 6. **Implementasi Python nyata** untuk `HU_MOMENTS`, `SIGNED_LOG_TRANSFORM`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS` (2.8.4) — pseudocode-nya sudah dikunci, tapi pemilihan library persis (`cv2`, `mahotas`, atau lainnya) dan unit test terhadap kriteria penerimaan Gate G2-01/G2-02 belum dikerjakan.
 7. **[SELESAI, sesi 2026-09-22] Angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi** — dikunci ke `n_train_per_class=1000`, `n_val_per_class=100`, `n_test_per_class=200`. `n_train`/`n_test` mengikuti skala FRD-09 (komparabilitas dengan thesis lama + presisi statistik confidence interval yang memadai untuk klaim G1-04 pada K=3..10). `n_val_per_class` DIREVISI dari aturan proporsi G0-01 sebelumnya (`= n_test_per_class`) menjadi angka independen lebih kecil (separuh dari test), karena validation hanya berperan untuk monitoring/checkpoint selection (bukan klaim akhir publikasi) sehingga tidak memerlukan presisi setara test set; ketersediaan pool MNIST per digit (train ~5.400–6.700, test resmi ~980–1.135) dicek dan mencukupi untuk kombinasi `1000 (train) + 100 (val) = 1100` dan `200 (test)` di semua digit. Waktu komputasi sengaja TIDAK menjadi pertimbangan pada keputusan ini (akan diuji lewat pilot timing terpisah, lihat poin 1); keputusan murni berbasis presisi statistik dan komparabilitas metodologis.
 8. **Implementasi kode nyata + unit test untuk G0-01** — skema split train/validation/test dan penghapusan akses test dari `CLUSTERING_LOOP`/`SUPERVISED_LOOP`/Jalur B sudah dikunci di level pseudocode (bagian 2, 5, 7, 9, 10), tapi unit test yang memverifikasi tidak ada pemanggilan `circuit_fn` terhadap `X_test`/`y_test` sebelum `FINAL_EVALUATION` belum ditulis.
-9. **Konflik G0-02** — kriteria penerimaan G0-02 meminta fungsi pemilihan checkpoint Jalur B yang otomatis dan deterministik, sementara keputusan yang dikunci di bagian 10.1 adalah pemilihan manual oleh Ken. Ini belum diselesaikan; Ken akan menentukan sendiri resolusinya (skor otomatis / dua jalur manual+auto / revisi kriteria) berdasarkan analisisnya sendiri. Lihat catatan di 10.1 dan log keputusan `MORE_HD_RESEARCH_READINESS_GATES`.
+9. **Implementasi + unit test G0-02** — konflik manual-vs-otomatis sudah diselesaikan pada sesi 2026-09-27. Jalur B sekarang memakai selector lexicographic deterministik berbasis train/validation; `selected_eval_id` dan `max_nfev_supervised` tidak lagi menjadi input manual. Status tetap `IN PROGRESS` sampai implementasi Python membuktikan selector reproducible, tidak mengakses official test, menghasilkan selection log lengkap, dan mengikuti domain kandidat yang nanti dikunci oleh G1-06.

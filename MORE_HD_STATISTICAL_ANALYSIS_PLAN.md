@@ -143,6 +143,26 @@ The targeted ablation uses a separate planned template `MORE_HD_master_ablation_
 
 Publication analysis joins the two workbooks by seed, K, feature method, and matching execution identifiers. The primary 240-run workbook is not replaced or expanded merely to duplicate A/D rows.
 
+## 12.1 Secondary Jalur B sensitivity analysis
+
+The frozen count of 330 unique confirmatory executions refers only to the 240 primary A/D runs plus the 90 new B/C targeted-ablation runs. Jalur B is a separate secondary sensitivity path and is not included in that count.
+
+The primary result for every A/D run remains the Jalur A result obtained by passing the COBYLA final point `result.x` from clustering into quantum-label extraction and supervised training. Jalur B must not replace that primary result or be used to redefine the primary estimand after official-test outcomes are known.
+
+If Jalur B is executed, it starts from an already completed Jalur A source run and does not rerun data preprocessing or clustering. The clustering checkpoint is chosen automatically from eligible objective evaluations using the pre-specified lexicographic rule:
+
+```text
+1. pseudo_accuracy_val      DESC
+2. min_separation_val       DESC
+3. mean_true_distance_val   ASC
+4. train_loss               ASC
+5. eval_id                  ASC
+```
+
+No weighted score is used. `active_dimensions`, `correlation_consistency`, and `avg_margin_val` are diagnostics and cannot affect checkpoint selection. The supervised objective-evaluation budget is inherited unchanged from the source Jalur A run. Official-test arrays are not read by the selector or supervised optimization and are used only by the final evaluation after the selected checkpoint and downstream training are frozen.
+
+The candidate-eligibility rule for COBYLA's initial-simplex phase remains governed by Gate G1-06. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation.
+
 ## 13. Confirmatory boundary
 
 Seed 42 and any other development run are PILOT ONLY. They may be used for debugging, convergence inspection, timing, and protocol locking, but they are excluded from confirmatory means, standard deviations, confidence intervals, effect sizes, tests, and publication tables presenting final performance.

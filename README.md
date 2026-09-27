@@ -94,7 +94,7 @@ A/D dan B/C memakai split serta pair manifest yang sama pada cell yang berpasang
 
 Tersedia dua jalur eksekusi:
 - **Jalur A (otomatis)** — memakai `result.x` sebagai **final point resmi COBYLA**; `best_observed_point` dicatat terpisah dan tidak diasumsikan sama dengan `result.x`.
-- **Jalur B (manual)** — memungkinkan pemilihan objective evaluation clustering tertentu berdasarkan train/validation log sebagai alternatif eksploratif; official test tidak boleh digunakan untuk pemilihan tersebut. Status metodologis Jalur B tetap dikontrol oleh G0-02.
+- **Jalur B (deterministic secondary path)** — dijalankan setelah run Jalur A selesai dan menggunakan artefak clustering run sumber. Checkpoint dipilih otomatis dengan aturan lexicographic train/validation yang dibekukan (`pseudo_accuracy_val` → `min_separation_val` → `mean_true_distance_val` → `train_loss` → `eval_id`), sementara `active_dimensions` hanya diagnostik. Budget supervised diwarisi dari Jalur A dan official test baru digunakan pada `FINAL_EVALUATION`. Jalur B tidak mengganti hasil primer `result.x` dan tidak termasuk hitungan 330 primary+ablation executions.
 
 ## Tools & Stack
 
