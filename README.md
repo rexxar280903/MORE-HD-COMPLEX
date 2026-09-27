@@ -99,12 +99,17 @@ Tersedia dua jalur eksekusi:
 - **Jalur A (otomatis)** — memakai `result.x` sebagai **final point resmi COBYLA**; `best_observed_point` dicatat terpisah dan tidak diasumsikan sama dengan `result.x`.
 - **Jalur B (deterministic secondary path)** — dijalankan setelah run Jalur A selesai dan menggunakan artefak clustering run sumber. Checkpoint dipilih otomatis dengan aturan lexicographic train/validation yang dibekukan (`pseudo_accuracy_val` → `min_separation_val` → `mean_true_distance_val` → `train_loss` → `eval_id`), sementara `active_dimensions` hanya diagnostik. Budget supervised diwarisi dari Jalur A dan official test baru digunakan pada `FINAL_EVALUATION`. Jalur B tidak mengganti hasil primer `result.x` dan tidak termasuk hitungan 330 primary+ablation executions.
 
+### Pembanding Klasik dan Referensi MORE (G1-10)
+
+Sebagai referensi konteks (bukan estimand konfirmatori), setiap `(seed, feature_method, K)` juga dievaluasi dengan **chance `1/K`**, **Nearest Centroid**, dan **Logistic Regression multinomial** (`C` dipilih pada validation). Baseline dijalankan oleh program terpisah `main_classical_baseline.py` yang membaca array `X_*_scaled.npy` hasil `DATA_PIPELINE` run primer, sehingga inputnya identik dengan input sirkuit (120 cell × 2 model = 240 fit). Loss adjuster R milik MORE **tidak** diimplementasikan; perbandingan dengan literatur memakai kolom **MORE\R** Tabel I Wu dkk. (2023), hanya accuracy, deskriptif, dengan catatan perbedaan protokol. Spesifikasi: `Pseudocode_2x3_manual_runs.md` Bagian 12 dan `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.2.
+
 ## Tools & Stack
 
 - **PennyLane** — konstruksi dan simulasi sirkuit kuantum
 - **SciPy (COBYLA)** — optimasi clustering dan supervised
 - **MNIST** — dataset utama
 - **PCA / Hu Moment Invariants / Zernike Moments** — tiga metode reduksi fitur yang dibandingkan
+- **scikit-learn** — PCA serta baseline klasik Nearest Centroid dan Logistic Regression (G1-10)
 - Log crash-safe: JSONL untuk metrik, binary append-only fixed-record untuk parameter (menghindari risiko korupsi `.npz`)
 
 ## Status Proyek

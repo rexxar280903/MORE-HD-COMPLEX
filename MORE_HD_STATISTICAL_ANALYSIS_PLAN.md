@@ -1,10 +1,11 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.2  
+Version: 1.3  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
-Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation
+Classical reference baselines and MORE reference policy (G1-10) frozen: 2026-09-27  
+Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
 
@@ -149,6 +150,61 @@ Scope rules:
 
 Class-identity analyses (proximity of the newly added class mean to existing class means in the run's feature space, classical baselines on non-cumulative class sets, and per-class confusion) are not part of the confirmatory plan. If performed, they are labeled exploratory. To keep them possible without re-execution, every run must retain `logs/confusion_matrix.npy`, the fitted feature transformers, and its split manifest.
 
+## 10.2 Classical reference baselines and MORE reference policy (G1-10, frozen 2026-09-27)
+
+### 10.2.1 Purpose and status
+
+Classical baselines are added to contextualize the quantum results: they show how much class information a simple classical model can use from exactly the same 8-channel input that is given to the circuit. They are **reference points, not competitors and not part of the confirmatory estimand**. The primary estimand (Section 6) and the ablation estimands (Section 6.1) are unchanged. All quantum-versus-classical comparisons are secondary and descriptive.
+
+### 10.2.2 Baseline set
+
+| Baseline | Specification | Hyperparameters |
+|---|---|---|
+| Chance | Accuracy `1/K`; expected macro-F1 of a uniform random predictor, also `1/K`. The official test set is class-balanced (200 per class), so the majority-class rate equals `1/K`. | none (computed, not fitted) |
+| Nearest Centroid (NC) | Class means on train; Euclidean distance; `shrink_threshold=None`. Classical analogue of assigning a sample to the nearest class representative. | none |
+| Logistic Regression (LR) | Multinomial logistic regression, L2 penalty, `lbfgs`, `fit_intercept=True`, `class_weight=None`, `max_iter=5000`. `9K` trainable parameters (27 at K=3, 90 at K=10), the same order of magnitude as the 30/60 quantum trainable parameters. | `C` selected from `{0.01, 0.1, 1, 10, 100}` by validation accuracy; ties resolved toward the smallest `C` |
+
+The grid, tie rule, solver, and iteration cap are frozen before any baseline or quantum official-test outcome is inspected. LR is refit on train only with the selected `C`; validation is never merged into train, matching the quantum pipeline. Convergence warnings are recorded per fit.
+
+### 10.2.3 Input and pairing
+
+For each `(seed, feature_method, K)` cell, the baselines read `X_train_scaled.npy`, `y_train.npy`, `X_val_scaled.npy`, `y_val.npy`, `X_test_scaled.npy`, and `y_test.npy` saved by `DATA_PIPELINE` (pseudocode §2.7) in the matching primary MORE-HD (A) run. No preprocessing is repeated, so baseline input is identical to circuit input, including the `[0, π]` scaling and, for HU, the constant eighth channel. Before fitting, the array hashes are compared with the matching MORE-HD-C (D) run when it exists; any mismatch aborts the cell. The split-manifest hash of the source run is stored with the result.
+
+Arrays are cell-specific: PCA and the MinMax scaler are fitted on the K-class train set of that cell, so K=3..9 cells are not derived by filtering the K=10 arrays.
+
+Scope: 3 feature methods × 8 K × 5 confirmatory seeds = 120 cells; NC and LR per cell = 240 fits. Seed 42 is excluded, as for all confirmatory analyses.
+
+### 10.2.4 Outcomes and reporting
+
+Outcomes are official-test accuracy and macro-F1, plus per-class F1 and the confusion matrix. For each `feature_method × K`, report the five seed values as mean ± SD for NC and LR, and chance as a fixed reference line.
+
+Because baselines and quantum runs share the same official-test samples within a seed, seed-matched differences `Metric(quantum, s) - Metric(baseline, s)` for A and D against NC and LR are reported descriptively (mean ± SD of the five differences). If McNemar's exact test between a quantum model and a baseline is reported, it is labeled secondary, and Holm correction is applied within each seed across the reported `feature_method × K` cells for that model pair. These comparisons cannot change the conclusion of the primary A-versus-D analysis.
+
+Per-class results and 6↔9 confusion of the baselines may be used as supporting evidence for G1-09 (difficulty of the digit added at each K) and G1-11 (feature-level ambiguity of rotation-invariant HU/ZERNIKE), labeled as supporting descriptive evidence.
+
+### 10.2.5 Claim boundary
+
+Baseline accuracy is interpreted as the performance of a simple classical model on the same 8 features, **not** as a measure of the total information contained in a feature representation. LR is a linear lower bound. Statements such as "HU contains less information than PCA" are not permitted from these baselines. Non-linear classical baselines (kNN, SVM-RBF) and a raw-pixel baseline are deferred to future work; if run later, they are exploratory.
+
+### 10.2.6 Loss adjuster R and MORE literature reference
+
+The MORE loss adjuster R (Wu et al., 2023, Eq. 14) is **not** implemented in any track (`loss_adjuster_policy = "NONE"`). Rationale: (1) R targets the same symptom as the V1 modification (crowded quantum labels), so adding it would confound attribution of the A-versus-D effect; (2) R requires two per-task hyperparameters (`r` from inter-label cosine distance, `w` tuned over 0.1-1.0) that would have to be set separately for architectures with different label geometry; (3) tuning them would add an unplanned search budget.
+
+Wu et al. (2023) Table I reports both MORE\R (without R) and MORE (with R) accuracy on the same cumulative tasks 0-2 ... 0-9 (K=3..10). The MORE\R column is the primary literature reference; the MORE (+R) column is shown as context only. These values are reported numbers, not reproduced executions:
+
+| K | MORE\R accuracy (%) | MORE +R accuracy (%) |
+|---:|---:|---:|
+| 3 | 84.13 | 88.7 |
+| 4 | 63.45 | 70.1 |
+| 5 | 53.5 | 63.3 |
+| 6 | 40.48 | 50.2 |
+| 7 | 29.06 | 37.2 |
+| 8 | 44.8 | 48.6 |
+| 9 | 29.4 | 33.0 |
+| 10 | 22.6 | 27.8 |
+
+Comparison with MORE uses accuracy only (MORE does not report macro-F1), is descriptive, and carries no statistical test, because each MORE value is a single reported number from a different protocol (data sizes, feature extraction, number of runs/seeds, and, for the +R column, the loss adjuster). Every table or sentence comparing with MORE must state that the protocols differ.
+
 ## 11. Missing, failed, and repeated attempts
 
 A technical failure before a valid final evaluation does not create a new seed. The same `run_uid` or `ablation_run_uid` is repeated as a new attempt using the same split manifest, pair manifest, initialization protocol, and seed. The corresponding workbook records attempt number and retains provenance. Exactly one valid completed attempt per execution identifier is used in confirmatory aggregation; failed attempts remain auditable.
@@ -161,7 +217,7 @@ A run with a protocol deviation is not silently repaired after official-test ins
 
 The targeted ablation uses a separate planned template `MORE_HD_master_ablation_90runs.xlsx` with one row per new B/C `ablation_run_uid`. It records `matching_run_uid_A` and `matching_run_uid_D` rather than duplicating A/D executions. The ablation template additionally stores model code, trainable/fixed parameter counts, depth/gate counts, initialization namespaces/hashes, fixed-RZ hash for C, paired split/pair-manifest hashes, Y-odd diagnostics, and the four-model contrast linkage.
 
-Publication analysis joins the two workbooks by seed, K, feature method, and matching execution identifiers. The primary 240-run workbook is not replaced or expanded merely to duplicate A/D rows.
+Publication analysis joins the two workbooks by seed, K, feature method, and matching execution identifiers. Classical reference baselines (Section 10.2) are recorded in sheet `15_Classical_Baselines` of the primary workbook (one row per `(seed, feature_method, K, baseline)`, linked to `source_run_uid_A` and `check_run_uid_D`), and the reported MORE values in sheet `16_MORE_Reference`. The primary 240-run workbook is not replaced or expanded merely to duplicate A/D rows.
 
 ## 12.1 Secondary Jalur B sensitivity analysis
 
@@ -187,4 +243,4 @@ Only objective evaluations with `phase = optimization` are eligible candidates (
 
 Seed 42 and any other development run are PILOT ONLY. They may be used for debugging, convergence inspection, timing, and protocol locking, but they are excluded from confirmatory means, standard deviations, confidence intervals, effect sizes, tests, and publication tables presenting final performance.
 
-No official-test outcome from either the primary or ablation track may be inspected to alter the frozen K subset, feature set, model definitions, initialization pairing, fixed-RZ vector policy, planned contrasts, multiplicity rule, or optimizer-budget policy.
+No official-test outcome from either the primary or ablation track may be inspected to alter the frozen K subset, feature set, model definitions, initialization pairing, fixed-RZ vector policy, planned contrasts, multiplicity rule, optimizer-budget policy, classical baseline set and hyperparameter grid, or loss-adjuster policy.

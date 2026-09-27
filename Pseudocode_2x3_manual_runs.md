@@ -112,6 +112,18 @@ Artefak `logs/confusion_matrix.npy`, transformer fitur, dan split manifest wajib
 tersimpan per run agar analisis identitas kelas eksploratif dapat dilakukan kemudian
 tanpa run ulang.
 
+**Update (G1-10, sesi 2026-09-27 — baseline klasik dan kebijakan loss adjuster R):**
+Ditambahkan baseline klasik referensi: chance `1/K`, Nearest Centroid (NC), dan
+Logistic Regression multinomial (LR, `C` dipilih di validation). Baseline dijalankan
+oleh program **terpisah** `main_classical_baseline.py` (tidak digabung ke `main_train.py`),
+tetapi **tidak** punya preprocessing sendiri: ia membaca `X_*_scaled.npy`/`y_*.npy` yang
+sudah disimpan `DATA_PIPELINE` §2.7 pada run primer MORE-HD dengan `(seed, feature_method, K)`
+yang sama, sehingga input baseline identik dengan input sirkuit. Tidak ada perubahan pada
+`CONFIG`, `DATA_PIPELINE`, `MAIN(config)`, identitas R001–R048, atau jumlah run kuantum.
+Loss adjuster R milik MORE **tidak** diimplementasikan (`loss_adjuster_policy="NONE"`);
+acuan literatur memakai kolom MORE\R Tabel I Wu et al. (2023). Spesifikasi lengkap di
+**Bagian 12** dan `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.2.
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -214,6 +226,7 @@ project/
 ├── main_train.py                  # Jalur A: satu run training lengkap
 ├── main_selected_clustering.py    # Jalur B: secondary path dari checkpoint clustering terpilih deterministik
 ├── main_ablation.py               # targeted ablation G1-05/G1-07; hanya model B/C
+├── main_classical_baseline.py     # G1-10: chance/NC/LR; membaca array dari runs/, tanpa preprocessing ulang
 │
 ├── core/
 │   ├── config.py
@@ -224,6 +237,7 @@ project/
 │   ├── quantum_labels.py
 │   ├── supervised.py
 │   ├── evaluation.py
+│   ├── classical_baselines.py     # G1-10: NC, LR, chance (dipakai hanya oleh main_classical_baseline.py)
 │   └── artifact_io.py
 │
 ├── data/
@@ -260,6 +274,17 @@ project/
     │   ├── logs/
     │   ├── config.json
     │   └── run_result.xlsx
+    │
+    ├── baselines/                 # G1-10; ditulis HANYA oleh main_classical_baseline.py
+    │   ├── baseline_config.json
+    │   ├── baseline_results.csv   # 1 baris per (seed, feature_method, K, baseline)
+    │   └── S101_cls-0-1-2_PCA/
+    │       ├── baseline_cell_manifest.json
+    │       ├── NC_confusion_matrix.npy
+    │       ├── LR_confusion_matrix.npy
+    │       ├── NC_test_predictions.npy
+    │       ├── LR_test_predictions.npy
+    │       └── LR_cv_log.json     # akurasi validation per nilai C
     │
     └── ablation/
         ├── ABL001-S101_cls-0-1-2_PCA_MORE-HD-60P/
@@ -923,6 +948,8 @@ FUNCTION DATA_PIPELINE(config):
     SAVE(feature_metadata, config.run_dir + "/artifacts/feature_metadata.json")
 
     # 2.7 Simpan array final yang benar-benar diberikan ke circuit
+    # Array ini juga menjadi SATU-SATUNYA sumber input baseline klasik G1-10 (Bagian 12);
+    # main_classical_baseline.py membacanya tanpa menjalankan preprocessing ulang.
     SAVE(X_train_scaled, config.run_dir + "/artifacts/X_train_scaled.npy")
     SAVE(y_train,        config.run_dir + "/artifacts/y_train.npy")
     SAVE(X_val_scaled,   config.run_dir + "/artifacts/X_val_scaled.npy")
@@ -2807,6 +2834,221 @@ If inferential p-values for all four ablation contrasts are reported within the 
 Without this ablation, the direct A-versus-D result supports only a whole-architecture statement because trainable parameter count changes from 30 to 60 together with the addition of RZ. After the ablation, a phase-specific statement is permitted only when the relevant paired comparisons and structural diagnostics are mutually consistent.
 
 In particular, activation of the previously structural-zero Y-odd observables demonstrates removal of the real-state restriction; it does not by itself prove that any accuracy increase is caused by complex phase. Classification metrics, separation metrics, and structural diagnostics must be interpreted together.
+
+---
+
+## 12. BASELINE KLASIK REFERENSI — G1-10 (DIKUNCI 2026-09-27)
+
+### 12.1 Posisi dan batasan
+
+Baseline klasik adalah **referensi konteks**, bukan pesaing dan bukan bagian dari estimand
+konfirmatori A-vs-D. Tujuannya menunjukkan berapa akurasi yang dicapai model klasik sederhana
+pada **8 fitur yang persis sama** dengan input sirkuit. Hasilnya dilaporkan sekunder/deskriptif
+(`MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.2).
+
+| Aspek | Keputusan |
+|---|---|
+| Model | chance `1/K` (dihitung), Nearest Centroid (NC), Logistic Regression multinomial (LR) |
+| Program | `main_classical_baseline.py` — **terpisah** dari `main_train.py`, `main_selected_clustering.py`, dan `main_ablation.py` |
+| Sumber input | `X_*_scaled.npy` / `y_*.npy` hasil `DATA_PIPELINE` §2.7 pada run primer MORE-HD (A) dengan `(seed, feature_method, K)` sama |
+| Preprocessing ulang | **Tidak ada** — baseline tidak memanggil `DATA_PIPELINE` |
+| Cakupan | 5 seed konfirmatori × 3 feature × 8 K = 120 cell; NC + LR = 240 fit |
+| Seed 42 | Tidak dijalankan untuk baseline konfirmatori |
+| Loss adjuster R MORE | Tidak diimplementasikan di track mana pun (`loss_adjuster_policy="NONE"`) |
+| Ditunda (penelitian lanjutan) | kNN / SVM-RBF dan baseline piksel mentah |
+
+Alasan program terpisah: (1) siklus hidupnya berbeda — seluruh 240 fit selesai dalam hitungan
+detik, sedangkan run kuantum per `run_uid` memakan waktu lama; baseline dapat diulang tanpa
+menyentuh folder run kuantum; (2) pipeline kuantum yang sudah dikunci tidak ditambah cabang
+scikit-learn; (3) konsisten dengan pemisahan Jalur B dan ablation.
+
+Alasan tanpa preprocessing ulang: satu-satunya jaminan bahwa input baseline identik dengan
+input sirkuit adalah membaca array yang sama. Array bersifat spesifik per cell — PCA dan scaler
+di-fit pada train K-kelas milik cell tersebut — sehingga K=3..9 **tidak** boleh diturunkan
+dengan memfilter array K=10.
+
+### 12.2 Konstanta
+
+```
+BASELINE_SEEDS          = CONFIRMATORY_SEEDS           # [101, 202, 303, 404, 505]
+BASELINE_FEATURES       = ["PCA", "HU", "ZERNIKE"]
+BASELINE_K_VALUES       = [3, 4, 5, 6, 7, 8, 9, 10]
+BASELINE_MODELS         = ["NC", "LR"]                 # chance dihitung, bukan di-fit
+
+LR_C_GRID               = [0.01, 0.1, 1.0, 10.0, 100.0]
+LR_PENALTY              = "l2"
+LR_SOLVER               = "lbfgs"                      # multinomial untuk K > 2
+LR_MAX_ITER             = 5000
+LR_FIT_INTERCEPT        = TRUE
+LR_CLASS_WEIGHT         = NONE                         # data seimbang per kelas
+LR_TIE_RULE             = "SMALLEST_C"                 # tie val accuracy -> C terkecil
+
+NC_METRIC               = "euclidean"
+NC_SHRINK_THRESHOLD     = NONE
+
+LOSS_ADJUSTER_POLICY    = "NONE"
+BASELINE_ROOT           = "runs/baselines/"
+```
+
+### 12.3 Resolusi sumber array dan pemeriksaan identitas input
+
+```
+FUNCTION RESOLVE_BASELINE_SOURCE(seed, feature_method, K):
+    classes = [0 .. K-1]
+    run_name_A = AUTO_GENERATE(classes, 1000, 100, 200, "MORE-HD",   feature_method, seed)
+    run_name_D = AUTO_GENERATE(classes, 1000, 100, 200, "MORE-HD-C", feature_method, seed)
+    dir_A = "runs/" + run_name_A
+    dir_D = "runs/" + run_name_D
+
+    ASSERT EXISTS(dir_A + "/config.json")
+    manifest_A = LOAD_JSON(dir_A + "/config.json")
+    ASSERT manifest_A.run_mode == "CONFIRMATORY"
+    ASSERT manifest_A.seed == seed AND manifest_A.feature_method == feature_method
+    ASSERT manifest_A.classes == classes
+
+    names = ["X_train_scaled", "y_train", "X_val_scaled", "y_val", "X_test_scaled", "y_test"]
+    hashes_A = {n: SHA256_FILE(dir_A + "/artifacts/" + n + ".npy") FOR n IN names}
+
+    IF EXISTS(dir_D + "/config.json"):
+        manifest_D = LOAD_JSON(dir_D + "/config.json")
+        hashes_D = {n: SHA256_FILE(dir_D + "/artifacts/" + n + ".npy") FOR n IN names}
+        IF hashes_D != hashes_A:
+            RAISE_ERROR("Array input A dan D berbeda untuk cell ini -- baseline dibatalkan: " + run_name_A)
+        _, check_run_uid_D = BUILD_RUN_IDENTITY(manifest_D)
+    ELSE:
+        check_run_uid_D = NULL              # dicatat; pengecekan diulang setelah D selesai
+
+    _, run_uid_A = BUILD_RUN_IDENTITY(manifest_A)
+    split_hash   = SHA256_FILE(manifest_A.split_manifest)      # splits/seed<SEED>.json
+    RETURN dir_A, run_uid_A, check_run_uid_D, hashes_A, split_hash
+```
+
+Baseline sebuah cell hanya membutuhkan tahap `DATA_PIPELINE` run A sudah selesai
+(artefak §2.7 ditulis sebelum clustering dimulai); tidak perlu menunggu run kuantum selesai.
+
+### 12.4 Pelatihan dan evaluasi satu cell
+
+```
+FUNCTION RUN_BASELINE_CELL(seed, feature_method, K):
+    dir_A, run_uid_A, run_uid_D, input_hashes, split_hash = RESOLVE_BASELINE_SOURCE(seed, feature_method, K)
+    cell_dir = BASELINE_ROOT + "S" + seed + "_cls-" + JOIN([0..K-1], "-") + "_" + feature_method
+    CREATE_DIRECTORY_EXCLUSIVE(cell_dir)
+
+    # --- tahap 1: HANYA train + validation yang dimuat ---
+    X_train = LOAD(dir_A + "/artifacts/X_train_scaled.npy")
+    y_train = LOAD(dir_A + "/artifacts/y_train.npy")
+    X_val   = LOAD(dir_A + "/artifacts/X_val_scaled.npy")
+    y_val   = LOAD(dir_A + "/artifacts/y_val.npy")
+    ASSERT SHAPE(X_train)[1] == 8 AND SHAPE(X_val)[1] == 8
+
+    # Nearest Centroid: tanpa hyperparameter
+    nc = FIT_NEAREST_CENTROID(X_train, y_train, metric=NC_METRIC, shrink_threshold=NC_SHRINK_THRESHOLD)
+
+    # Logistic Regression: pilih C di validation
+    cv_log = []
+    FOR C IN LR_C_GRID:                                # urutan menaik
+        model = FIT_LOGISTIC_REGRESSION(
+            X_train, y_train, C=C, penalty=LR_PENALTY, solver=LR_SOLVER,
+            max_iter=LR_MAX_ITER, fit_intercept=LR_FIT_INTERCEPT, class_weight=LR_CLASS_WEIGHT
+        )
+        acc_val = ACCURACY(y_val, model.PREDICT(X_val))
+        APPEND(cv_log, {"C": C, "val_accuracy": acc_val,
+                        "n_iter": model.n_iter, "converged": model.n_iter < LR_MAX_ITER})
+
+    best_acc  = MAX(entry.val_accuracy FOR entry IN cv_log)
+    C_selected = MIN(entry.C FOR entry IN cv_log IF entry.val_accuracy == best_acc)   # LR_TIE_RULE
+    lr = FIT_LOGISTIC_REGRESSION(X_train, y_train, C=C_selected, ...)                 # refit pada TRAIN saja
+    SAVE_ATOMIC_JSON({"grid": cv_log, "C_selected": C_selected}, cell_dir + "/LR_cv_log.json")
+
+    # --- tahap 2: model beku; baru sekarang official test dimuat ---
+    X_test = LOAD(dir_A + "/artifacts/X_test_scaled.npy")
+    y_test = LOAD(dir_A + "/artifacts/y_test.npy")
+
+    rows = []
+    FOR name, model IN [("NC", nc), ("LR", lr)]:
+        y_pred = model.PREDICT(X_test)
+        SAVE(y_pred, cell_dir + "/" + name + "_test_predictions.npy")
+        cm = CONFUSION_MATRIX(y_test, y_pred, labels=[0..K-1])
+        SAVE(cm, cell_dir + "/" + name + "_confusion_matrix.npy")
+        APPEND(rows, BASELINE_ROW(seed, feature_method, K, name, y_test, y_pred,
+                                  C_selected IF name == "LR" ELSE NULL))
+
+    APPEND(rows, CHANCE_ROW(seed, feature_method, K))     # accuracy = macro_F1_ref = 1/K
+
+    SAVE_ATOMIC_JSON({
+        "seed": seed, "feature_method": feature_method, "K": K,
+        "source_run_uid_A": run_uid_A, "check_run_uid_D": run_uid_D,
+        "input_array_sha256": input_hashes, "split_manifest_hash": split_hash,
+        "loss_adjuster_policy": LOSS_ADJUSTER_POLICY,
+        "sklearn_version": VERSION("scikit-learn"), "numpy_version": VERSION("numpy"),
+        "git_commit": GIT_COMMIT()
+    }, cell_dir + "/baseline_cell_manifest.json")
+
+    RETURN rows
+
+
+FUNCTION BASELINE_ROW(seed, feature_method, K, name, y_test, y_pred, C_selected):
+    RETURN {
+        "seed": seed, "feature_method": feature_method, "K": K, "baseline": name,
+        "accuracy": ACCURACY(y_test, y_pred),
+        "macro_f1": F1(y_test, y_pred, average="macro"),
+        "per_class_f1": F1(y_test, y_pred, average=NONE),
+        "C_selected": C_selected,
+        "n_test": LENGTH(y_test)
+    }
+```
+
+Aturan akses data: tidak ada `LOAD` terhadap `X_test_scaled`/`y_test` sebelum seluruh model
+(NC dan LR dengan `C_selected`) dibekukan. Unit test wajib memverifikasi urutan ini, sama
+seperti aturan no-test-access G0-01 pada pipeline kuantum.
+
+### 12.5 Program utama
+
+```
+FUNCTION MAIN_CLASSICAL_BASELINE():
+    SAVE_ATOMIC_JSON({
+        "models": BASELINE_MODELS, "lr_c_grid": LR_C_GRID, "lr_penalty": LR_PENALTY,
+        "lr_solver": LR_SOLVER, "lr_max_iter": LR_MAX_ITER, "lr_tie_rule": LR_TIE_RULE,
+        "nc_metric": NC_METRIC, "loss_adjuster_policy": LOSS_ADJUSTER_POLICY,
+        "seeds": BASELINE_SEEDS, "features": BASELINE_FEATURES, "K_values": BASELINE_K_VALUES
+    }, BASELINE_ROOT + "baseline_config.json")
+
+    all_rows = []
+    FOR seed IN BASELINE_SEEDS:
+        FOR K IN BASELINE_K_VALUES:
+            FOR feature_method IN BASELINE_FEATURES:
+                all_rows += RUN_BASELINE_CELL(seed, feature_method, K)
+
+    ASSERT COUNT(all_rows WHERE baseline IN ["NC", "LR"]) == 240
+    SAVE_CSV(all_rows, BASELINE_ROOT + "baseline_results.csv")
+    # Konsolidasi ke workbook: sheet 15_Classical_Baselines (lihat 12.6)
+```
+
+Deterministik: NC dan LR-lbfgs tidak memakai randomness; tidak ada seed tambahan yang perlu
+diturunkan. Bila sebuah cell gagal (misalnya run A belum ada), cell tersebut dilewati dengan
+error tercatat dan dijalankan ulang kemudian dalam folder baru; cell yang sudah ada tidak ditimpa.
+
+### 12.6 Pelaporan dan workbook
+
+| Artefak | Isi |
+|---|---|
+| `runs/baselines/baseline_results.csv` | 1 baris per `(seed, feature_method, K, baseline)`; sumber data mentah |
+| Workbook sheet `15_Classical_Baselines` | Template 360 baris (120 cell × NC/LR/CHANCE) dengan `source_run_uid_A`, `check_run_uid_D`, `C_selected`, accuracy, macro-F1, dan selisih seed-matched terhadap A/D |
+| Workbook sheet `16_MORE_Reference` | Nilai MORE\R dan MORE (+R) dari Tabel I Wu et al. (2023); hanya accuracy; ditandai "reported, not reproduced" |
+
+Evaluasi pembanding:
+
+1. **A vs D (primer):** tidak berubah — mengikuti SAP §6, §8, §9.
+2. **Kuantum vs NC/LR (sekunder, protokol identik):** accuracy dan macro-F1 pada official test yang
+   sama; mean ± SD lintas 5 seed; selisih seed-matched `Metric(quantum) - Metric(baseline)`
+   dilaporkan deskriptif; McNemar opsional dan berlabel sekunder dengan koreksi Holm per seed.
+   Metrik struktural (`min_separation_ratio`, dimensi aktif) tidak berlaku untuk baseline klasik.
+3. **Kuantum vs MORE (referensi literatur, protokol berbeda):** hanya accuracy, deskriptif,
+   tanpa uji statistik; kolom MORE\R sebagai acuan utama dan MORE (+R) sebagai konteks.
+
+Batas klaim: akurasi LR adalah batas bawah linear, bukan ukuran total informasi dalam sebuah
+representasi fitur. Kalimat seperti "HU mengandung informasi lebih sedikit daripada PCA" tidak
+boleh ditarik dari baseline ini.
 
 ---
 
