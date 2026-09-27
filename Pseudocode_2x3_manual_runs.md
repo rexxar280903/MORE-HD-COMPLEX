@@ -1664,6 +1664,187 @@ tambahan harus memakai sumbu-X **Objective Evaluation (`eval_id`)**, bukan
 
 ---
 
+## 6. EKSTRAKSI LABEL KUANTUM
+ 
+```
+FUNCTION QUANTUM_LABEL_EXTRACTION(circuit_fn, trained_params_clustering, X_train, y_train, config):
+ 
+    quantum_labels = {}
+    FOR each c IN config.classes:
+        outputs_c = [circuit_fn(x, trained_params_clustering) FOR x IN X_train WHERE y_train == c]
+        centroid = MEAN(outputs_c)
+        quantum_labels[c] = NORMALIZE_VECTOR(centroid)
+ 
+    SAVE(quantum_labels, run_dir + "/artifacts/quantum_labels.json")
+    RETURN quantum_labels
+```
+ 
+Fungsi ini dipakai identik oleh Jalur A (otomatis, bagian 9) maupun
+Jalur B (pemilihan manual, bagian 10) — parameter `trained_params_clustering`
+yang diterima bisa berasal dari `result.x` COBYLA (Jalur A) atau dari
+`READ_PARAM_RECORD` pada iterasi pilihan manual (Jalur B); fungsi ini
+sendiri tidak tahu dan tidak perlu tahu sumbernya.
+ 
+---
+ 
+## 7. SUPERVISED LOOP
+ 
+Berbeda dari clustering, objective supervised adalah jarak keluaran ke quantum
+label. `val_loss` tetap hanya monitoring pasif. G1-02 menerapkan aturan yang sama:
+setiap pemanggilan `objective_supervised(theta)` adalah satu objective-function
+evaluation dengan `eval_id`, sedangkan callback optimizer memakai
+`callback_id` terpisah.
+ 
+```
+FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
+                         X_train, y_train, X_val, y_val, config):
+
+    n_objective_evals = 0
+    callback_id = 0
+    best_observed_fun = +INFINITY
+    best_observed_eval_id = NULL
+    best_observed_theta = NULL
+
+    CREATE_EMPTY_BINARY_LOG(
+        run_dir + "/artifacts/supervised_params.bin",
+        record_size = SIZEOF(trained_params_clustering)
+    )
+    CREATE_EMPTY_FILE(run_dir + "/logs/supervised_log.jsonl")
+    CREATE_EMPTY_FILE(run_dir + "/logs/supervised_callback_log.jsonl")
+ 
+    FUNCTION objective_supervised(theta):
+        NONLOCAL n_objective_evals
+        NONLOCAL best_observed_fun, best_observed_eval_id, best_observed_theta
+
+        eval_id = n_objective_evals
+ 
+        train_losses = []
+        FOR each (x, c) IN ZIP(X_train, y_train):
+            v = circuit_fn(x, theta)
+            train_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
+        train_loss = MEAN(train_losses)
+ 
+        val_losses = []
+        FOR each (x, c) IN ZIP(X_val, y_val):
+            v = circuit_fn(x, theta)
+            val_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
+        val_loss = MEAN(val_losses)
+ 
+        APPEND_PARAM_RECORD(run_dir + "/artifacts/supervised_params.bin", theta)
+
+        IF train_loss < best_observed_fun:
+            best_observed_fun = train_loss
+            best_observed_eval_id = eval_id
+            best_observed_theta = COPY(theta)
+ 
+        log_entry = {
+            "eval_id": eval_id,
+            "train_loss": train_loss,
+            "val_loss": val_loss
+        }
+        APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))
+ 
+        n_objective_evals = n_objective_evals + 1
+        RETURN train_loss
+
+    FUNCTION supervised_callback(callback_state):
+        NONLOCAL callback_id
+        theta_callback = EXTRACT_THETA_FROM_COBYLA_CALLBACK(callback_state)
+
+        callback_entry = {
+            "callback_id": callback_id,
+            "objective_evals_seen": n_objective_evals,
+            "theta_source": "optimizer_callback"
+        }
+        APPEND_LINE(
+            run_dir + "/logs/supervised_callback_log.jsonl",
+            TO_JSON(callback_entry)
+        )
+        callback_id = callback_id + 1
+ 
+    result = COBYLA_MINIMIZE(
+        objective_supervised,
+        x0=trained_params_clustering,
+        callback=supervised_callback,
+        options={
+            "maxiter": config.max_nfev_supervised,
+            "tol": config.cobyla_tol
+        }
+    )
+
+    trained_params_final = result.x
+    ASSERT result.nfev == n_objective_evals
+
+    SAVE(result.x, run_dir + "/artifacts/supervised_params_final.npy")
+    SAVE(best_observed_theta, run_dir + "/artifacts/supervised_params_best_observed.npy")
+
+    optimizer_summary = {
+        "optimizer": "COBYLA",
+        "max_nfev": config.max_nfev_supervised,
+        "success": result.success,
+        "status": result.status,
+        "message": STRING(result.message),
+        "fun": result.fun,
+        "nfev": result.nfev,
+        "callback_count": callback_id,
+        "final_point_path": "artifacts/supervised_params_final.npy",
+        "best_observed_eval_id": best_observed_eval_id,
+        "best_observed_fun": best_observed_fun,
+        "best_observed_point_path": "artifacts/supervised_params_best_observed.npy"
+    }
+    SAVE_JSON(
+        optimizer_summary,
+        run_dir + "/logs/supervised_optimizer_result.json"
+    )
+ 
+    RETURN trained_params_final
+```
+
+`supervised_log.jsonl` harus diplot terhadap `eval_id`. `result.x` adalah
+**final point yang dikembalikan COBYLA**; ia tidak boleh otomatis disebut
+"best observed point". Titik terbaik yang benar-benar terlihat selama evaluasi
+disimpan terpisah sebagai `supervised_params_best_observed.npy`.
+ 
+---
+ 
+## 8. FINAL EVALUATION
+
+**G0-01 (sesi 2026-09-22):** ini SATU-SATUNYA fungsi dalam seluruh pipeline
+yang boleh memanggil `circuit_fn` terhadap `X_test`/`y_test`. Baik Jalur A
+maupun Jalur B memanggil fungsi ini persis sekali, di akhir, setelah
+`SUPERVISED_LOOP` selesai — sesuai dengan definisi "protokol dibekukan"
+pada kriteria penerimaan G0-01.
+ 
+```
+FUNCTION FINAL_EVALUATION(circuit_fn, trained_params_final, quantum_labels, X_test, y_test, config):
+ 
+    y_pred = []
+    FOR each x IN X_test:
+        v = circuit_fn(x, trained_params_final)
+        distances = { c: COSINE_DISTANCE(v, quantum_labels[c]) FOR c IN config.classes }
+        y_pred.APPEND(ARGMIN(distances))
+ 
+    accuracy         = ACCURACY_SCORE(y_test, y_pred)
+    precision        = PRECISION_SCORE(y_test, y_pred, average="macro")
+    recall           = RECALL_SCORE(y_test, y_pred, average="macro")
+    f1               = F1_SCORE(y_test, y_pred, average="macro")
+    confusion_matrix = CONFUSION_MATRIX(y_test, y_pred)
+ 
+    metrics = {
+        "accuracy": accuracy, "precision": precision,
+        "recall": recall, "f1_score": f1
+    }
+ 
+    SAVE(metrics,          run_dir + "/logs/metrics_final.json")
+    SAVE(confusion_matrix, run_dir + "/logs/confusion_matrix.npy")
+ 
+    RETURN metrics, confusion_matrix
+```
+ 
+---
+ 
+## 9. JALUR A — MAIN (Satu Run, Eksekusi Manual per Kondisi)
+
 ### 9.1 MAIN(config) — menjalankan satu kombinasi eksperimen
 
 `MAIN(config)` adalah unit eksperimen utama dan selalu menjalankan tepat **satu kondisi**.
