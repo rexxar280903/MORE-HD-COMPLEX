@@ -1,0 +1,65 @@
+name: Update research progress
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MORE_HD_RESEARCH_READINESS_GATES (1).md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research-progress-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-progress:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Read source commit metadata
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          echo "PROGRESS_COMMIT_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "PROGRESS_DATE=$(git show -s --format=%cs "${GITHUB_SHA}")" >> "$GITHUB_ENV"
+          echo "PROGRESS_SUMMARY=$(git show -s --format=%s "${GITHUB_SHA}")" >> "$GITHUB_ENV"
+          echo "PROGRESS_RECORD_HISTORY=true" >> "$GITHUB_ENV"
+
+      - name: Manual run without adding history
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          echo "PROGRESS_RECORD_HISTORY=false" >> "$GITHUB_ENV"
+
+      - name: Update README progress
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/update_research_progress.py
+
+      - name: Commit tracker update
+        shell: bash
+        run: |
+          if git diff --quiet -- README.md research_progress_history.json; then
+            echo "No progress changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md research_progress_history.json
+          git commit -m "docs: auto-update research progress [skip ci]"
+          git push
