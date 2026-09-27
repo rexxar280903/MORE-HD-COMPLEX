@@ -1,8 +1,9 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.1  
+Version: 1.2  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
+Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
 Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation
 
 ## 1. Purpose and freeze rule
@@ -134,6 +135,19 @@ K and feature_method are pre-specified stratification factors. Primary results a
 The targeted ablation is not a replacement for the 2 × 3 × 8 primary design and is not extended post hoc to whichever K values look favorable. It is frozen at K={3,6,10} to cover low, intermediate, and full ten-class regimes across all three feature methods.
 
 No claim that MORE-HD-C improves performance purely because of complex phase is permitted from A-versus-D alone. Activation of previously structural-zero Y-odd observables supports removal of the real-state restriction, but does not by itself prove an accuracy benefit. A narrower phase-specific interpretation is permitted only if the pre-specified ablation contrasts, performance/separation outcomes, and Y-odd structural diagnostics are mutually consistent, while explicitly acknowledging the depth mismatch in B-versus-D.
+
+## 10.1 Cumulative class-sequence scope (G1-09, frozen 2026-09-27)
+
+The K scenarios use the cumulative MNIST class sequence `[0..K-1]`. Each transition K→K+1 therefore adds one specific digit, so the effect of the number of classes cannot be separated from the identity of the added digit (for example, a change at K=8 may reflect the similarity of digit 7 to digit 1 rather than the class count itself). The cumulative sequence is retained without random class subsets, to preserve direct comparability with FRD-09 and to keep the frozen paired/nested split protocol (G0-04) unchanged.
+
+Scope rules:
+
+1. The primary estimand (seed-matched A-versus-D difference within each `feature_method × K` cell) is not affected, because both architectures are evaluated on identical classes, split manifests, pair manifests, and seeds.
+2. Any trend across K, and any architecture × K interaction (for example, that MORE-HD-C degrades less as K increases), is reported as specific to the cumulative sequence `[0..K-1]` and is not generalized to arbitrary class sets of size K.
+3. Changes in performance between adjacent K values are not attributed solely to the number of classes. The class-count effect is additionally coupled with the change in natural pair composition (G1-08) and, for HU/ZERNIKE at K=10, with rotation-invariance ambiguity between digits 6 and 9 (G1-11).
+4. No random class subsets are run, so no subset list exists to be frozen.
+
+Class-identity analyses (proximity of the newly added class mean to existing class means in the run's feature space, classical baselines on non-cumulative class sets, and per-class confusion) are not part of the confirmatory plan. If performed, they are labeled exploratory. To keep them possible without re-execution, every run must retain `logs/confusion_matrix.npy`, the fitted feature transformers, and its split manifest.
 
 ## 11. Missing, failed, and repeated attempts
 

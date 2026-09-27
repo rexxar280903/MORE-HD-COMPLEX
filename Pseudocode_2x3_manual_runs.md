@@ -100,6 +100,18 @@ sebagai deskriptif. Setiap objective evaluation diberi kolom `phase`
 Jalur B hanya boleh memilih `eval_id` dengan `phase == "optimization"`.
 Spesifikasi lengkap ada di **§1.1**.
 
+**Update (G1-09, sesi 2026-09-27 — lingkup urutan kelas kumulatif):**
+Skenario K tetap memakai urutan kumulatif `[0..K-1]` **tanpa** subset kelas acak,
+demi komparabilitas dengan FRD-09 dan agar protokol paired/nested split G0-04 tidak
+dibuka ulang. Tidak ada perubahan pada `CONFIG`, `DATA_PIPELINE`, identitas run
+R001–R048, maupun jumlah run. Confound antara jumlah kelas K dan identitas digit yang
+ditambahkan dinyatakan sebagai keterbatasan: kontras A vs D pada K yang sama tetap
+bersih, sedangkan tren terhadap K dan interaksi arsitektur×K ditafsirkan spesifik
+terhadap urutan kumulatif ini (lihat `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.1).
+Artefak `logs/confusion_matrix.npy`, transformer fitur, dan split manifest wajib tetap
+tersimpan per run agar analisis identitas kelas eksploratif dapat dilakukan kemudian
+tanpa run ulang.
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -142,6 +154,13 @@ K=8  -> classes=[0,1,2,3,4,5,6,7]
 K=9  -> classes=[0,1,2,3,4,5,6,7,8]
 K=10 -> classes=[0,1,2,3,4,5,6,7,8,9]
 ```
+
+**Lingkup urutan kelas (G1-09, dikunci 2026-09-27):** urutan kumulatif di atas
+dipertahankan tanpa subset kelas acak. Setiap transisi K→K+1 menambahkan satu digit
+tertentu, sehingga efek jumlah kelas tidak terpisah dari identitas digit yang
+ditambahkan. Perbandingan arsitektur dan feature method pada K yang sama tidak
+terkena confound ini; tren lintas-K dilaporkan sebagai tren pada urutan kumulatif
+`[0..K-1]`, bukan pada himpunan kelas sembarang berukuran K.
 
 Total kondisi eksperimen per seed:
 
