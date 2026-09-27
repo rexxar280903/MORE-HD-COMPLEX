@@ -91,7 +91,8 @@ Primary A/D diselaraskan ke structured paired initialization agar reuse A/D vali
 Spesifikasi penuh ablation berada di **Bagian 11** dokumen ini; primary `MAIN(config)` dan identity R001-R048 tidak diubah oleh keputusan ini.
 
 **Update (G1-01/G1-06, sesi 2026-09-27 — protokol pilot budget dan fase simplex COBYLA):**
-Smoke test dikunci pada `max_nfev = 10` dan pilot konvergensi pada cap
+Smoke test dikunci pada `max_nfev = 70` (direvisi dari 10 pada audit
+2026-09-27; lihat §1.1) dan pilot konvergensi pada cap
 `max_nfev = 300` (clustering dan supervised), `cobyla_tol = 1e-4`,
 `cobyla_rhobeg = 1.0` (ditulis eksplisit), seed 42. Definisi anggaran adil:
 **total `nfev` sama** lintas arsitektur; jumlah evaluasi pasca-simplex dilaporkan
@@ -99,6 +100,23 @@ sebagai deskriptif. Setiap objective evaluation diberi kolom `phase`
 (`initial_simplex` untuk `eval_id <= n_params`, `optimization` sesudahnya).
 Jalur B hanya boleh memilih `eval_id` dengan `phase == "optimization"`.
 Spesifikasi lengkap ada di **§1.1**.
+
+**Update (audit konsistensi, sesi 2026-09-27):**
+(1) Smoke test direvisi dari `max_nfev = 10` ke **70** untuk semua arsitektur.
+Pada SciPy 1.17.1, COBYLA menolak budget `< n_params + 2` dan diam-diam
+menaikkannya (10 menjadi 32 untuk 30 parameter dan 62 untuk 60 parameter), sehingga
+`max_nfev = 10` tidak pernah benar-benar berlaku. `VALIDATE_OPTIMIZER_BUDGET` kini
+menolak budget tersebut di semua mode. (2) Pilot konvergensi menjadi **10 run**:
+MORE-HD-60P (B) pada K=10 × {PCA, ZERNIKE} wajib ikut karena budget final juga
+dipakai B di ablation. (3) Deskripsi fase simplex diluruskan: tiap probe bergeser
+±`rhobeg` pada satu koordinat dari vertex terbaik sejauh ini, bukan selalu dari
+`x0`; jumlah evaluasinya tetap `n_params + 1`. (4) Field log baru untuk
+menyelaraskan workbook: `min_separation_ratio`, `closest_class_i/j`, dan
+`eval_runtime_sec` di clustering; `pseudo_accuracy_val`, `avg_margin_val`, dan
+`eval_runtime_sec` di supervised; `final_point_eval_id` di kedua summary optimizer;
+`total_runtime_sec` dan `scipy_version` di manifest. (5) Sumber kebenaran skema
+workbook adalah sheet `00_Schema_Map` (§0.2 butir 8); hasil Jalur B dicatat di sheet
+terpisah `17_JalurB_Selection`.
 
 **Update (G1-09, sesi 2026-09-27 — lingkup urutan kelas kumulatif):**
 Skenario K tetap memakai urutan kumulatif `[0..K-1]` **tanpa** subset kelas acak,
@@ -308,6 +326,7 @@ Prinsip penyimpanan untuk eksekusi paralel:
 5. Setelah seluruh 240 run konfirmatori selesai, isi hasil dari masing-masing `run_result.xlsx` dapat dikonsolidasikan kembali ke `MORE_HD_master_confirmatory_240runs.xlsx`. Tahap konsolidasi akhir berada **di luar proses training paralel** dan belum diotomatisasi pada pseudocode ini.
 6. Artefak JSON/JSONL/NPY/BIN tetap menjadi sumber data paling dasar. `run_result.xlsx` adalah representasi tabel lokal dari satu run dan tidak menggantikan artefak mentah.
 7. Pengelolaan paralel Jalur B belum diubah pada revisi ini; collision guard tambahan khusus Jalur B ditunda sesuai keputusan eksperimen saat ini.
+8. **Sumber kebenaran skema workbook adalah sheet `00_Schema_Map`** di workbook master (ditambahkan 2026-09-27, bukti G3-02). Setiap baris memetakan `sheet` + `column` ke `source_artifact` + `source_field` dengan `granularity` (`per_eval`, `per_run`, `per_class`, `per_sample`, dan seterusnya) serta `status`: `OK` (field tersedia di artefak), `DERIVED` (dihitung dari artefak/kolom lain), `TEMPLATE` (kunci baris yang sudah terisi di template), `STATIC` (nilai tetap/literatur), `PENDING` (menunggu keputusan gate), atau `GAP` (belum ada sumber di pseudocode; wajib ditutup sebelum Gate C). Setiap field log atau artefak baru yang perlu dilaporkan wajib ditambahkan ke `00_Schema_Map` pada commit yang sama. Hasil Jalur B tidak ditulis ke sheet 01–04; satu baris per eksekusi Jalur B dicatat di sheet `17_JalurB_Selection`.
 
 Path spreadsheet dan dataset dikunci pada level proyek:
 
@@ -498,8 +517,8 @@ STRUCT Config:
                                                 # serta untuk pemilihan checkpoint deterministik di Jalur B.
     n_test_per_class       = 200               # DIKUNCI (G0-03, sesi 2026-09-22): official test -- TIDAK diakses
                                                 # sebelum FINAL_EVALUATION (G0-01)
-    max_nfev_clustering      = 10               # SMOKE TEST = 10; PILOT G1-01 = 300 (lihat §1.1); final dikunci dari pilot
-    max_nfev_supervised      = 10               # jumlah maksimum objective-function evaluations, BUKAN iterasi
+    max_nfev_clustering      = 70               # SMOKE TEST = 70; PILOT G1-01 = 300 (lihat §1.1); final dikunci dari pilot
+    max_nfev_supervised      = 70               # jumlah maksimum objective-function evaluations, BUKAN iterasi
                                                 # budget SAMA untuk semua arsitektur (aturan total-nfev G1-06)
 
     architecture           = "MORE-HD"        # "MORE-HD" | "MORE-HD-C"
@@ -637,18 +656,19 @@ FUNCTION UPDATE_LOCAL_RUN_SPREADSHEET(local_spreadsheet_path, run_id, run_dir):
 
     workbook = OPEN_WORKBOOK(local_spreadsheet_path, mode="write_local_only")
 
-    # G1-02: terminology spreadsheet harus membedakan objective evaluation vs callback.
-    NORMALIZE_OPTIMIZATION_HEADERS(
-        workbook,
-        objective_evaluation_header = "Eval ID",
-        callback_header             = "Callback ID",
-        nfev_header                 = "nfev",
-        forbid_legacy_objective_header = "Iteration"
-    )
+    # Sumber kebenaran skema: sheet 00_Schema_Map (§0.2 butir 8).
+    schema_map = READ_SHEET_ROWS(workbook, "00_Schema_Map")
+    VALIDATE_SCHEMA_MAP(workbook, schema_map)
+
+    # G1-02: sheet history memakai header "eval_id"; header legacy "Iteration" dilarang.
+    # Callback TIDAK ditulis ke sheet history; ia tetap berada di *_callback_log.jsonl.
+    ASSERT "Iteration" NOT IN ALL_HEADERS(workbook)
 
     # Hanya bagian/row milik run_id ini yang diisi; run lain tidak disentuh.
+    # Setiap kolom diisi dari source_artifact/source_field miliknya di schema_map.
     WRITE_RUN_DATA_TO_EXISTING_TEMPLATE(
         workbook=workbook,
+        schema_map=schema_map,
         run_id=run_id,
         manifest=manifest,
         metrics_final=metrics_final,
@@ -667,6 +687,21 @@ FUNCTION UPDATE_LOCAL_RUN_SPREADSHEET(local_spreadsheet_path, run_id, run_dir):
     CLOSE_WORKBOOK(workbook)
 
 
+FUNCTION VALIDATE_SCHEMA_MAP(workbook, schema_map):
+    # (1) Tidak ada kolom workbook tanpa baris peta.
+    FOR each sheet IN workbook.sheets EXCEPT ["00_README", "00_Schema_Map"]:
+        FOR each column IN HEADERS(sheet):
+            ASSERT EXISTS row IN schema_map WHERE row.sheet == sheet.name AND row.column == column
+    # (2) Tidak ada baris peta yang menunjuk kolom yang sudah tidak ada.
+    FOR each row IN schema_map:
+        ASSERT row.column IN HEADERS(workbook[row.sheet])
+    # (3) Unit test pada satu run pilot: setiap baris berstatus OK harus
+    #     menemukan source_field di source_artifact run tersebut, dan setiap
+    #     field di clustering_log/supervised_log/*_optimizer_result/config.json
+    #     yang ditandai reportable harus muncul minimal sekali di schema_map.
+    #     Baris PENDING/GAP dilaporkan sebagai daftar sisa pekerjaan G3-02.
+
+
 ```
 
 **Catatan determinisme:** `SET_RANDOM_SEED(config.seed)` dipanggil ulang
@@ -677,8 +712,11 @@ deterministik terlepas dari urutan pemanggilan fungsi.
 ### 1.1 Protokol smoke test, pilot budget, dan fase simplex COBYLA (G1-01/G1-06, dikunci 2026-09-27)
 
 **Latar belakang.** COBYLA selalu memakai `n_params + 1` objective evaluation
-pertama untuk membangun simplex awal (`x0` ditambah satu probe per koordinat
-sejauh `rhobeg`). `n_params` di sini adalah panjang vektor yang dioptimasi
+pertama untuk membangun simplex awal: `x0`, lalu `n_params` probe. Setiap probe
+menggeser **satu koordinat** sejauh ±`rhobeg` dari **vertex terbaik sejauh ini**,
+bukan selalu dari `x0`; bila sebuah probe menghasilkan loss lebih kecil, probe
+berikutnya bergeser dari titik baru itu. Jumlah evaluasi fase ini tetap tepat
+`n_params + 1` (diverifikasi pada SciPy 1.17.1). `n_params` di sini adalah panjang vektor yang dioptimasi
 COBYLA (trainable saja): A=MORE-HD 30 → simplex 31; B=MORE-HD-60P 60 → 61;
 C=MORE-HD-C-FixedRZ 30 trainable (RZ beku tidak dihitung) → 31;
 D=MORE-HD-C 60 → 61.
@@ -687,10 +725,18 @@ D=MORE-HD-C 60 → 61.
 
 | Setting | Nilai |
 |---|---|
-| `max_nfev_clustering` / `max_nfev_supervised` | 10 / 10 |
+| `max_nfev_clustering` / `max_nfev_supervised` | 70 / 70 (sama untuk kedua arsitektur; direvisi dari 10 pada audit 2026-09-27) |
 | Kondisi | K=3, PCA, MORE-HD dan MORE-HD-C (2 run) |
-| Tujuan | Pipeline berjalan end-to-end; artefak/log tertulis; `LENGTH(log) == result.nfev`; kolom `phase` ada |
-| Batasan | Seluruh 10 evaluasi berada di fase `initial_simplex`; label `optimization` **belum** teruji; hasil tidak dianalisis |
+| Tujuan | Pipeline berjalan end-to-end; artefak/log tertulis; `LENGTH(log) == result.nfev`; `phase` berpindah dari `initial_simplex` ke `optimization` tepat di `eval_id` 31 (MORE-HD) dan 61 (MORE-HD-C); `final_point_eval_id` terisi; tidak ada warning budget dari SciPy |
+| Batasan | MORE-HD-C hanya mendapat 9 evaluasi fase `optimization` (MORE-HD 39); cukup untuk menguji label dan pipeline, tidak untuk menilai konvergensi; hasil tidak dianalisis |
+
+Alasan revisi dari 10: COBYLA SciPy (terverifikasi pada 1.17.1) menolak budget
+di bawah `n_params + 2` dan diam-diam menaikkannya (menjadi 32 untuk 30 parameter
+dan 62 untuk 60 parameter) dengan satu warning. Akibatnya `max_nfev = 10` tidak
+pernah berlaku, summary optimizer akan mencatat budget yang tidak sesuai dengan
+`nfev` aktual, dan kedua arsitektur mendapat total evaluasi berbeda. Budget 70
+dihormati apa adanya untuk semua model (A/C: 31 simplex + 39 optimasi;
+B/D: 61 simplex + 9 optimasi).
 
 **Tahap 1 — Pilot konvergensi** (`run_mode="PILOT"`, seed 42)
 
@@ -699,8 +745,8 @@ D=MORE-HD-C 60 → 61.
 | `max_nfev_clustering` / `max_nfev_supervised` | 300 / 300 (cap pilot, sama untuk semua arsitektur) |
 | `cobyla_tol` | `1e-4` |
 | `cobyla_rhobeg` | `1.0` |
-| Kondisi | K ∈ {3, 10} × {PCA, ZERNIKE} × {MORE-HD, MORE-HD-C} = 8 run; opsional MORE-HD-60P pada K=10 |
-| Urutan eksekusi | Run pertama K=3/PCA/MORE-HD-C dijalankan sendiri dan diperiksa (`phase` = `initial_simplex` untuk `eval_id` 0–60 dan `optimization` mulai `eval_id` 61; `LENGTH(log) == result.nfev`; summary optimizer lengkap; waktu per evaluasi tercatat) sebelum 7 run sisanya dijalankan |
+| Kondisi | K ∈ {3, 10} × {PCA, ZERNIKE} × {MORE-HD, MORE-HD-C} = 8 run, **ditambah** MORE-HD-60P (B) pada K=10 × {PCA, ZERNIKE} = 2 run; **total 10 run**. B wajib (audit 2026-09-27) karena budget final juga dipakai B di ablation dan B adalah model terdalam (6 layer, simplex 61). C tidak dipilot karena jumlah trainable-nya sama dengan A (30). |
+| Urutan eksekusi | Run pertama K=3/PCA/MORE-HD-C dijalankan sendiri dan diperiksa (`phase` = `initial_simplex` untuk `eval_id` 0–60 dan `optimization` mulai `eval_id` 61; `LENGTH(log) == result.nfev`; summary optimizer lengkap; waktu per evaluasi tercatat) sebelum 9 run sisanya dijalankan |
 | Dicatat per run | best-observed `train_loss` vs `eval_id` + `phase`; `pseudo_accuracy_val`/`val_loss`; waktu per objective evaluation; `success`/`status`/`message` (berhenti karena `tol` atau budget) |
 
 **Aturan keputusan budget final** (dikunci sebelum pilot dijalankan):
@@ -710,7 +756,7 @@ D=MORE-HD-C 60 → 61.
 2. `N*` per run = `eval_id` terkecil (dihitung sebagai total `nfev`) di mana
    best-observed loss sudah berada dalam **2%** dari total perbaikan yang dicapai
    pada akhir run (`L(N) - L_end <= 0.02 × (L_x0 - L_end)`).
-3. `max_nfev` final per loop = maksimum `N*` dari seluruh 8 run pilot, dibulatkan ke
+3. `max_nfev` final per loop = maksimum `N*` dari seluruh 10 run pilot, dibulatkan ke
    atas ke kelipatan 10, dengan batas atas 300.
 4. Sebuah run dinyatakan **belum plateau** jika berhenti karena budget (bukan `tol`)
    **dan** perbaikan best-observed loss pada 30 evaluasi terakhir melebihi 2% dari
@@ -740,6 +786,10 @@ FUNCTION OBJECTIVE_PHASE(eval_id, n_params):
 
 FUNCTION VALIDATE_OPTIMIZER_BUDGET(max_nfev, n_params, run_mode):
     simplex_size = n_params + 1
+    # SciPy COBYLA menaikkan diam-diam budget < n_params + 2 (terverifikasi 1.17.1).
+    # Ditolak di SEMUA mode supaya max_nfev yang tercatat selalu budget yang berlaku.
+    IF max_nfev < n_params + 2:
+        RAISE_ERROR("max_nfev harus >= n_params + 2; SciPy akan menaikkannya diam-diam")
     IF max_nfev <= simplex_size:
         IF run_mode == "CONFIRMATORY":
             RAISE_ERROR("max_nfev harus > n_params + 1 untuk run konfirmatori (G1-06)")
@@ -1604,6 +1654,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         NONLOCAL best_observed_fun, best_observed_eval_id, best_observed_theta
 
         eval_id = n_objective_evals
+        t_eval_start = MONOTONIC_TIME()
  
         # --- (a) objective train_loss yang dibaca COBYLA ---
         pair_losses = []
@@ -1653,10 +1704,15 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             FOR all pairs (a, b) IN config.classes WHERE a != b
         )
 
-        min_separation = MIN(
+        closest_class_i, closest_class_j = ARGMIN_PAIR(
             COSINE_DISTANCE(temp_centroids[a], temp_centroids[b])
-            FOR all pairs (a, b) IN config.classes WHERE a != b
+            FOR all pairs (a, b) IN config.classes WHERE a < b
+        )   # tie -> pasangan (a, b) terkecil secara leksikografis
+        min_separation = COSINE_DISTANCE(
+            temp_centroids[closest_class_i], temp_centroids[closest_class_j]
         )
+        # Batas optimum K vektor satuan (simplex beraturan): 1 + 1/(K-1).
+        min_separation_ratio = min_separation / (1 + 1 / (LENGTH(config.classes) - 1))
         correlation_consistency = SPEARMAN_CORRELATION(
             pairwise_values_of(S),
             pairwise_cosine_distances_of(temp_centroids)
@@ -1686,8 +1742,12 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             "mean_true_distance_val": mean_true_distance_val,
             "min_separation_val": min_separation_val,
             "min_separation": min_separation,
+            "min_separation_ratio": min_separation_ratio,
+            "closest_class_i": closest_class_i,
+            "closest_class_j": closest_class_j,
             "correlation_consistency": correlation_consistency,
-            "active_dimensions": active_dimensions
+            "active_dimensions": active_dimensions,
+            "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start
         }
         APPEND_LINE(run_dir + "/logs/clustering_log.jsonl", TO_JSON(log_entry))
 
@@ -1723,6 +1783,9 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
 
     trained_params_clustering = result.x
     ASSERT result.nfev == n_objective_evals
+    final_point_eval_id = FIND_EVAL_ID_OF_THETA(
+        run_dir + "/artifacts/clustering_params.bin", result.x, result.nfev
+    )
 
     # final point resmi dari optimizer dan best observed point disimpan TERPISAH.
     SAVE(result.x, run_dir + "/artifacts/clustering_params_final.npy")
@@ -1744,6 +1807,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         "fun": result.fun,
         "nfev": result.nfev,
         "callback_count": callback_id,
+        "final_point_eval_id": final_point_eval_id,
         "final_point_path": "artifacts/clustering_params_final.npy",
         "best_observed_eval_id": best_observed_eval_id,
         "best_observed_fun": best_observed_fun,
@@ -1755,16 +1819,29 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
     )
 
     RETURN trained_params_clustering
+
+
+FUNCTION FIND_EVAL_ID_OF_THETA(params_bin_path, theta, n_evals):
+    # result.x COBYLA selalu identik (bit-per-bit) dengan salah satu titik yang
+    # dievaluasi (terverifikasi pada SciPy 1.17.1, 36 run uji). Kembalikan
+    # eval_id PERTAMA yang cocok; gagal keras bila tidak ada yang cocok.
+    FOR eval_id IN 0 .. n_evals - 1:
+        IF ARRAY_EQUAL_EXACT(READ_PARAM_RECORD(params_bin_path, eval_id), theta):
+            RETURN eval_id
+    RAISE_ERROR("result.x tidak ditemukan di log parameter; periksa versi SciPy")
 ```
  
 ### Penjelasan Metrik Evaluasi pada Clustering Loop
 
-Delapan nilai pada `clustering_log.jsonl` dicatat **per objective evaluation
-(`eval_id`)**, bukan per iterasi optimizer. Dari delapan metrik tersebut,
+Sembilan metrik pada `clustering_log.jsonl` dicatat **per objective evaluation
+(`eval_id`)**, bukan per iterasi optimizer. Dari sembilan metrik tersebut,
 hanya `train_loss` yang secara langsung digunakan COBYLA sebagai fungsi
-objektif. Tujuh metrik lainnya merupakan **monitoring pasif** untuk mengamati
+objektif. Delapan metrik lainnya merupakan **monitoring pasif** untuk mengamati
 kualitas representasi clustering pada data train/validation tanpa memengaruhi
-langkah optimasi COBYLA.
+langkah optimasi COBYLA. Selain metrik, setiap baris juga menyimpan `phase`,
+pasangan kelas terdekat (`closest_class_i`, `closest_class_j`; berguna untuk
+G1-09/G1-11, misalnya apakah pasangan terdekat HU/ZERNIKE di K=10 adalah 6–9), dan
+`eval_runtime_sec` (waktu satu objective evaluation, dibutuhkan pilot §1.1).
 
 | Metrik | Fungsi (untuk apa dipakai) | Satuan / Rentang Nilai | Arah yang diharapkan | Interpretasi nilai yang lebih baik |
 |---|---|---|---|---|
@@ -1774,6 +1851,7 @@ langkah optimasi COBYLA.
 | `mean_true_distance_val` | Rata-rata cosine distance sampel validation ke centroid TRAIN kelas benarnya. | 0–2. | ↓ **Semakin kecil semakin baik** | Mengukur compactness validation terhadap label/centroid kelas benar. Ini menjadi kriteria ketiga selector Jalur B. |
 | `min_separation_val` | Jarak cosine minimum antar centroid yang dibangun dari output validation per kelas. | 0–2. | ↑ **Semakin besar semakin baik** | Menilai apakah kelas tetap terpisah pada validation. Ini menjadi kriteria kedua selector Jalur B. |
 | `min_separation` | Jarak cosine minimum antar centroid kelas yang dibangun dari TRAIN. | 0–2. | ↑ **Semakin besar semakin baik** | Nilai lebih besar menunjukkan pasangan centroid TRAIN yang paling berdekatan masih mempunyai pemisahan lebih lebar. Tetap dipakai sebagai outcome representasi/diagnostik. |
+| `min_separation_ratio` | `min_separation` dibagi batas optimum simplex beraturan `1 + 1/(K-1)`. | 0–1 (1 = pemisahan optimal untuk K kelas). | ↑ **Semakin besar semakin baik** | Membuat `min_separation` sebanding lintas K. Pada `final_point_eval_id`, nilainya sama dengan rasio pada `quantum_labels`. Definisi final sebagai outcome primer tetap dikunci di G2-06. |
 | `correlation_consistency` | Konsistensi urutan jarak centroid TRAIN terhadap matriks korelasi `S`. | Spearman -1 sampai +1. | ↑ **Semakin mendekati +1 semakin baik** | Mengukur kesesuaian struktur jarak dengan dissimilarity antarkelas. Metrik diagnostik, bukan kriteria pemilihan checkpoint. |
 | `active_dimensions` | Jumlah dimensi observable aktif pada centroid. | Integer 0–15. | ↑ **Semakin besar umumnya semakin baik untuk pemanfaatan ruang observable** | Dipakai untuk diagnosis structural zeros. **Tidak boleh** dipakai untuk memilih checkpoint Jalur B karena dapat secara sistematis menguntungkan MORE-HD-C terhadap MORE-HD. |
 
@@ -1786,6 +1864,7 @@ avg_margin_val              -> lebih besar lebih baik (diagnostik)
 mean_true_distance_val      -> lebih kecil lebih baik
 min_separation_val          -> lebih besar lebih baik
 min_separation              -> lebih besar lebih baik (diagnostik)
+min_separation_ratio        -> lebih besar lebih baik (0-1; diagnostik per eval)
 correlation_consistency     -> lebih besar / lebih dekat ke +1 lebih baik (diagnostik)
 active_dimensions           -> lebih besar umumnya lebih baik; DIAGNOSTIK SAJA
 ```
@@ -1833,11 +1912,17 @@ FUNCTION QUANTUM_LABEL_EXTRACTION(circuit_fn, trained_params_clustering, X_train
     RETURN quantum_labels
 ```
  
-Fungsi ini dipakai identik oleh Jalur A (otomatis, bagian 9) maupun
-Jalur B (pemilihan manual, bagian 10) — parameter `trained_params_clustering`
-yang diterima bisa berasal dari `result.x` COBYLA (Jalur A) atau dari
-`READ_PARAM_RECORD` pada iterasi pilihan manual (Jalur B); fungsi ini
-sendiri tidak tahu dan tidak perlu tahu sumbernya.
+Fungsi ini dipakai identik oleh Jalur A (bagian 9) maupun Jalur B (bagian 10).
+Parameter `trained_params_clustering` yang diterima berasal dari `result.x`
+COBYLA (Jalur A) atau dari `READ_PARAM_RECORD` pada `selected_eval_id` hasil
+selector deterministik Jalur B (G0-02, §10.2–10.3); fungsi ini sendiri tidak
+tahu dan tidak perlu tahu sumbernya.
+
+Karena `result.x` selalu identik dengan salah satu titik yang dievaluasi
+(`final_point_eval_id`, lihat §5), centroid `quantum_labels` sama persis dengan
+centroid TRAIN pada baris `clustering_log.jsonl` dengan `eval_id` tersebut. Metrik
+clustering per run di workbook (`01_Run_Summary`) karena itu dibaca dari baris
+`final_point_eval_id`, bukan dari baris terakhir log.
  
 ---
  
@@ -1874,6 +1959,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         NONLOCAL best_observed_fun, best_observed_eval_id, best_observed_theta
 
         eval_id = n_objective_evals
+        t_eval_start = MONOTONIC_TIME()
  
         train_losses = []
         FOR each (x, c) IN ZIP(X_train, y_train):
@@ -1881,11 +1967,22 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
             train_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
         train_loss = MEAN(train_losses)
  
+        # Monitoring VALIDATION pasif. Output validation sudah dihitung untuk
+        # val_loss, jadi klasifikasi ke quantum label terdekat tidak menambah
+        # evaluasi sirkuit. Aturan klasifikasinya identik dengan FINAL_EVALUATION.
         val_losses = []
+        correct_val = 0
+        margins_val = []
         FOR each (x, c) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
-            val_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
+            distances = { k: COSINE_DISTANCE(v, quantum_labels[k]) FOR k IN config.classes }
+            val_losses.APPEND(distances[c])
+            IF ARGMIN(distances) == c:
+                correct_val += 1
+            margins_val.APPEND(MIN(distances[k] FOR k IN config.classes IF k != c) - distances[c])
         val_loss = MEAN(val_losses)
+        pseudo_accuracy_val = correct_val / LENGTH(X_val)
+        avg_margin_val = MEAN(margins_val)
  
         APPEND_PARAM_RECORD(run_dir + "/artifacts/supervised_params.bin", theta)
 
@@ -1898,7 +1995,10 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
             "eval_id": eval_id,
             "phase": OBJECTIVE_PHASE(eval_id, n_params),   # G1-06
             "train_loss": train_loss,
-            "val_loss": val_loss
+            "val_loss": val_loss,
+            "pseudo_accuracy_val": pseudo_accuracy_val,   # pasif; tidak dibaca COBYLA
+            "avg_margin_val": avg_margin_val,             # pasif; tidak dibaca COBYLA
+            "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start
         }
         APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))
  
@@ -1933,6 +2033,9 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
 
     trained_params_final = result.x
     ASSERT result.nfev == n_objective_evals
+    final_point_eval_id = FIND_EVAL_ID_OF_THETA(
+        run_dir + "/artifacts/supervised_params.bin", result.x, result.nfev
+    )
 
     SAVE(result.x, run_dir + "/artifacts/supervised_params_final.npy")
     SAVE(best_observed_theta, run_dir + "/artifacts/supervised_params_best_observed.npy")
@@ -1953,6 +2056,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         "fun": result.fun,
         "nfev": result.nfev,
         "callback_count": callback_id,
+        "final_point_eval_id": final_point_eval_id,
         "final_point_path": "artifacts/supervised_params_final.npy",
         "best_observed_eval_id": best_observed_eval_id,
         "best_observed_fun": best_observed_fun,
@@ -1966,7 +2070,11 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
     RETURN trained_params_final
 ```
 
-`supervised_log.jsonl` harus diplot terhadap `eval_id`. `result.x` adalah
+`supervised_log.jsonl` harus diplot terhadap `eval_id`. Kolom
+`pseudo_accuracy_val` dan `avg_margin_val` (ditambahkan audit 2026-09-27)
+adalah monitoring pasif pada validation dengan aturan klasifikasi quantum label
+terdekat yang sama dengan `FINAL_EVALUATION`; keduanya tidak memengaruhi COBYLA
+dan tidak dipakai untuk memilih checkpoint. `result.x` adalah
 **final point yang dikembalikan COBYLA**; ia tidak boleh otomatis disebut
 "best observed point". Titik terbaik yang benar-benar terlihat selama evaluasi
 disimpan terpisah sebagai `supervised_params_best_observed.npy`.
@@ -2028,6 +2136,7 @@ Input budget optimasi dinyatakan sebagai maksimum objective-function evaluations
 
 ```
 FUNCTION MAIN(config):
+    config.run_start_time = MONOTONIC_TIME()
     VALIDATE_CONFIG(config)
     CREATE_RUN_DIRECTORY_EXCLUSIVE(config)
     INITIALIZE_LOCAL_RUN_SPREADSHEET(config)
@@ -2145,6 +2254,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
 
         "cobyla_tol": config.cobyla_tol,
         "cobyla_rhobeg": config.cobyla_rhobeg,
+        "scipy_version": SCIPY_VERSION(),
         "seed": config.seed,
         "master_seed": config.seed,
         "run_mode": config.run_mode,
@@ -2166,6 +2276,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         },
 
         "final_metrics": metrics,
+        "total_runtime_sec": MONOTONIC_TIME() - config.run_start_time,
         "artifact_paths": artifact_paths
     }
 
@@ -2185,7 +2296,7 @@ config_user = Config(
     n_train_per_class=1000,
     n_val_per_class=100,
     n_test_per_class=200,
-    max_nfev_clustering=MAX_NFEV_FINAL_G1_01,   # diisi dari hasil pilot §1.1; 10 hanya untuk smoke test PILOT
+    max_nfev_clustering=MAX_NFEV_FINAL_G1_01,   # diisi dari hasil pilot §1.1; 70 hanya untuk smoke test PILOT
     max_nfev_supervised=MAX_NFEV_FINAL_G1_01,   # VALIDATE_OPTIMIZER_BUDGET menolak <= n_params+1 pada CONFIRMATORY
     architecture="MORE-HD",
     feature_method="PCA",
@@ -2409,6 +2520,7 @@ urutan kandidat identik.
 
 ```
 FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
+    run_start_time = MONOTONIC_TIME()
  
     source_manifest = LOAD_JSON(source_run_dir + "/config.json")
     ASSERT source_manifest.path_type == "jalur_a_automatic"
@@ -2496,6 +2608,7 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         X_test_scaled, y_test, config
     )
 
+    config.run_start_time = run_start_time
     SAVE_ARTIFACT_BUNDLE_JALUR_B(
         config, metrics, source_run_dir, selected_eval_id
     )
@@ -2512,9 +2625,12 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
     supervised_optimizer_result = LOAD_JSON(
         config.run_dir + "/logs/supervised_optimizer_result.json"
     )
+    source_manifest = LOAD_JSON(source_run_dir + "/config.json")
 
     manifest = {
         "run_name": config.run_name,
+        "source_run_uid": source_manifest.run_id,
+        "n_eligible_eval_ids": LENGTH(selection_record.eligible_eval_ids),
         "path_type": "jalur_b_deterministic_validation_selection",
         "analysis_role": "secondary_sensitivity",
         "timestamp": NOW(),
@@ -2533,6 +2649,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
         "run_mode": config.run_mode,
         "supervised_optimizer_result": supervised_optimizer_result,
         "final_metrics": metrics,
+        "total_runtime_sec": MONOTONIC_TIME() - config.run_start_time,
         "artifact_paths": {
             "quantum_labels": "artifacts/quantum_labels.json",
             "supervised_params_bin": "artifacts/supervised_params.bin",
@@ -2549,6 +2666,9 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
     }
 
     SAVE(manifest, config.run_dir + "/config.json")
+    # Satu baris sheet 17_JalurB_Selection diisi dari manifest ini +
+    # source selected_checkpoint.json (lihat 00_Schema_Map). Jalur B tidak
+    # menulis ke sheet 01-04 milik 240 run primer Jalur A.
 
 
 # Contoh:

@@ -1,10 +1,11 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.3  
+Version: 1.4  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
 Classical reference baselines and MORE reference policy (G1-10) frozen: 2026-09-27  
+Consistency audit (smoke/pilot budget, workbook schema map, Jalur B sheet): 2026-09-27  
 Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
@@ -76,7 +77,9 @@ Model B has six RY-only variational layers and therefore matches D in trainable 
 
 All architectures in a given track receive the same **total** COBYLA objective-evaluation budget (`max_nfev_clustering`, `max_nfev_supervised`). COBYLA spends its first `n_params + 1` evaluations building the initial simplex (A/C: 31; B/D: 61), so under equal total budget MORE-HD-C receives 30 fewer post-simplex evaluations than MORE-HD. This is treated as conservative toward MORE-HD-C and reported descriptively through `n_optimization_evals`; the B-versus-D and A-versus-C contrasts have identical simplex lengths and are free of this imbalance.
 
-Every objective evaluation is labeled `phase = initial_simplex` (0-based `eval_id <= n_params`, including `x0`) or `phase = optimization`. The final budget is set from the seed-42 pilot (cap 300; K in {3,10} x {PCA, ZERNIKE} x {MORE-HD, MORE-HD-C}) using the plateau rule frozen in `Pseudocode_2x3_manual_runs.md` section 1.1 before the pilot is run. If any pilot run has not plateaued at 300, the final budget remains 300 and conclusions are stated as performance at equal objective-evaluation budget rather than at convergence. Pilot results are not used for any confirmatory estimate.
+Every objective evaluation is labeled `phase = initial_simplex` (0-based `eval_id <= n_params`, including `x0`) or `phase = optimization`. The final budget is set from the seed-42 pilot (cap 300; K in {3,10} x {PCA, ZERNIKE} x {MORE-HD, MORE-HD-C}, plus MORE-HD-60P at K=10 x {PCA, ZERNIKE}, for 10 pilot runs; B is required because the final budget also governs the B ablation runs) using the plateau rule frozen in `Pseudocode_2x3_manual_runs.md` section 1.1 before the pilot is run. If any pilot run has not plateaued at 300, the final budget remains 300 and conclusions are stated as performance at equal objective-evaluation budget rather than at convergence. Pilot results are not used for any confirmatory estimate.
+
+The smoke test uses `max_nfev = 70` for every architecture. SciPy COBYLA (verified on 1.17.1) silently raises any budget below `n_params + 2`, so smaller smoke budgets would not be the budget actually applied; the pipeline rejects them in every run mode.
 
 ## 5. Primary outcomes
 
@@ -217,6 +220,8 @@ A run with a protocol deviation is not silently repaired after official-test ins
 
 The targeted ablation uses a separate planned template `MORE_HD_master_ablation_90runs.xlsx` with one row per new B/C `ablation_run_uid`. It records `matching_run_uid_A` and `matching_run_uid_D` rather than duplicating A/D executions. The ablation template additionally stores model code, trainable/fixed parameter counts, depth/gate counts, initialization namespaces/hashes, fixed-RZ hash for C, paired split/pair-manifest hashes, Y-odd diagnostics, and the four-model contrast linkage.
 
+Sheet `00_Schema_Map` is the single source of truth for which artifact file and field fills every workbook column, at which granularity. Run-level clustering metrics in `01_Run_Summary` are read from the `clustering_log.jsonl` row whose `eval_id` equals `final_point_eval_id` (the evaluation identical to COBYLA's `result.x`, i.e. the parameters that define the quantum labels), not from the last logged row. Columns without a defined source are marked `GAP` or `PENDING` in the map and must be resolved before Gate C.
+
 Publication analysis joins the two workbooks by seed, K, feature method, and matching execution identifiers. Classical reference baselines (Section 10.2) are recorded in sheet `15_Classical_Baselines` of the primary workbook (one row per `(seed, feature_method, K, baseline)`, linked to `source_run_uid_A` and `check_run_uid_D`), and the reported MORE values in sheet `16_MORE_Reference`. The primary 240-run workbook is not replaced or expanded merely to duplicate A/D rows.
 
 ## 12.1 Secondary Jalur B sensitivity analysis
@@ -237,7 +242,7 @@ If Jalur B is executed, it starts from an already completed Jalur A source run a
 
 No weighted score is used. `active_dimensions`, `correlation_consistency`, and `avg_margin_val` are diagnostics and cannot affect checkpoint selection. The supervised objective-evaluation budget is inherited unchanged from the source Jalur A run. Official-test arrays are not read by the selector or supervised optimization and are used only by the final evaluation after the selected checkpoint and downstream training are frozen.
 
-Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. The number of eligible candidates per run is recorded. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation.
+Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. The number of eligible candidates per run is recorded. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation. Each Jalur B execution is recorded as one row of sheet `17_JalurB_Selection` (source `run_uid`, `selected_eval_id`, number of eligible candidates, the selection metrics of the chosen evaluation, supervised budget, and final official-test metrics); Jalur B never writes to sheets `01`–`04`.
 
 ## 13. Confirmatory boundary
 

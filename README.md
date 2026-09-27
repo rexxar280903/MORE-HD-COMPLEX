@@ -141,7 +141,7 @@ Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi 
 - Protokol, daftar seed, split data, budget optimizer, primary analysis plan, dan targeted ablation plan telah dibekukan.
 - Workbook master utama, workbook ablation, dan konsolidator hasil telah diuji sebelum dipakai untuk hasil final.
 
-Smoke test dengan 10 evaluasi COBYLA dan seed 42 diperbolehkan sebagai `PILOT ONLY`, tetapi hasilnya **tidak boleh** diperlakukan sebagai hasil konfirmatori publikasi.
+Smoke test dengan 70 evaluasi COBYLA (sama untuk semua arsitektur; 10 tidak valid karena SciPy menaikkan diam-diam budget di bawah `n_params + 2`) dan seed 42 diperbolehkan sebagai `PILOT ONLY`, tetapi hasilnya **tidak boleh** diperlakukan sebagai hasil konfirmatori publikasi.
 
 ## Referensi
 
