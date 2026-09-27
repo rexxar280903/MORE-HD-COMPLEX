@@ -1,5 +1,31 @@
 # MORE-HD-COMPLEX
 
+<!-- RESEARCH_PROGRESS_START -->
+## Research Progress
+
+![Research Progress](https://img.shields.io/badge/Research%20Progress-20.9%25-blue)
+
+**Current research readiness: 20.9%**
+
+`████░░░░░░░░░░░░░░░░ 20.9%`
+
+Progress dihitung langsung dari **37 item Research Readiness Gate** dengan bobot:
+`CLOSED = 100%`, `READY FOR VERIFICATION = 75%`, `IN PROGRESS = 50%`, `PILOT ONLY = 25%`, dan `BLOCKED = 0%`.
+
+### Progress History
+
+| Tanggal | Commit acuan | Progress | Perubahan | Ringkasan |
+|---|---|---:|---:|---|
+| 2026-09-22 | [`5a26fdd`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/5a26fdd13d09123de634997b62e6bf75dfee840f) | 13.9% | — | Baseline readiness setelah protokol ukuran dataset dikunci. |
+| 2026-09-23 | [`34e51ec`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/34e51ecdbc049f296113fbfa282d688b93ceebbe) | 10.1% | -3.8 pp | Scope diperketat dengan penambahan 10 item readiness baru; penurunan mencerminkan denominator/kriteria yang bertambah, bukan hilangnya pekerjaan selesai. |
+| 2026-09-26 | [`6f8c7c1`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6f8c7c1f04b9d29e00f36bb6aa603a8681fd601b) | 18.2% | +8.1 pp | Protokol multi-seed, analysis plan, workbook 240-run, dan logging objective mulai terkunci/terverifikasi. |
+| 2026-09-27 | [`5aeb1ca`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/5aeb1cabe3e55673b51b0cf09e4c0865ba79f2f4) | **20.9%** | **+2.7 pp** | Protokol deterministic clustering pairs dan dokumentasi 240-run diselaraskan. |
+
+**Trend:** `13.9% → 10.1% → 18.2% → 20.9%`
+
+> Mulai titik ini, setiap commit penelitian yang mengubah status readiness gate dapat menambahkan satu baris baru. Persentase tidak dipaksa selalu naik: bila scope penelitian diperketat atau item wajib baru ditambahkan, nilai dapat turun agar indikator tetap metodologis dan tidak sekadar kosmetik.
+<!-- RESEARCH_PROGRESS_END -->
+
 Proyek riset quantum machine learning yang memperluas skripsi sarjana (FRD-09, arsitektur **MORE-HD**) menjadi eksperimen faktorial yang lebih ketat secara metodologis: **MORE-HD-C**.
 
 ## Latar Belakang
@@ -58,19 +84,19 @@ Tersedia dua jalur eksekusi:
 
 Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan; seed 42 hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED`.
 
-### Ringkasan Kesiapan (Readiness Gate) — per 2026-09-22
+### Ringkasan Kesiapan (Readiness Gate) — per 2026-09-27
 
-| Gate | Cakupan | Item | Closed | In Progress | Pilot Only | Blocked | Kesiapan* |
-|---|---|---|---|---|---|---|---|
-| G0 | Validitas data & evaluasi | 4 | 0 | 0 | 0 | 4 | **0%** |
-| G1 | Optimasi & desain eksperimen | 5 | 0 | 0 | 1 | 4 | **5%** |
-| G2 | Preprocessing & definisi numerik | 5 | 0 | 3 | 0 | 2 | **30%** |
-| G3 | Artefak & spreadsheet | 4 | 0 | 0 | 0 | 4 | **0%** |
-| G4 | Reproducibility & verifikasi sirkuit | 4 | 0 | 0 | 0 | 4 | **0%** |
-| D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 5 | 0 | 0 | 0 | 5 | **0%** |
-| **Total** | | **27** | **0** | **3** | **1** | **23** | **≈6.5%** |
+| Gate | Cakupan | Item | Closed | Ready for Verification | In Progress | Pilot Only | Blocked | Kesiapan* |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | Validitas data & evaluasi | 4 | 2 | 0 | 1 | 0 | 1 | **62.5%** |
+| G1 | Optimasi & desain eksperimen | 11 | 0 | 1 | 3 | 1 | 6 | **22.7%** |
+| G2 | Preprocessing & definisi numerik | 6 | 0 | 0 | 3 | 0 | 3 | **25.0%** |
+| G3 | Artefak & spreadsheet | 6 | 0 | 1 | 0 | 0 | 5 | **12.5%** |
+| G4 | Reproducibility & verifikasi sirkuit | 4 | 0 | 0 | 0 | 0 | 4 | **0%** |
+| D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 6 | 0 | 0 | 1 | 0 | 5 | **8.3%** |
+| **Total** |  | **37** | **2** | **2** | **8** | **1** | **24** | **20.9%** |
 
-\* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `IN PROGRESS=50%`, `PILOT ONLY=25%` (boleh smoke test, tidak boleh jadi hasil final), `BLOCKED=0%`.
+\* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `READY FOR VERIFICATION=75%`, `IN PROGRESS=50%`, `PILOT ONLY=25%`, dan `BLOCKED=0%`.
 
 **Yang sudah dikunci (2026-09-22):** desain ekstraksi Hu Moments (input grayscale, formula signed-log, padding channel ke-8 = 0.0) dan Zernike Moments (8 pasangan `(n,m)` revisi, pemetaan unit disk, magnitude invarian rotasi), serta kebijakan clipping seragam (tidak ada clipping untuk PCA/Hu/Zernike). Ketiganya masih `IN PROGRESS` karena implementasi kode nyata + unit test belum dikerjakan.
 
