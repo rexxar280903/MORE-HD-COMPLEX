@@ -46,5 +46,13 @@
     "delta_pp": 0.0,
     "items": 38,
     "summary": "docs: consolidate ablation into main pseudocode"
+  },
+  {
+    "date": "2026-09-27",
+    "commit": "7e6603cdef2adff678606b1bb721473b6cecae75",
+    "progress": 25.7,
+    "delta_pp": 1.4,
+    "items": 38,
+    "summary": "docs: resolve G0-02 with deterministic Jalur B selector"
   }
 ]
