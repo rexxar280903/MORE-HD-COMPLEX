@@ -38,5 +38,13 @@
     "delta_pp": 3.4,
     "items": 38,
     "summary": "docs: lock targeted ablation for G1-05 and G1-07"
+  },
+  {
+    "date": "2026-09-27",
+    "commit": "6670319c34497679b0781ddf0a3654319a8fe4d7",
+    "progress": 24.3,
+    "delta_pp": 0.0,
+    "items": 38,
+    "summary": "docs: consolidate ablation into main pseudocode"
   }
 ]
