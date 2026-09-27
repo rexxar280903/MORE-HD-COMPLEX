@@ -90,6 +90,16 @@ menghasilkan 90 run tambahan. Total unique confirmatory executions menjadi 330.
 Primary A/D diselaraskan ke structured paired initialization agar reuse A/D valid.
 Spesifikasi penuh ablation berada di **Bagian 11** dokumen ini; primary `MAIN(config)` dan identity R001-R048 tidak diubah oleh keputusan ini.
 
+**Update (G1-01/G1-06, sesi 2026-09-27 — protokol pilot budget dan fase simplex COBYLA):**
+Smoke test dikunci pada `max_nfev = 10` dan pilot konvergensi pada cap
+`max_nfev = 300` (clustering dan supervised), `cobyla_tol = 1e-4`,
+`cobyla_rhobeg = 1.0` (ditulis eksplisit), seed 42. Definisi anggaran adil:
+**total `nfev` sama** lintas arsitektur; jumlah evaluasi pasca-simplex dilaporkan
+sebagai deskriptif. Setiap objective evaluation diberi kolom `phase`
+(`initial_simplex` untuk `eval_id <= n_params`, `optimization` sesudahnya).
+Jalur B hanya boleh memilih `eval_id` dengan `phase == "optimization"`.
+Spesifikasi lengkap ada di **§1.1**.
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -444,8 +454,9 @@ STRUCT Config:
                                                 # serta untuk pemilihan checkpoint deterministik di Jalur B.
     n_test_per_class       = 200               # DIKUNCI (G0-03, sesi 2026-09-22): official test -- TIDAK diakses
                                                 # sebelum FINAL_EVALUATION (G0-01)
-    max_nfev_clustering      = 10               # smoke test saja; budget final dikunci lewat pilot G1-01
+    max_nfev_clustering      = 10               # SMOKE TEST = 10; PILOT G1-01 = 300 (lihat §1.1); final dikunci dari pilot
     max_nfev_supervised      = 10               # jumlah maksimum objective-function evaluations, BUKAN iterasi
+                                                # budget SAMA untuk semua arsitektur (aturan total-nfev G1-06)
 
     architecture           = "MORE-HD"        # "MORE-HD" | "MORE-HD-C"
     feature_method         = "PCA"            # "PCA" | "HU" | "ZERNIKE"
@@ -474,6 +485,7 @@ STRUCT Config:
     zernike_clip_after_scaling = FALSE        # DIKUNCI: tidak clip, konsisten dengan PCA dan Hu
 
     cobyla_tol             = 1e-4
+    cobyla_rhobeg          = 1.0              # DIKUNCI untuk pilot (G1-01/G1-06): default SciPy, ditulis eksplisit
     seed                   = 42
     run_mode                = "PILOT"      # "PILOT" | "CONFIRMATORY"
     confirmatory_seeds       = [101,202,303,404,505]
@@ -617,6 +629,83 @@ FUNCTION UPDATE_LOCAL_RUN_SPREADSHEET(local_spreadsheet_path, run_id, run_dir):
 secara eksplisit di awal `DATA_PIPELINE`, `MODEL_SETUP`, dan
 `CLUSTERING_LOOP` (bukan hanya sekali secara global), supaya hasil tetap
 deterministik terlepas dari urutan pemanggilan fungsi.
+
+### 1.1 Protokol smoke test, pilot budget, dan fase simplex COBYLA (G1-01/G1-06, dikunci 2026-09-27)
+
+**Latar belakang.** COBYLA selalu memakai `n_params + 1` objective evaluation
+pertama untuk membangun simplex awal (`x0` ditambah satu probe per koordinat
+sejauh `rhobeg`). `n_params` di sini adalah panjang vektor yang dioptimasi
+COBYLA (trainable saja): A=MORE-HD 30 → simplex 31; B=MORE-HD-60P 60 → 61;
+C=MORE-HD-C-FixedRZ 30 trainable (RZ beku tidak dihitung) → 31;
+D=MORE-HD-C 60 → 61.
+
+**Tahap 0 — Smoke test** (`run_mode="PILOT"`, seed 42)
+
+| Setting | Nilai |
+|---|---|
+| `max_nfev_clustering` / `max_nfev_supervised` | 10 / 10 |
+| Kondisi | K=3, PCA, MORE-HD dan MORE-HD-C (2 run) |
+| Tujuan | Pipeline berjalan end-to-end; artefak/log tertulis; `LENGTH(log) == result.nfev`; kolom `phase` ada |
+| Batasan | Seluruh 10 evaluasi berada di fase `initial_simplex`; label `optimization` **belum** teruji; hasil tidak dianalisis |
+
+**Tahap 1 — Pilot konvergensi** (`run_mode="PILOT"`, seed 42)
+
+| Setting | Nilai |
+|---|---|
+| `max_nfev_clustering` / `max_nfev_supervised` | 300 / 300 (cap pilot, sama untuk semua arsitektur) |
+| `cobyla_tol` | `1e-4` |
+| `cobyla_rhobeg` | `1.0` |
+| Kondisi | K ∈ {3, 10} × {PCA, ZERNIKE} × {MORE-HD, MORE-HD-C} = 8 run; opsional MORE-HD-60P pada K=10 |
+| Urutan eksekusi | Run pertama K=3/PCA/MORE-HD-C dijalankan sendiri dan diperiksa (`phase` = `initial_simplex` untuk `eval_id` 0–60 dan `optimization` mulai `eval_id` 61; `LENGTH(log) == result.nfev`; summary optimizer lengkap; waktu per evaluasi tercatat) sebelum 7 run sisanya dijalankan |
+| Dicatat per run | best-observed `train_loss` vs `eval_id` + `phase`; `pseudo_accuracy_val`/`val_loss`; waktu per objective evaluation; `success`/`status`/`message` (berhenti karena `tol` atau budget) |
+
+**Aturan keputusan budget final** (dikunci sebelum pilot dijalankan):
+
+1. Untuk setiap run pilot dan setiap loop (clustering, supervised), hitung kurva
+   best-observed `train_loss` pada fase `optimization`.
+2. `N*` per run = `eval_id` terkecil (dihitung sebagai total `nfev`) di mana
+   best-observed loss sudah berada dalam **2%** dari total perbaikan yang dicapai
+   pada akhir run (`L(N) - L_end <= 0.02 × (L_x0 - L_end)`).
+3. `max_nfev` final per loop = maksimum `N*` dari seluruh 8 run pilot, dibulatkan ke
+   atas ke kelipatan 10, dengan batas atas 300.
+4. Sebuah run dinyatakan **belum plateau** jika berhenti karena budget (bukan `tol`)
+   **dan** perbaikan best-observed loss pada 30 evaluasi terakhir melebihi 2% dari
+   total perbaikan run (`L(nfev-30) - L_end > 0.02 × (L_x0 - L_end)`). Jika ada run
+   yang belum plateau pada 300, `max_nfev` final tetap
+   300 atas dasar biaya komputasi; kondisi tersebut dilaporkan sebagai limitation
+   dan klaim publikasi dirumuskan sebagai "pada budget objective evaluation yang
+   sama", bukan "pada konvergensi".
+5. Untuk run konfirmatori, `max_nfev` final wajib `> n_params + 1` untuk semua
+   model (A/B/C/D); `VALIDATE_OPTIMIZER_BUDGET` menolak konfigurasi yang
+   melanggar.
+
+**Aturan anggaran adil (G1-06).** Primary: **total `nfev` sama** untuk semua
+arsitektur. Karena simplex D (61) lebih panjang dari A (31), D mendapat 30
+evaluasi fase `optimization` lebih sedikit; ini konservatif terhadap MORE-HD-C
+dan dilaporkan eksplisit melalui `n_optimization_evals` di summary optimizer.
+Kontras ablation B–D dan A–C memiliki panjang simplex identik sehingga bebas dari
+confound ini.
+
+```
+FUNCTION OBJECTIVE_PHASE(eval_id, n_params):
+    # eval_id 0-based; eval_id 0 = x0, eval_id 1..n_params = probe simplex.
+    IF eval_id <= n_params:
+        RETURN "initial_simplex"
+    RETURN "optimization"
+
+
+FUNCTION VALIDATE_OPTIMIZER_BUDGET(max_nfev, n_params, run_mode):
+    simplex_size = n_params + 1
+    IF max_nfev <= simplex_size:
+        IF run_mode == "CONFIRMATORY":
+            RAISE_ERROR("max_nfev harus > n_params + 1 untuk run konfirmatori (G1-06)")
+        PRINT_WARNING("budget tidak keluar dari fase initial_simplex; hanya valid sebagai smoke test")
+```
+
+Unit test wajib: pada fixture COBYLA nyata, untuk `eval_id` 1..`n_params`, titik
+yang dievaluasi berbeda dari vertex terbaik sebelumnya pada tepat satu koordinat
+sebesar `±rhobeg`. Test ini memverifikasi label `phase` terhadap versi SciPy yang
+dipakai (versi SciPy dicatat di summary optimizer).
  
 ---
  
@@ -1454,6 +1543,9 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
     best_observed_eval_id = NULL
     best_observed_theta = NULL
 
+    n_params = LENGTH(initial_params)          # trainable vector yang dioptimasi COBYLA
+    VALIDATE_OPTIMIZER_BUDGET(config.max_nfev_clustering, n_params, config.run_mode)
+
     CREATE_EMPTY_BINARY_LOG(
         run_dir + "/artifacts/clustering_params.bin",
         record_size = SIZEOF(initial_params)
@@ -1541,6 +1633,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
 
         log_entry = {
             "eval_id": eval_id,
+            "phase": OBJECTIVE_PHASE(eval_id, n_params),   # G1-06
             "train_loss": train_loss,
             "pseudo_accuracy_val": pseudo_accuracy_val,
             "avg_margin_val": avg_margin_val,
@@ -1577,7 +1670,8 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         callback=clustering_callback,
         options={
             "maxiter": config.max_nfev_clustering,
-            "tol": config.cobyla_tol
+            "tol": config.cobyla_tol,
+            "rhobeg": config.cobyla_rhobeg
         }
     )
 
@@ -1591,6 +1685,13 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
     optimizer_summary = {
         "optimizer": "COBYLA",
         "max_nfev": config.max_nfev_clustering,
+        "tol": config.cobyla_tol,
+        "rhobeg": config.cobyla_rhobeg,
+        "scipy_version": SCIPY_VERSION(),
+        "n_params": n_params,
+        "simplex_size": n_params + 1,
+        "n_initial_simplex_evals": MIN(result.nfev, n_params + 1),
+        "n_optimization_evals": MAX(0, result.nfev - (n_params + 1)),
         "success": result.success,
         "status": result.status,
         "message": STRING(result.message),
@@ -1651,10 +1752,17 @@ jika tie, minimum `train_loss`; dan (5) jika masih tie, pilih `eval_id`
 paling awal. `active_dimensions`, `correlation_consistency`, dan
 `avg_margin_val` tidak memengaruhi keputusan selector.
 
-Kebijakan objective evaluation mana yang **eligible** terhadap fase
-`initial_simplex` tetap mengikuti resolusi Gate G1-06. Dengan demikian G0-02
-mengunci aturan ranking, sedangkan G1-06 mengunci domain kandidat yang boleh
-diranking.
+Domain kandidat dikunci oleh G1-06 (2026-09-27): hanya objective evaluation
+dengan `phase == "optimization"` yang eligible. Seluruh fase `initial_simplex`
+(`eval_id` 0..`n_params`, termasuk `x0`) dikecualikan karena titik-titik itu
+adalah probe konstruksi simplex, bukan keputusan optimizer, dan jumlahnya
+asimetris antar arsitektur (31 vs 61). G0-02 mengunci aturan ranking,
+sedangkan G1-06 mengunci domain kandidat yang boleh diranking.
+
+Kolom `phase` juga dicatat untuk setiap baris `clustering_log.jsonl` dan
+`supervised_log.jsonl` (lihat §1.1). Langkah geometry-improvement COBYLA di
+tengah optimasi tidak dapat dibedakan tanpa instrumentasi internal dan tetap
+berlabel `optimization`; ini dicatat sebagai keterbatasan.
 
 Seluruh monitoring pada bagian ini hanya memakai train/validation. Official test
 tetap hanya digunakan di `FINAL_EVALUATION`. Grafik loss, separation, margin,
@@ -1705,6 +1813,9 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
     best_observed_eval_id = NULL
     best_observed_theta = NULL
 
+    n_params = LENGTH(trained_params_clustering)   # trainable vector yang dioptimasi COBYLA
+    VALIDATE_OPTIMIZER_BUDGET(config.max_nfev_supervised, n_params, config.run_mode)
+
     CREATE_EMPTY_BINARY_LOG(
         run_dir + "/artifacts/supervised_params.bin",
         record_size = SIZEOF(trained_params_clustering)
@@ -1739,6 +1850,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
  
         log_entry = {
             "eval_id": eval_id,
+            "phase": OBJECTIVE_PHASE(eval_id, n_params),   # G1-06
             "train_loss": train_loss,
             "val_loss": val_loss
         }
@@ -1768,7 +1880,8 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         callback=supervised_callback,
         options={
             "maxiter": config.max_nfev_supervised,
-            "tol": config.cobyla_tol
+            "tol": config.cobyla_tol,
+            "rhobeg": config.cobyla_rhobeg
         }
     )
 
@@ -1781,6 +1894,13 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
     optimizer_summary = {
         "optimizer": "COBYLA",
         "max_nfev": config.max_nfev_supervised,
+        "tol": config.cobyla_tol,
+        "rhobeg": config.cobyla_rhobeg,
+        "scipy_version": SCIPY_VERSION(),
+        "n_params": n_params,
+        "simplex_size": n_params + 1,
+        "n_initial_simplex_evals": MIN(result.nfev, n_params + 1),
+        "n_optimization_evals": MAX(0, result.nfev - (n_params + 1)),
         "success": result.success,
         "status": result.status,
         "message": STRING(result.message),
@@ -1978,6 +2098,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "zernike_terms": config.zernike_terms IF config.feature_method == "ZERNIKE" ELSE NULL,
 
         "cobyla_tol": config.cobyla_tol,
+        "cobyla_rhobeg": config.cobyla_rhobeg,
         "seed": config.seed,
         "master_seed": config.seed,
         "run_mode": config.run_mode,
@@ -2018,8 +2139,8 @@ config_user = Config(
     n_train_per_class=1000,
     n_val_per_class=100,
     n_test_per_class=200,
-    max_nfev_clustering=10,   # smoke-test budget only; final budget ditentukan G1-01
-    max_nfev_supervised=10,
+    max_nfev_clustering=MAX_NFEV_FINAL_G1_01,   # diisi dari hasil pilot §1.1; 10 hanya untuk smoke test PILOT
+    max_nfev_supervised=MAX_NFEV_FINAL_G1_01,   # VALIDATE_OPTIMIZER_BUDGET menolak <= n_params+1 pada CONFIRMATORY
     architecture="MORE-HD",
     feature_method="PCA",
     seed=101,
@@ -2132,9 +2253,25 @@ menguntungkan MORE-HD-C hanya karena arsitektur tersebut memang dirancang untuk
 mengaktifkan dimensi Y-odd.
 
 Domain objective evaluation yang boleh menjadi kandidat ditentukan oleh
-`ELIGIBLE_CLUSTERING_EVAL_IDS`. Aturan apakah `initial_simplex` boleh masuk
-domain kandidat tetap dikunci oleh Gate G1-06; selama G1-06 belum selesai,
-Jalur B belum boleh digunakan sebagai analisis konfirmatori.
+`ELIGIBLE_CLUSTERING_EVAL_IDS`. **Dikunci G1-06 (2026-09-27):** hanya baris
+dengan `phase == "optimization"`; seluruh `initial_simplex` termasuk `x0`
+dikecualikan. Jika domain kosong (budget tidak melewati simplex), selector
+menolak run tersebut.
+
+```
+FUNCTION ELIGIBLE_CLUSTERING_EVAL_IDS(log_rows, source_clustering_result):
+    n_params = source_clustering_result.n_params
+    eligible = []
+    FOR each row IN log_rows:
+        ASSERT row.phase == OBJECTIVE_PHASE(row.eval_id, n_params)
+        IF row.phase == "optimization":
+            eligible.APPEND(row.eval_id)
+    RETURN eligible
+```
+
+Catatan asimetri: di bawah aturan total-`nfev` sama, jumlah kandidat Jalur B untuk
+MORE-HD-C 30 lebih sedikit daripada MORE-HD. Jumlah kandidat per run dicatat
+di `checkpoint_selection_log.json` (`len(eligible_eval_ids)`).
 
 `max_nfev_supervised` Jalur B **diwarisi dari run sumber**, bukan input manual.
 Dengan demikian satu-satunya perbedaan yang disengaja antara Jalur A dan Jalur B
@@ -2246,6 +2383,7 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         n_readout_qubits       = source_manifest.n_readout_qubits,
         n_input_channels       = source_manifest.n_input_channels,
         cobyla_tol             = source_manifest.cobyla_tol,
+        cobyla_rhobeg          = source_manifest.cobyla_rhobeg,
         seed                   = source_manifest.seed,
         run_mode               = source_manifest.run_mode,
         n_cluster_pair_samples = source_manifest.n_cluster_pair_samples
@@ -2657,7 +2795,7 @@ In particular, activation of the previously structural-zero Y-odd observables de
  
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
-1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 330 unique confirmatory executions (240 primary + 90 ablation) bisa diproyeksikan realistis.
+1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini diukur pada pilot konvergensi §1.1 (waktu per objective evaluation dicatat per run) sebelum `max_nfev` final (G1-01) dikunci, supaya total waktu 330 unique confirmatory executions (240 primary + 90 ablation) bisa diproyeksikan realistis.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_eval_id` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.

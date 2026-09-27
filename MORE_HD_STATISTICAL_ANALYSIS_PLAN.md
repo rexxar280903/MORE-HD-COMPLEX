@@ -70,6 +70,12 @@ For each `(seed, K, feature_method)` ablation cell, A/B/C/D must resolve to the 
 
 Model B has six RY-only variational layers and therefore matches D in trainable parameter count (60), but not in circuit depth or repeated entangling-block count. B-versus-D is therefore an equal-trainable-parameter comparison rather than a claim that all circuit resources are matched. Trainable parameter count, fixed parameter count, variational depth, RY/RZ gate counts, CNOT count, entangling-block count, and runtime are recorded for every A/B/C/D model.
 
+## 4.3 Optimizer-budget policy (G1-01/G1-06, frozen 2026-09-27)
+
+All architectures in a given track receive the same **total** COBYLA objective-evaluation budget (`max_nfev_clustering`, `max_nfev_supervised`). COBYLA spends its first `n_params + 1` evaluations building the initial simplex (A/C: 31; B/D: 61), so under equal total budget MORE-HD-C receives 30 fewer post-simplex evaluations than MORE-HD. This is treated as conservative toward MORE-HD-C and reported descriptively through `n_optimization_evals`; the B-versus-D and A-versus-C contrasts have identical simplex lengths and are free of this imbalance.
+
+Every objective evaluation is labeled `phase = initial_simplex` (0-based `eval_id <= n_params`, including `x0`) or `phase = optimization`. The final budget is set from the seed-42 pilot (cap 300; K in {3,10} x {PCA, ZERNIKE} x {MORE-HD, MORE-HD-C}) using the plateau rule frozen in `Pseudocode_2x3_manual_runs.md` section 1.1 before the pilot is run. If any pilot run has not plateaued at 300, the final budget remains 300 and conclusions are stated as performance at equal objective-evaluation budget rather than at convergence. Pilot results are not used for any confirmatory estimate.
+
 ## 5. Primary outcomes
 
 The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, per-class metrics, confusion patterns, optimizer behavior, gate/depth diagnostics, and runtime are secondary outcomes.
@@ -161,7 +167,7 @@ If Jalur B is executed, it starts from an already completed Jalur A source run a
 
 No weighted score is used. `active_dimensions`, `correlation_consistency`, and `avg_margin_val` are diagnostics and cannot affect checkpoint selection. The supervised objective-evaluation budget is inherited unchanged from the source Jalur A run. Official-test arrays are not read by the selector or supervised optimization and are used only by the final evaluation after the selected checkpoint and downstream training are frozen.
 
-The candidate-eligibility rule for COBYLA's initial-simplex phase remains governed by Gate G1-06. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation.
+Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. The number of eligible candidates per run is recorded. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation.
 
 ## 13. Confirmatory boundary
 
