@@ -25,9 +25,10 @@ Progress dihitung otomatis dari **38 item Research Readiness Gate** dengan bobot
 | 2026-09-27 | [`7e6603c`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/7e6603cdef2adff678606b1bb721473b6cecae75) | 25.7% | +1.4 pp | docs: resolve G0-02 with deterministic Jalur B selector |
 | 2026-09-27 | [`acae2ca`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/acae2ca6eee5d7354427967dec9486afd10ba074) | 27.0% | +1.3 pp | docs: lock pilot budget protocol (G1-01) and COBYLA simplex rules (G1-06) |
 | 2026-09-27 | [`6413658`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6413658f6ae02f9b35fb060bb93cea778300fdb3) | 28.3% | +1.3 pp | docs: resolve G1-09 cumulative class-sequence confound as explicit limitation |
-| 2026-09-27 | [`d7c205e`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/d7c205e00bc2e65d8a4c1938f8b3368d8a59b6cc) | **29.6%** | **+1.3 pp** | docs: resolve G1-10 with classical baselines and no-R MORE reference |
+| 2026-09-27 | [`d7c205e`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/d7c205e00bc2e65d8a4c1938f8b3368d8a59b6cc) | 29.6% | +1.3 pp | docs: resolve G1-10 with classical baselines and no-R MORE reference |
+| 2026-09-27 | [`26b5fd2`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/26b5fd29fc15eb3298367a7507587bd35f16697c) | **29.6%** | **0.0 pp** | docs: consistency audit — smoke budget, pilot scope, workbook schema map |
 
-**Trend terbaru:** `13.9% → 10.1% → 18.2% → 20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6%`
+**Trend terbaru:** `10.1% → 18.2% → 20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
