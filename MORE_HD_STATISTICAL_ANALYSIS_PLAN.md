@@ -26,6 +26,16 @@ Each master seed deterministically derives independent RNG streams for data sele
 
 The primary replication unit for optimizer/sampling variability is the seed-specific run. The five confirmatory seeds are treated as five paired replications. No seed may be removed because its result is unfavorable, and no replacement seed may be introduced after confirmatory results are inspected.
 
+## 4.1 Frozen clustering-pair protocol
+
+The clustering dataset follows the original MORE sampling concept as closely as possible while making the implementation deterministic and auditable. Exactly five training instances per class are selected without replacement. Selection uses class-specific deterministic substreams derived from the master seed (`SHA256(master_seed:"cluster_pairs:" + class_id)`), so sample identities for an existing digit remain unchanged as K increases and are shared across PCA, HU, ZERNIKE, MORE-HD, and MORE-HD-C for the same seed and class scenario.
+
+All unordered unique pairs among the selected 5K instances are included once (`i < j`). Self-pairs, duplicate pairs, and simultaneous inclusion of both `(i,j)` and `(j,i)` are prohibited. The pair set is constructed once before COBYLA begins and remains frozen for all objective-function evaluations in that run. No validation or official-test observation can enter pair construction.
+
+No same-class/different-class balancing or reweighting is applied. The policy is frozen as `pair_balance_policy="NATURAL_FULL_PAIRING"` and `pair_weighting="NONE"` to preserve the original MORE-style loss composition. With five selected samples per class, `N_same = 10K`, `N_different = 25*C(K,2)`, and `N_total = C(5K,2)`. Consequently, pair composition changes with K; this is treated as a protocol characteristic and interpretive limitation rather than silently corrected after results are observed.
+
+Every run must save `pair_manifest.json` and `pair_stats.json`, including the master/pair seeds, selected training identities by class, total/same/different pair counts and ratios, and zero-valued duplicate/self-pair counts. Confirmatory interpretation of K-related trends must acknowledge that the natural same-versus-different pair proportion changes with K.
+
 ## 5. Primary outcomes
 
 The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, per-class metrics, confusion patterns, and runtime are secondary outcomes.
