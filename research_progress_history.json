@@ -54,5 +54,13 @@
     "delta_pp": 1.4,
     "items": 38,
     "summary": "docs: resolve G0-02 with deterministic Jalur B selector"
+  },
+  {
+    "date": "2026-09-27",
+    "commit": "acae2ca6eee5d7354427967dec9486afd10ba074",
+    "progress": 27.0,
+    "delta_pp": 1.3,
+    "items": 38,
+    "summary": "docs: lock pilot budget protocol (G1-01) and COBYLA simplex rules (G1-06)"
   }
 ]
