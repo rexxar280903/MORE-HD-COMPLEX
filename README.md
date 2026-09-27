@@ -84,7 +84,7 @@ Untuk memisahkan efek jumlah parameter dari efek akses ke state kompleks, ablati
 240 primary + 90 ablation = 330 unique confirmatory executions
 ```
 
-A/D dan B/C memakai split serta pair manifest yang sama pada cell yang berpasangan. Primary A/D juga memakai structured paired initialization sehingga reuse A/D tetap valid untuk ablation. Spesifikasi lengkap ablation, fixed-RZ policy, run IDs, artefak, dan planned contrasts ada di `MORE_HD_ABLATION_PROTOCOL.md`.
+A/D dan B/C memakai split serta pair manifest yang sama pada cell yang berpasangan. Primary A/D juga memakai structured paired initialization sehingga reuse A/D tetap valid untuk ablation. **Source of truth teknis ablation** sekarang berada langsung di `Pseudocode_2x3_manual_runs.md` Bagian 11.
 
 ### Pipeline Dua Fase
 
