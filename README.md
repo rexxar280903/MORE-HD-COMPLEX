@@ -30,14 +30,16 @@ Eksperimen utama membandingkan:
 | **C — Jumlah kelas** | K = 3 sampai K = 10 (kumulatif: `[0..K-1]`) |
 
 ```
-8 skenario kelas × 2 arsitektur × 3 metode fitur = 48 run per seed
+8 skenario kelas × 2 arsitektur × 3 metode fitur = 48 kondisi per seed
+48 kondisi × 5 confirmatory seeds (101, 202, 303, 404, 505) = 240 confirmatory runs
+Seed 42 = PILOT ONLY dan tidak masuk agregasi hasil final
 ```
 
 Semua metode fitur dikunci menghasilkan tepat 8 channel (sama dengan 8 data qubit) agar arsitektur sirkuit, topologi entanglement, dan prosedur evaluasi tidak berubah — sehingga faktor `feature_method` murni menguji efek representasi fitur terhadap pipeline clustering + classification.
 
 ### Pipeline Dua Fase
 
-1. **Clustering (unsupervised)** — COBYLA meminimalkan `train_loss` berbasis cosine distance berbobot matriks korelasi antar-kelas; 6 metrik tambahan (`pseudo_accuracy_test`, `avg_margin_test`, `min_separation`, `correlation_consistency`, `active_dimensions`) dicatat pasif per iterasi untuk analisis pasca-training, bukan sinyal optimasi.
+1. **Clustering (unsupervised)** — mengikuti konsep pairing MORE: tepat 5 sampel TRAIN per kelas dipilih secara deterministik tanpa replacement, lalu seluruh unordered unique pairs (`i < j`) digunakan sekali tanpa balancing/reweighting. Pair set dibekukan sebelum COBYLA dan disimpan melalui `pair_manifest.json` + `pair_stats.json`. COBYLA meminimalkan `train_loss` berbasis cosine distance berbobot matriks korelasi antar-kelas; monitoring memakai validation secara pasif dan official test tidak diakses selama optimasi.
 2. **Supervised** — fine-tuning terhadap label kuantum (centroid ternormalisasi) hasil fase clustering, dengan train/test loss dipantau langsung.
 
 Tersedia dua jalur eksekusi:
@@ -54,7 +56,7 @@ Tersedia dua jalur eksekusi:
 
 ## Status Proyek
 
-Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates* dan hanya boleh maju ke eksperimen final (48 run) setelah Gate G0 dan G1 berstatus `CLOSED`.
+Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan; seed 42 hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED`.
 
 ### Ringkasan Kesiapan (Readiness Gate) — per 2026-09-22
 
