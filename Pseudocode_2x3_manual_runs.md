@@ -12,7 +12,7 @@ CONFIG
   -> DATA_PIPELINE            (+ simpan artefak: pca, scaler_params, X/y transformed arrays train/val/test)
   -> CORRELATION_MATRIX       (+ simpan artefak: correlation_matrix)
   -> MODEL_SETUP              (+ simpan artefak: initial_params)
-  -> CLUSTERING_LOOP          (+ simpan artefak: clustering_log.jsonl, clustering_params.bin)
+  -> CLUSTERING_LOOP          (+ simpan artefak: pair_manifest.json, pair_stats.json, clustering_log.jsonl, clustering_params.bin)
   -> QUANTUM_LABEL_EXTRACTION (+ simpan artefak: quantum_labels)
   -> SUPERVISED_LOOP          (+ simpan artefak: supervised_log.jsonl, supervised_params.bin)
   -> FINAL_EVALUATION         (+ simpan artefak: metrics_final, confusion_matrix)
@@ -222,13 +222,14 @@ LOCAL_RUN_SPREADSHEET_NAME  = "run_result.xlsx"
 MNIST_ROOT                  = "data/"
 ```
 
-Untuk eksperimen utama seed 42, master spreadsheet memuat identitas run `R001` sampai `R048` sesuai desain:
+Master spreadsheet konfirmatori memuat **48 condition ID per seed**, bukan 48 run total. Lima seed konfirmatori yang sudah dibekukan (`101, 202, 303, 404, 505`) menghasilkan:
 
 ```
-8 skenario kelas × 3 feature_method × 2 architecture = 48 run
+8 skenario kelas × 3 feature_method × 2 architecture = 48 kondisi per seed
+48 kondisi × 5 confirmatory seeds = 240 confirmatory runs
 ```
 
-Urutan `run_id` tetap mengikuti urutan kelas `K=3` sampai `K=10`; di dalam setiap skenario kelas urutannya adalah `PCA`, `HU`, `ZERNIKE`, dan pada setiap metode fitur urutannya `MORE-HD` kemudian `MORE-HD-C`.
+`R001` sampai `R048` tetap dipakai sebagai **condition_id**. Eksekusi unik memakai `run_uid = condition_id-S<seed>` (contoh `R001-S101`). Seed `42` hanya untuk `PILOT`/smoke test dan tidak masuk agregasi konfirmatori. Urutan `condition_id` tetap mengikuti `K=3` sampai `K=10`; di dalam setiap skenario kelas urutannya adalah `PCA`, `HU`, `ZERNIKE`, dan pada setiap metode fitur urutannya `MORE-HD` kemudian `MORE-HD-C`.
 
 ```
 FUNCTION GENERATE_RUN_ID(classes, feature_method, architecture):
@@ -398,7 +399,9 @@ STRUCT Config:
     seed                   = 42
     run_mode                = "PILOT"      # "PILOT" | "CONFIRMATORY"
     confirmatory_seeds       = [101,202,303,404,505]
-    n_cluster_pair_samples = 10
+    n_cluster_pair_samples = 5                # DIKUNCI G1-03/G1-08: mengikuti MORE asli (5 instance/kelas)
+    pair_balance_policy    = "NATURAL_FULL_PAIRING"  # semua unordered unique pairs dipakai
+    pair_weighting         = "NONE"            # tidak ada balancing/reweighting same-vs-different
     active_dim_threshold   = 1e-6
 
     # dataset lokal / pilot download
@@ -1139,7 +1142,156 @@ secara manual untuk setiap kondisi, dengan `run_dir` unik. Benchmark lengkap
 dan dimonitor secara terpisah, bukan melalui batch runner otomatis.
  
 ---
- 
+
+## 4.6 PROTOKOL PEMBENTUKAN PASANGAN CLUSTERING — G1-03/G1-08 (DIKUNCI 2026-09-27)
+
+Protokol utama sengaja dipertahankan sedekat mungkin dengan MORE asli: tepat
+**5 instance training per kelas** dipilih untuk membentuk clustering dataset.
+Perbedaannya, implementasi penelitian ini mengunci sampling secara deterministik
+dan menyimpan manifest pasangan agar prosedur dapat diaudit dan direproduksi.
+
+Aturan yang dibekukan:
+
+1. Sumber pasangan hanya `X_train`/`y_train`; validation dan official test tidak pernah
+   dipakai untuk membentuk pasangan.
+2. `n_cluster_pair_samples = 5` untuk setiap kelas.
+3. Sampling dilakukan **tanpa replacement** dan tepat satu kali sebelum COBYLA
+   dimulai. Tidak ada resampling pada setiap objective-function evaluation.
+4. Root RNG pairing adalah `pair_seed = DERIVE_SUBSEED(master_seed, "cluster_pairs")`.
+   Untuk menjaga nested-K secara eksplisit, setiap kelas memakai substream
+   `DERIVE_SUBSEED(master_seed, "cluster_pairs:" + class_id)`. Karena itu lima
+   sampel digit yang sudah ada tetap identik ketika K bertambah.
+5. Untuk seed dan K yang sama, identitas sampel pasangan harus sama lintas
+   `PCA/HU/ZERNIKE` dan `MORE-HD/MORE-HD-C`. Feature extraction hanya mengubah
+   representasi sampel, bukan identitas sampel yang dipilih.
+6. Dari union 5K sampel terpilih, pair builder membentuk **seluruh unordered unique
+   pairs** dengan aturan `i < j`. Self-pair `(i,i)`, duplicate pair, dan pasangan
+   terbalik ganda `(i,j)/(j,i)` dilarang.
+7. Distribusi pasangan alami dipertahankan: tidak ada downsampling, oversampling,
+   balanced mean, atau bobot tambahan antara same-class dan different-class.
+   Dengan kata lain `pair_balance_policy="NATURAL_FULL_PAIRING"` dan
+   `pair_weighting="NONE"`.
+8. Ketidakseimbangan pair diakui sebagai karakteristik protokol MORE. Statistiknya
+   wajib disimpan dan dipertimbangkan saat menginterpretasikan efek K; hasil tidak
+   boleh mengatribusikan seluruh perubahan terhadap curse of density tanpa
+   mempertimbangkan perubahan komposisi pasangan.
+
+Untuk m=5 sampel per kelas:
+
+```
+n_selected_samples = 5K
+n_pairs_total       = C(5K, 2)
+n_pairs_same        = K * C(5, 2) = 10K
+n_pairs_different   = C(K, 2) * 25
+```
+
+Contoh: K=3 menghasilkan 105 pair (30 same, 75 different), sedangkan K=10
+menghasilkan 1.225 pair (100 same, 1.125 different).
+
+```
+FUNCTION BUILD_PAIRING_DATASET(X_train, y_train, config):
+    ASSERT config.n_cluster_pair_samples == 5
+    ASSERT config.pair_balance_policy == "NATURAL_FULL_PAIRING"
+    ASSERT config.pair_weighting == "NONE"
+
+    selected = []
+    selected_manifest = {}
+
+    FOR each class_id IN config.classes:
+        class_positions = INDICES_WHERE(y_train == class_id)
+        ASSERT LENGTH(class_positions) >= 5
+
+        class_pair_seed = DERIVE_SUBSEED(
+            config.seed,
+            "cluster_pairs:" + STRING(class_id)
+        )
+
+        chosen_positions = SAMPLE_WITHOUT_REPLACEMENT(
+            class_positions,
+            n=5,
+            rng=RNG(class_pair_seed)
+        )
+        chosen_positions = SORT_ASCENDING(chosen_positions)
+
+        selected_manifest[class_id] = {
+            "class_pair_seed": class_pair_seed,
+            "train_positions": chosen_positions
+        }
+
+        FOR each pos IN chosen_positions:
+            selected.APPEND({
+                "train_position": pos,
+                "class_id": class_id,
+                "x": X_train[pos]
+            })
+
+    selected = SORT_BY(selected, keys=["class_id", "train_position"])
+
+    pairing_dataset = []
+    FOR a IN range(0, LENGTH(selected)):
+        FOR b IN range(a + 1, LENGTH(selected)):
+            left  = selected[a]
+            right = selected[b]
+
+            pairing_dataset.APPEND({
+                "x_i": left.x,
+                "x_j": right.x,
+                "class_i": left.class_id,
+                "class_j": right.class_id,
+                "train_position_i": left.train_position,
+                "train_position_j": right.train_position
+            })
+
+    K = LENGTH(config.classes)
+    expected_same      = K * COMBINATION(5, 2)
+    expected_different = COMBINATION(K, 2) * 25
+    expected_total     = COMBINATION(5 * K, 2)
+
+    n_same = COUNT(pair IN pairing_dataset WHERE pair.class_i == pair.class_j)
+    n_different = LENGTH(pairing_dataset) - n_same
+
+    ASSERT LENGTH(pairing_dataset) == expected_total
+    ASSERT n_same == expected_same
+    ASSERT n_different == expected_different
+    ASSERT COUNT_SELF_PAIRS(pairing_dataset) == 0
+    ASSERT COUNT_DUPLICATE_UNORDERED_PAIRS(pairing_dataset) == 0
+
+    pair_manifest = {
+        "master_seed": config.seed,
+        "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
+        "n_samples_per_class": 5,
+        "selected_by_class": selected_manifest,
+        "pair_order": "unordered_i_lt_j",
+        "sampling": "without_replacement",
+        "frozen_before_optimizer": TRUE,
+        "balance_policy": "NATURAL_FULL_PAIRING",
+        "pair_weighting": "NONE"
+    }
+
+    pair_stats = {
+        "K": K,
+        "n_selected_samples": 5 * K,
+        "n_pairs_total": LENGTH(pairing_dataset),
+        "n_pairs_same_class": n_same,
+        "n_pairs_different_class": n_different,
+        "same_class_ratio": n_same / LENGTH(pairing_dataset),
+        "different_class_ratio": n_different / LENGTH(pairing_dataset),
+        "duplicate_pairs": 0,
+        "self_pairs": 0
+    }
+
+    SAVE_ATOMIC_JSON(pair_manifest, run_dir + "/artifacts/pair_manifest.json")
+    SAVE_ATOMIC_JSON(pair_stats,    run_dir + "/artifacts/pair_stats.json")
+
+    RETURN pairing_dataset, pair_stats
+```
+
+Unit test implementasi Python nantinya wajib memverifikasi rumus jumlah pair,
+ketiadaan self/duplicate pair, determinisme seed, nested-K, dan kesamaan identitas
+sampel pairing lintas architecture/feature_method untuk seed dan K yang sama.
+
+---
+
 ## 5. CLUSTERING LOOP
  
 Tujuan tahap ini: melatih parameter agar *output* sirkuit dari kelas yang sama
@@ -1150,14 +1302,17 @@ cek struktur centroid (pseudo-accuracy + margin), bukan angka loss test.
 **G0-01 (sesi 2026-09-22):** fungsi ini hanya menerima `X_val`/`y_val`, TIDAK
 `X_test`/`y_test` sama sekali. **G1-02 (2026-09-26):** satu pemanggilan
 `objective_clustering(theta)` adalah satu **objective-function evaluation** dan
-dicatat dengan `eval_id`; ini tidak disebut sebagai iterasi COBYLA.
+dicatat dengan `eval_id`; ini tidak disebut sebagai iterasi COBYLA. **G1-03/G1-08 (2026-09-27):**
+`pairing_dataset` memakai 5 sampel/kelas, seluruh unordered unique pairs, tanpa
+balancing/reweighting, dan dibentuk hanya sekali sebelum optimizer dimulai.
  
 ```
 FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_val, S, config):
     SET_RANDOM_SEED(config.seed)
  
-    pairing_dataset = BUILD_PAIRING_DATASET(
-        X_train, y_train, n_samples_per_class=config.n_cluster_pair_samples
+    # Dibangun SATU KALI dan dibekukan sebelum objective pertama.
+    pairing_dataset, pair_stats = BUILD_PAIRING_DATASET(
+        X_train, y_train, config
     )
  
     n_objective_evals = 0
