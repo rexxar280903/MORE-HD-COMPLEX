@@ -40,12 +40,13 @@ Proyek riset quantum machine learning yang memperluas skripsi sarjana (FRD-09, a
 
 ## Kontribusi MORE-HD-C
 
-MORE-HD-C mengatasi kelemahan struktural tersebut dengan **modifikasi V1**: menambahkan gerbang RZ setelah RY pada layer variational (RY+RZ per qubit, bukan RY saja), yang mengaktifkan dimensi imajiner Hilbert space sehingga keenam observable Y-odd yang tadinya nol berpotensi aktif.
+MORE-HD-C mengatasi keterbatasan struktural tersebut dengan **modifikasi V1**: menambahkan gerbang RZ setelah RY pada layer variational (RY+RZ per qubit, bukan RY saja). RZ menghilangkan *real-state restriction* sehingga keenam observable Y-odd yang tadinya nol secara struktural **dapat** aktif; aktivasi tersebut tetap harus dibuktikan secara empiris dan tidak dijamin hanya oleh keberadaan RZ.
 
-- 60 parameter terlatih (2× MORE-HD), masih < 91 parameter MORE — narasi efisiensi tetap terjaga
-- Encoding, entangling block (CNOT), dan urutan pengukuran 15 observable **identik** dengan MORE-HD — satu-satunya perbedaan ada di layer variational, agar efek RZ bisa diatribusikan secara bersih
+- 60 parameter terlatih (2× MORE-HD), masih < 91 parameter MORE.
+- Encoding, entangling block (CNOT), jumlah qubit, readout, dan urutan pengukuran 15 observable identik dengan MORE-HD.
+- Perbandingan utama MORE-HD (30 parameter) versus MORE-HD-C (60 parameter) **tidak cukup untuk mengatribusikan perubahan performa hanya kepada fase kompleks**, karena jumlah parameter terlatih berubah bersamaan dengan ansatz. Karena itu, eksperimen utama dilengkapi targeted ablation G1-05/G1-07 untuk memisahkan efek parameter budget dan akses ke state kompleks.
 
-## Desain Eksperimen: Faktorial 2 × 3 × 8
+## Desain Eksperimen: Faktorial Utama 2 × 3 × 8
 
 Eksperimen utama membandingkan:
 
@@ -63,14 +64,33 @@ Seed 42 = PILOT ONLY dan tidak masuk agregasi hasil final
 
 Semua metode fitur dikunci menghasilkan tepat 8 channel (sama dengan 8 data qubit) agar arsitektur sirkuit, topologi entanglement, dan prosedur evaluasi tidak berubah — sehingga faktor `feature_method` murni menguji efek representasi fitur terhadap pipeline clustering + classification.
 
+### Targeted Ablation G1-05/G1-07
+
+Untuk memisahkan efek jumlah parameter dari efek akses ke state kompleks, ablation hanya dijalankan pada `K={3,6,10}`, seluruh feature method, dan lima confirmatory seed yang sama. Model A dan D direuse dari hasil eksperimen utama sehingga tidak dieksekusi dua kali; hanya model B dan C yang menambah run baru.
+
+| Kode | Model | State | Parameter terlatih | Peran |
+|---|---|---|---:|---|
+| A | MORE-HD | real | 30 | baseline utama; reuse dari 240 run |
+| B | MORE-HD-60P | real | 60 | parameter-budget / real-capacity control |
+| C | MORE-HD-C-FixedRZ | kompleks dapat diakses | 30 RY; 30 RZ fixed non-zero | complex-state control pada trainable budget 30 |
+| D | MORE-HD-C | kompleks dapat diakses | 60 (30 RY + 30 RZ) | model utama; reuse dari 240 run |
+
+```
+3 K × 3 feature × 2 model tambahan (B,C) = 18 kondisi ablation per seed
+18 × 5 confirmatory seeds = 90 additional ablation runs
+240 primary + 90 ablation = 330 unique confirmatory executions
+```
+
+A/D dan B/C memakai split serta pair manifest yang sama pada cell yang berpasangan. Primary A/D juga memakai structured paired initialization sehingga reuse A/D tetap valid untuk ablation. Spesifikasi lengkap ablation, fixed-RZ policy, run IDs, artefak, dan planned contrasts ada di `MORE_HD_ABLATION_PROTOCOL.md`.
+
 ### Pipeline Dua Fase
 
 1. **Clustering (unsupervised)** — mengikuti konsep pairing MORE: tepat 5 sampel TRAIN per kelas dipilih secara deterministik tanpa replacement, lalu seluruh unordered unique pairs (`i < j`) digunakan sekali tanpa balancing/reweighting. Pair set dibekukan sebelum COBYLA dan disimpan melalui `pair_manifest.json` + `pair_stats.json`. COBYLA meminimalkan `train_loss` berbasis cosine distance berbobot matriks korelasi antar-kelas; monitoring memakai validation secara pasif dan official test tidak diakses selama optimasi.
-2. **Supervised** — fine-tuning terhadap label kuantum (centroid ternormalisasi) hasil fase clustering, dengan train/test loss dipantau langsung.
+2. **Supervised** — fine-tuning terhadap label kuantum (centroid ternormalisasi) hasil fase clustering. Optimasi menggunakan train; monitoring selama pengembangan menggunakan validation. Official test hanya dipanggil sekali melalui `FINAL_EVALUATION` setelah seluruh keputusan run dibekukan.
 
 Tersedia dua jalur eksekusi:
-- **Jalur A (otomatis)** — memakai `result.x` COBYLA (iterasi dengan train_loss terbaik) sebagai output clustering.
-- **Jalur B (manual)** — memungkinkan pemilihan iterasi clustering tertentu (berdasarkan `clustering_log.jsonl`) sebagai alternatif, untuk kasus di mana train_loss terbaik ≠ struktur label kuantum terbaik.
+- **Jalur A (otomatis)** — memakai `result.x` sebagai **final point resmi COBYLA**; `best_observed_point` dicatat terpisah dan tidak diasumsikan sama dengan `result.x`.
+- **Jalur B (manual)** — memungkinkan pemilihan objective evaluation clustering tertentu berdasarkan train/validation log sebagai alternatif eksploratif; official test tidak boleh digunakan untuk pemilihan tersebut. Status metodologis Jalur B tetap dikontrol oleh G0-02.
 
 ## Tools & Stack
 
@@ -82,7 +102,7 @@ Tersedia dua jalur eksekusi:
 
 ## Status Proyek
 
-Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan; seed 42 hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED`.
+Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan. Targeted ablation G1-05/G1-07 menambah 90 run baru pada K={3,6,10}, sehingga total rencana menjadi **330 unique confirmatory executions**. Seed 42 tetap hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED` dan item teknis yang memengaruhi hasil telah diverifikasi.
 
 <!-- READINESS_SUMMARY_START -->
 ### Ringkasan Kesiapan (Readiness Gate) — per 2026-09-27
@@ -102,11 +122,11 @@ Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi 
 
 **Yang sudah dikunci (2026-09-22):** desain ekstraksi Hu Moments (input grayscale, formula signed-log, padding channel ke-8 = 0.0) dan Zernike Moments (8 pasangan `(n,m)` revisi, pemetaan unit disk, magnitude invarian rotasi), serta kebijakan clipping seragam (tidak ada clipping untuk PCA/Hu/Zernike). Ketiganya masih `IN PROGRESS` karena implementasi kode nyata + unit test belum dikerjakan.
 
-**Prasyarat sebelum 48 run final boleh dijalankan (Gate C):**
-- Seluruh item G0 dan G1 berstatus `CLOSED` (saat ini 0 dari 9 item G0+G1 closed).
+**Prasyarat sebelum eksperimen konfirmatori final boleh dijalankan (Gate C):**
+- Seluruh item G0 dan G1 harus memenuhi kriteria Gate C; status aktual mengikuti blok readiness otomatis di atas.
 - Item teknis G2–G4 yang memengaruhi hasil berstatus `CLOSED`.
-- Protokol, daftar seed, split data, budget optimizer, dan rencana analisis statistik telah dibekukan.
-- Workbook master dan konsolidator hasil telah diuji.
+- Protokol, daftar seed, split data, budget optimizer, primary analysis plan, dan targeted ablation plan telah dibekukan.
+- Workbook master utama, workbook ablation, dan konsolidator hasil telah diuji sebelum dipakai untuk hasil final.
 
 Smoke test dengan 10 evaluasi COBYLA dan seed 42 diperbolehkan sebagai `PILOT ONLY`, tetapi hasilnya **tidak boleh** diperlakukan sebagai hasil konfirmatori publikasi.
 

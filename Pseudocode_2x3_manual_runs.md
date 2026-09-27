@@ -77,6 +77,18 @@ kelas yang sudah ada.
 bukan replikasi. Identitas eksekusi unik adalah
 `run_uid = condition_id + "-S" + seed`, misalnya `R001-S101`.
 
+**Update (G1-05/G1-07, sesi 2026-09-27 — targeted ablation dikunci):**
+Eksperimen utama tetap `2 × 3 × 8` dengan 240 run konfirmatori A=MORE-HD dan
+D=MORE-HD-C. Untuk memisahkan confound jumlah parameter dan akses state kompleks,
+ditambahkan track ablation terpisah hanya pada `K={3,6,10}`, seluruh
+`PCA/HU/ZERNIKE`, dan lima seed konfirmatori yang sama. A dan D **tidak dirun ulang**;
+model baru B=MORE-HD-60P (6 layer RY-only, 60 trainable) dan
+C=MORE-HD-C-FixedRZ (3 layer, 30 trainable RY + 30 fixed non-zero RZ)
+menghasilkan 90 run tambahan. Total unique confirmatory executions menjadi 330.
+Primary A/D diselaraskan ke structured paired initialization agar reuse A/D valid.
+Spesifikasi penuh ada di `MORE_HD_ABLATION_PROTOCOL.md`; primary `MAIN(config)` dan
+identity R001-R048 tidak diubah oleh keputusan ini.
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -135,6 +147,21 @@ confirmatory_seeds = [101, 202, 303, 404, 505]
 pilot_seed = 42  # tidak masuk agregasi final
 ```
 
+Targeted ablation G1-05/G1-07:
+
+```
+K = {3,6,10}
+feature_method = {PCA, HU, ZERNIKE}
+new ablation models = {MORE-HD-60P, MORE-HD-C-FixedRZ}
+18 kondisi tambahan per seed × 5 confirmatory seeds = 90 run baru
+A=MORE-HD dan D=MORE-HD-C direuse dari primary matrix, tidak dirun ulang
+TOTAL = 240 primary + 90 ablation = 330 unique confirmatory executions
+```
+
+Ablation bukan level baru pada `GENERATE_RUN_ID()` primer. Ia memakai ID terpisah
+`ABL001-ABL018` dan entry point `main_ablation.py`, sebagaimana didefinisikan di
+`MORE_HD_ABLATION_PROTOCOL.md`.
+
 Prinsip isolasi variabel:
 
 1. `n_data_qubits` dikunci = 8 untuk SEMUA metode representasi.
@@ -157,6 +184,7 @@ project/
 │
 ├── main_train.py                  # Jalur A: satu run training lengkap
 ├── main_selected_clustering.py    # Jalur B: lanjut dari objective evaluation clustering pilihan manual
+├── main_ablation.py               # targeted ablation G1-05/G1-07; hanya model B/C
 │
 ├── core/
 │   ├── config.py
@@ -180,7 +208,8 @@ project/
 │   └── seed505.json
 │
 ├── research_data/
-│   └── MORE_HD_master_confirmatory_240runs.xlsx
+│   ├── MORE_HD_master_confirmatory_240runs.xlsx   # primary A/D
+│   └── MORE_HD_master_ablation_90runs.xlsx        # targeted B/C; dibuat/diuji sebelum Gate C
 │
 └── runs/
     ├── cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42/
@@ -197,11 +226,23 @@ project/
     │
     ├── ...
     │
-    └── cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed42/
-        ├── artifacts/
-        ├── logs/
-        ├── config.json
-        └── run_result.xlsx
+    ├── cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed42/
+    │   ├── artifacts/
+    │   ├── logs/
+    │   ├── config.json
+    │   └── run_result.xlsx
+    │
+    └── ablation/
+        ├── ABL001-S101_cls-0-1-2_PCA_MORE-HD-60P/
+        │   ├── artifacts/
+        │   ├── logs/
+        │   ├── config.json
+        │   └── run_result.xlsx
+        └── ABL002-S101_cls-0-1-2_PCA_MORE-HD-C-FixedRZ/
+            ├── artifacts/
+            ├── logs/
+            ├── config.json
+            └── run_result.xlsx
 ```
 
 Prinsip penyimpanan untuk eksekusi paralel:
@@ -290,10 +331,12 @@ FUNCTION DERIVE_SUBSEED(master_seed, namespace):
     digest = SHA256(STRING(master_seed) + ":" + namespace)
     RETURN UINT32(FIRST_8_HEX_DIGITS(digest))
 
-data_seed  = DERIVE_SUBSEED(seed, "data")
-init_seed  = DERIVE_SUBSEED(seed, "init")
-pair_seed  = DERIVE_SUBSEED(seed, "cluster_pairs")
-label_seed = DERIVE_SUBSEED(seed, "quantum_labels")
+data_seed      = DERIVE_SUBSEED(seed, "data")
+ry_core_seed   = DERIVE_SUBSEED(seed, "init:ry_core")
+rz_phase_seed  = DERIVE_SUBSEED(seed, "init:rz_phase")
+ry_extra_seed  = DERIVE_SUBSEED(seed, "ablation:init:ry_extra")  # hanya B
+pair_seed      = DERIVE_SUBSEED(seed, "cluster_pairs")
+label_seed     = DERIVE_SUBSEED(seed, "quantum_labels")
 ```
 
 Manifest split dibuat satu kali per confirmatory seed dan tidak dibuat ulang
@@ -351,6 +394,42 @@ pilot harus ditandai `run_mode="PILOT"` dan tidak boleh dimasukkan ke workbook
 agregasi konfirmatori maupun klaim publikasi.
 
 ---
+
+## 0.4 TARGETED ABLATION G1-05/G1-07 — B + C PADA K={3,6,10}
+
+Track ini **tidak mengubah** `GENERATE_RUN_ID()` atau 48 kondisi primer.
+A dan D dibaca dari primary run yang sudah ada; hanya B dan C dieksekusi sebagai run baru.
+
+| Code | Model | State family | Trainable | Fixed | Scope |
+|---|---|---|---:|---:|---|
+| A | MORE-HD | real | 30 RY | 0 | reuse primary |
+| B | MORE-HD-60P | real | 60 RY | 0 | new ablation run |
+| C | MORE-HD-C-FixedRZ | complex allowed | 30 RY | 30 non-zero RZ | new ablation run |
+| D | MORE-HD-C | complex allowed | 30 RY + 30 RZ | 0 | reuse primary |
+
+Aturan structured paired initialization:
+
+```
+ry_core_seed  = DERIVE_SUBSEED(seed, "init:ry_core")
+rz_phase_seed = DERIVE_SUBSEED(seed, "init:rz_phase")
+ry_extra_seed = DERIVE_SUBSEED(seed, "ablation:init:ry_extra")
+
+A/C/D: RY core awal sama (30 nilai)
+D:     RY core + RZ phase di-PACK per layer sesuai ordering RY+RZ
+B:     30 RY pertama = RY core yang sama; 30 RY tambahan dari ry_extra_seed
+C/D:   initial RZ vector sama dan seluruh elemennya non-zero
+C:     RZ dibekukan selama clustering + supervised
+D:     RZ dilatih
+```
+
+Planned paired contrasts adalah A-B, A-C, B-D, dan C-D. B-vs-D hanya disebut
+**equal-trainable-parameter control**, bukan perfect architecture/depth match, karena
+B mempunyai 6 variational layers sehingga jumlah entangling blocks/CNOT juga lebih besar.
+Gate count, depth, runtime, fixed-RZ hash, split hash, pair-manifest hash, dan Y-odd
+activity wajib disimpan.
+
+Pseudocode builder B/C, ID `ABL001-ABL018`, manifest, artefak, dan analysis linkage
+didefinisikan penuh di `MORE_HD_ABLATION_PROTOCOL.md`.
 
 ## 1. CONFIG
 
@@ -928,19 +1007,78 @@ di bagian 4.4 sebagai cadangan riset lanjutan, tapi tidak dipanggil di
 alur aktif manapun sekarang.
  
 ```
+FUNCTION BUILD_PAIRED_PRIMARY_INITIALIZATION(master_seed):
+    rng_ry = RNG(DERIVE_SUBSEED(master_seed, "init:ry_core"))
+    rng_rz = RNG(DERIVE_SUBSEED(master_seed, "init:rz_phase"))
+
+    ry_core  = RANDOM_UNIFORM_RNG(rng_ry, low=0, high=2*PI, size=30)
+    rz_phase = RANDOM_UNIFORM_RNG(rng_rz, low=0, high=2*PI, size=30)
+
+    # RZ=0 tidak dipakai untuk phase-control. Exact zero dire-sample deterministik.
+    FOR i IN range(30):
+        WHILE rz_phase[i] == 0.0:
+            rz_phase[i] = RANDOM_UNIFORM_RNG(rng_rz, low=0, high=2*PI, size=1)
+
+    RETURN {
+        "ry_core": ry_core,
+        "rz_phase": rz_phase,
+        "ry_core_seed": DERIVE_SUBSEED(master_seed, "init:ry_core"),
+        "rz_phase_seed": DERIVE_SUBSEED(master_seed, "init:rz_phase")
+    }
+
+
+FUNCTION PACK_RY_RZ_BY_LAYER(ry_core, rz_phase, n_layers=3, n_qubits=10):
+    ry_layers = RESHAPE(ry_core,  (n_layers, n_qubits))
+    rz_layers = RESHAPE(rz_phase, (n_layers, n_qubits))
+    packed = []
+
+    FOR layer_idx IN range(n_layers):
+        packed.EXTEND(ry_layers[layer_idx])   # 10 RY parameter
+        packed.EXTEND(rz_layers[layer_idx])   # 10 RZ parameter
+
+    RETURN ARRAY(packed)   # length 60; cocok dengan BUILD_CIRCUIT_MORE_HD_C
+
+
 FUNCTION MODEL_SETUP(config):
-    SET_RANDOM_SEED(config.seed)
- 
+    init_bundle = BUILD_PAIRED_PRIMARY_INITIALIZATION(config.seed)
+
     IF config.architecture == "MORE-HD":
-        circuit_fn, n_params = BUILD_CIRCUIT_MORE_HD(n_data_qubits=config.n_data_qubits, n_readout_qubits=config.n_readout_qubits)
+        circuit_fn, n_params = BUILD_CIRCUIT_MORE_HD(
+            n_data_qubits=config.n_data_qubits,
+            n_readout_qubits=config.n_readout_qubits
+        )
+        initial_params = COPY(init_bundle.ry_core)
+
     ELSE IF config.architecture == "MORE-HD-C":
-        circuit_fn, n_params = BUILD_CIRCUIT_MORE_HD_C(n_data_qubits=config.n_data_qubits, n_readout_qubits=config.n_readout_qubits)
+        circuit_fn, n_params = BUILD_CIRCUIT_MORE_HD_C(
+            n_data_qubits=config.n_data_qubits,
+            n_readout_qubits=config.n_readout_qubits
+        )
+        initial_params = PACK_RY_RZ_BY_LAYER(
+            init_bundle.ry_core,
+            init_bundle.rz_phase
+        )
+
     ELSE:
         RAISE_ERROR("architecture harus 'MORE-HD' atau 'MORE-HD-C'")
- 
-    initial_params = RANDOM_UNIFORM(low=0, high=2*PI, size=n_params)
- 
+
+    ASSERT LENGTH(initial_params) == n_params
+
     SAVE(initial_params, run_dir + "/artifacts/initial_params.npy")
+    SAVE_JSON(
+        {
+            "ry_core_seed": init_bundle.ry_core_seed,
+            "rz_phase_seed": init_bundle.rz_phase_seed,
+            "ry_core_sha256": SHA256_ARRAY(init_bundle.ry_core),
+            "rz_phase_sha256": SHA256_ARRAY(init_bundle.rz_phase),
+            "packing_rule": (
+                "RY_ONLY_3x10" IF config.architecture == "MORE-HD"
+                ELSE "PER_LAYER_[10_RY,10_RZ]_x3"
+            )
+        },
+        run_dir + "/artifacts/initialization_manifest.json"
+    )
+
     RETURN circuit_fn, initial_params
 ```
  
@@ -1732,6 +1870,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "y_test": "artifacts/y_test.npy",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
         "initial_params": "artifacts/initial_params.npy",
+        "initialization_manifest": "artifacts/initialization_manifest.json",
 
         "clustering_params_bin": "artifacts/clustering_params.bin",
         "clustering_params_final": "artifacts/clustering_params_final.npy",
@@ -1797,7 +1936,8 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "master_seed": config.seed,
         "run_mode": config.run_mode,
         "data_seed": DERIVE_SUBSEED(config.seed, "data"),
-        "init_seed": DERIVE_SUBSEED(config.seed, "init"),
+        "ry_core_seed": DERIVE_SUBSEED(config.seed, "init:ry_core"),
+        "rz_phase_seed": DERIVE_SUBSEED(config.seed, "init:rz_phase"),
         "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
         "label_seed": DERIVE_SUBSEED(config.seed, "quantum_labels"),
         "split_manifest": config.split_manifest_path,
@@ -2066,7 +2206,8 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
         "master_seed": config.seed,
         "run_mode": config.run_mode,
         "data_seed": DERIVE_SUBSEED(config.seed, "data"),
-        "init_seed": DERIVE_SUBSEED(config.seed, "init"),
+        "ry_core_seed": DERIVE_SUBSEED(config.seed, "init:ry_core"),
+        "rz_phase_seed": DERIVE_SUBSEED(config.seed, "init:rz_phase"),
         "pair_seed": DERIVE_SUBSEED(config.seed, "cluster_pairs"),
         "label_seed": DERIVE_SUBSEED(config.seed, "quantum_labels"),
         "split_manifest": config.split_manifest_path,
@@ -2115,11 +2256,11 @@ MAIN_FROM_SELECTED_CLUSTERING(
  
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
-1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 240 run konfirmatori bisa diproyeksikan realistis.
+1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini perlu diukur lewat pilot timing sebelum `maxiter` final (G1-01) dikunci, supaya total waktu 330 unique confirmatory executions (240 primary + 90 ablation) bisa diproyeksikan realistis.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_eval_id` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
-5. **Konsolidasi 48 spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Training hanya menghasilkan `run_result.xlsx` per-run; penggabungan akhir dilakukan setelah seluruh run yang diperlukan selesai.
+5. **Konsolidasi spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Primary track menghasilkan hingga 240 `run_result.xlsx`, sedangkan targeted ablation menambah 90 B/C `run_result.xlsx` dalam namespace terpisah. Konsolidasi akhir harus mempertahankan workbook primer dan workbook ablation sebagai dua sumber yang dapat di-join tanpa menduplikasi A/D.
 6. **Implementasi Python nyata** untuk `HU_MOMENTS`, `SIGNED_LOG_TRANSFORM`, `MAP_IMAGE_TO_UNIT_DISK`, dan `EXTRACT_ZERNIKE_TERMS` (2.8.4) — pseudocode-nya sudah dikunci, tapi pemilihan library persis (`cv2`, `mahotas`, atau lainnya) dan unit test terhadap kriteria penerimaan Gate G2-01/G2-02 belum dikerjakan.
 7. **[SELESAI, sesi 2026-09-22] Angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi** — dikunci ke `n_train_per_class=1000`, `n_val_per_class=100`, `n_test_per_class=200`. `n_train`/`n_test` mengikuti skala FRD-09 (komparabilitas dengan thesis lama + presisi statistik confidence interval yang memadai untuk klaim G1-04 pada K=3..10). `n_val_per_class` DIREVISI dari aturan proporsi G0-01 sebelumnya (`= n_test_per_class`) menjadi angka independen lebih kecil (separuh dari test), karena validation hanya berperan untuk monitoring/checkpoint selection (bukan klaim akhir publikasi) sehingga tidak memerlukan presisi setara test set; ketersediaan pool MNIST per digit (train ~5.400–6.700, test resmi ~980–1.135) dicek dan mencukupi untuk kombinasi `1000 (train) + 100 (val) = 1100` dan `200 (test)` di semua digit. Waktu komputasi sengaja TIDAK menjadi pertimbangan pada keputusan ini (akan diuji lewat pilot timing terpisah, lihat poin 1); keputusan murni berbasis presisi statistik dan komparabilitas metodologis.
 8. **Implementasi kode nyata + unit test untuk G0-01** — skema split train/validation/test dan penghapusan akses test dari `CLUSTERING_LOOP`/`SUPERVISED_LOOP`/Jalur B sudah dikunci di level pseudocode (bagian 2, 5, 7, 9, 10), tapi unit test yang memverifikasi tidak ada pemanggilan `circuit_fn` terhadap `X_test`/`y_test` sebelum `FINAL_EVALUATION` belum ditulis.
