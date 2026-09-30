@@ -94,5 +94,13 @@
     "delta_pp": 0.0,
     "items": 38,
     "summary": "docs(sim): kunci backend simulasi statevector analitik (G4-01 sebagian, prasyarat G2-04)"
+  },
+  {
+    "date": "2026-10-01",
+    "commit": "f71590bf7ffb4df3a9c4705fbbdb5d6d74a2d934",
+    "progress": 31.4,
+    "delta_pp": 1.8,
+    "items": 39,
+    "summary": "docs(gates): G2-04 zero-norm safety + G2-07 centroid mengikuti MORE"
   }
 ]
