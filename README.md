@@ -28,9 +28,10 @@ Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot
 | 2026-09-27 | [`d7c205e`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/d7c205e00bc2e65d8a4c1938f8b3368d8a59b6cc) | 29.6% | +1.3 pp | docs: resolve G1-10 with classical baselines and no-R MORE reference |
 | 2026-09-27 | [`26b5fd2`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/26b5fd29fc15eb3298367a7507587bd35f16697c) | 29.6% | 0.0 pp | docs: consistency audit — smoke budget, pilot scope, workbook schema map |
 | 2026-10-01 | [`cdd7edc`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/cdd7edcfe209ccd358afb70a7734d43fbe6cef63) | 29.6% | 0.0 pp | docs(sim): kunci backend simulasi statevector analitik (G4-01 sebagian, prasyarat G2-04) |
-| 2026-10-01 | [`f71590b`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/f71590bf7ffb4df3a9c4705fbbdb5d6d74a2d934) | **31.4%** | **+1.8 pp** | docs(gates): G2-04 zero-norm safety + G2-07 centroid mengikuti MORE |
+| 2026-10-01 | [`f71590b`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/f71590bf7ffb4df3a9c4705fbbdb5d6d74a2d934) | 31.4% | +1.8 pp | docs(gates): G2-04 zero-norm safety + G2-07 centroid mengikuti MORE |
+| 2026-10-01 | [`bba4657`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/bba46576330385c7c85cb7cb9e5fb508c117bc4d) | **31.4%** | **0.0 pp** | docs(gates): G1-03 mengikuti paper MORE untuk jumlah pasangan clustering |
 
-**Trend terbaru:** `20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4%`
+**Trend terbaru:** `24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
