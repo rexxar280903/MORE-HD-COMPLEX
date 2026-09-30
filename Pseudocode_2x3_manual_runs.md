@@ -142,6 +142,22 @@ Loss adjuster R milik MORE **tidak** diimplementasikan (`loss_adjuster_policy="N
 acuan literatur memakai kolom MORE\R Tabel I Wu et al. (2023). Spesifikasi lengkap di
 **Bagian 12** dan `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.2.
 
+**Update (backend simulasi, sesi 2026-10-01 — prasyarat numerik G2-04/G2-05/G4-03):**
+Mode simulasi dikunci sebagai **statevector analitik tanpa shot noise**, konsisten
+dengan BAB 1: `simulation_mode = "ANALYTIC_STATEVECTOR"`, `shots = None`,
+`sim_dtype = "complex128"` (ekspektasi dibaca sebagai `float64`). Ke-15 observable
+dihitung eksak dalam **satu eksekusi sirkuit per sampel** (lihat
+`MEASURE_15_OBSERVABLES`). Alasannya bukan kecepatan, melainkan validitas: dengan
+sampling (mis. 10.000 shots, noise ~1e-2 per komponen) enam observable Y-odd MORE-HD
+yang secara struktural nol akan terbaca "aktif" dan `active_dim_threshold = 1e-6`
+kehilangan makna; dengan `complex64` noise numerik (~1e-7) juga bertabrakan dengan
+threshold tersebut. Seluruh epsilon/threshold numerik (G2-04, G2-05) berasumsi noise
+`float64` ~1e-15. `VALIDATE_CONFIG` menolak konfigurasi lain. Pemilihan device
+(`default.qubit` vs `lightning.qubit`), pin versi library, dan pembatasan thread
+**belum** dikunci (G4-01/G3-05) dan wajib dikunci sebelum pilot pertama; nilainya
+direkam di manifest setiap run. `diff_method` tidak relevan karena COBYLA tidak
+memakai gradien.
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -557,6 +573,12 @@ STRUCT Config:
     pair_weighting         = "NONE"            # tidak ada balancing/reweighting same-vs-different
     active_dim_threshold   = 1e-6
 
+    # backend simulasi -- DIKUNCI 2026-10-01 (prasyarat numerik G2-04/G2-05/G4-03)
+    simulation_mode        = "ANALYTIC_STATEVECTOR"  # ekspektasi eksak dari statevector, tanpa sampling
+    shots                  = None               # WAJIB None: shot noise merusak diagnosis structural zeros
+    sim_dtype              = "complex128"       # presisi ganda; ekspektasi dibaca sebagai float64
+    device_name            = "TBD_G4-01"        # "default.qubit" | "lightning.qubit"; dikunci di G4-01 sebelum pilot
+
     # dataset lokal / pilot download
     mnist_root              = "data/"
     mnist_download          = FALSE             # TRUE hanya saat pilot/initial download
@@ -602,6 +624,17 @@ FUNCTION VALIDATE_CONFIG(config):
 
     IF LENGTH(config.classes) < 3 OR LENGTH(config.classes) > 10:
         PRINT_WARNING("benchmark utama dirancang untuk 3 sampai 10 kelas")
+
+    # backend simulasi (sesi 2026-10-01)
+    IF config.simulation_mode != "ANALYTIC_STATEVECTOR" OR config.shots IS NOT None:
+        RAISE_ERROR("eksperimen mengunci ekspektasi analitik statevector (shots=None); " +
+                    "shot noise membuat observable Y-odd MORE-HD tampak aktif")
+    IF config.sim_dtype != "complex128":
+        RAISE_ERROR("sim_dtype harus complex128; presisi tunggal (~1e-7) bertabrakan dengan active_dim_threshold")
+    IF config.device_name NOT IN ["default.qubit", "lightning.qubit"]:
+        IF config.run_mode == "CONFIRMATORY":
+            RAISE_ERROR("device_name belum dikunci (G4-01); run konfirmatori ditolak")
+        PRINT_WARNING("device_name belum dikunci (G4-01); hanya boleh untuk smoke test")
 
 
 FUNCTION CREATE_RUN_DIRECTORY_EXCLUSIVE(config):
@@ -1386,7 +1419,14 @@ FUNCTION MEASURE_15_OBSERVABLES(readout_wires):
     # dikunci sama persis dgn Tabel III-2 skripsi lama, supaya index dimensi
     # bisa dibandingkan lintas MORE-HD vs MORE-HD-C
  
-    RETURN [ EXPECTATION_VALUE(obs) FOR obs IN observables ]
+    # Backend (DIKUNCI 2026-10-01): ekspektasi dihitung ANALITIK dari statevector
+    # (config.shots = None, config.sim_dtype = complex128) dalam SATU eksekusi sirkuit
+    # yang mengembalikan ke-15 nilai sekaligus -- bukan 15 eksekusi terpisah, bukan
+    # sampling. Setiap nilai berada di [-1, 1]; untuk keadaan tereduksi 2 qubit readout
+    # berlaku Tr(rho^2) = (1 + ||v||^2) / 4, sehingga ||v|| berada di [0, sqrt(3)]
+    # (0 = readout maximally mixed; sqrt(3) = readout murni). Batas ini menjadi acuan
+    # skala epsilon numerik G2-04.
+    RETURN [ EXPECTATION_VALUE(obs) FOR obs IN observables ]   # float64, panjang 15
 ```
  
 ### 4.4 Cadangan Riset Lanjutan — V2 & V3 (Belum Aktif, Tidak Dipanggil)
@@ -1797,6 +1837,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         "tol": config.cobyla_tol,
         "rhobeg": config.cobyla_rhobeg,
         "scipy_version": SCIPY_VERSION(),
+        "pennylane_version": PENNYLANE_VERSION(),
         "n_params": n_params,
         "simplex_size": n_params + 1,
         "n_initial_simplex_evals": MIN(result.nfev, n_params + 1),
@@ -2046,6 +2087,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         "tol": config.cobyla_tol,
         "rhobeg": config.cobyla_rhobeg,
         "scipy_version": SCIPY_VERSION(),
+        "pennylane_version": PENNYLANE_VERSION(),
         "n_params": n_params,
         "simplex_size": n_params + 1,
         "n_initial_simplex_evals": MIN(result.nfev, n_params + 1),
@@ -2255,6 +2297,12 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "cobyla_tol": config.cobyla_tol,
         "cobyla_rhobeg": config.cobyla_rhobeg,
         "scipy_version": SCIPY_VERSION(),
+        "numpy_version": NUMPY_VERSION(),
+        "pennylane_version": PENNYLANE_VERSION(),
+        "simulation_mode": config.simulation_mode,
+        "shots": config.shots,                    # selalu null pada protokol ini
+        "sim_dtype": config.sim_dtype,
+        "device_name": config.device_name,
         "seed": config.seed,
         "master_seed": config.seed,
         "run_mode": config.run_mode,
@@ -2900,6 +2948,8 @@ runs/ablation/ABL002-S101_cls-0-1-2_PCA_MORE-HD-C-FixedRZ/
 ```
 
 Every ablation manifest must also record the matching primary run IDs for A and D so that the four-model cell can be assembled without rerunning them.
+
+Ablation runs B/C use exactly the same simulation backend as the primary runs (`simulation_mode = "ANALYTIC_STATEVECTOR"`, `shots = None`, `sim_dtype = "complex128"`, and the same `device_name` and library versions locked under G4-01), and record these fields in their manifests, so that Y-odd diagnostics are comparable across A/B/C/D.
 
 #### 11.11.9 Required ablation artifacts
 
