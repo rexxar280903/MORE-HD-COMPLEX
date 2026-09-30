@@ -1659,6 +1659,18 @@ n_pairs_different   = C(K, 2) * 25
 Contoh: K=3 menghasilkan 105 pair (30 same, 75 different), sedangkan K=10
 menghasilkan 1.225 pair (100 same, 1.125 different).
 
+**Keputusan 2026-10-01 — mengikuti paper MORE, bukan batas kode publiknya:**
+paper Wu et al. (2023) menyatakan clustering dataset berisi `C(5K, 2)` pasangan,
+sedangkan kode publik MORE (`MORE_clustering.py`, `--pairs_num` default 1000;
+`data_helper.py::generate_data_pairs`) mengacak seluruh kombinasi tanpa seed lalu
+mengambil 1.000 pertama. Batas itu hanya aktif di K=10 (1.225 > 1.000; K≤9 maksimum
+990). Protokol ini mengikuti paper: **seluruh `C(5K, 2)` pasangan dipakai di semua K**,
+tanpa subset acak, sehingga seluruh keacakan tetap berasal dari seed yang tercatat.
+Perbedaan kedua: paper menyebut 5 sampel/kelas dipilih acak, sedangkan kode mengambil
+5 sampel pertama per kelas (`x[keep][:sample_num]`); protokol ini mengikuti paper
+dengan sampling acak ber-seed (aturan 3–4 di atas). Keduanya dinyatakan di metode
+paper sebagai perbedaan terhadap kode publik MORE.
+
 ```
 FUNCTION BUILD_PAIRING_DATASET(X_train, y_train, config):
     ASSERT config.n_cluster_pair_samples == 5
