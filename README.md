@@ -26,9 +26,10 @@ Progress dihitung otomatis dari **38 item Research Readiness Gate** dengan bobot
 | 2026-09-27 | [`acae2ca`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/acae2ca6eee5d7354427967dec9486afd10ba074) | 27.0% | +1.3 pp | docs: lock pilot budget protocol (G1-01) and COBYLA simplex rules (G1-06) |
 | 2026-09-27 | [`6413658`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6413658f6ae02f9b35fb060bb93cea778300fdb3) | 28.3% | +1.3 pp | docs: resolve G1-09 cumulative class-sequence confound as explicit limitation |
 | 2026-09-27 | [`d7c205e`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/d7c205e00bc2e65d8a4c1938f8b3368d8a59b6cc) | 29.6% | +1.3 pp | docs: resolve G1-10 with classical baselines and no-R MORE reference |
-| 2026-09-27 | [`26b5fd2`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/26b5fd29fc15eb3298367a7507587bd35f16697c) | **29.6%** | **0.0 pp** | docs: consistency audit — smoke budget, pilot scope, workbook schema map |
+| 2026-09-27 | [`26b5fd2`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/26b5fd29fc15eb3298367a7507587bd35f16697c) | 29.6% | 0.0 pp | docs: consistency audit — smoke budget, pilot scope, workbook schema map |
+| 2026-10-01 | [`cdd7edc`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/cdd7edcfe209ccd358afb70a7734d43fbe6cef63) | **29.6%** | **0.0 pp** | docs(sim): kunci backend simulasi statevector analitik (G4-01 sebagian, prasyarat G2-04) |
 
-**Trend terbaru:** `10.1% → 18.2% → 20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6%`
+**Trend terbaru:** `18.2% → 20.9% → 24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
@@ -119,7 +120,7 @@ Sebagai referensi konteks (bukan estimand konfirmatori), setiap `(seed, feature_
 Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan. Targeted ablation G1-05/G1-07 menambah 90 run baru pada K={3,6,10}, sehingga total rencana menjadi **330 unique confirmatory executions**. Seed 42 tetap hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED` dan item teknis yang memengaruhi hasil telah diverifikasi.
 
 <!-- READINESS_SUMMARY_START -->
-### Ringkasan Kesiapan (Readiness Gate) — per 2026-09-27
+### Ringkasan Kesiapan (Readiness Gate) — per 2026-10-01
 
 | Gate | Cakupan | Item | Closed | Ready for Verification | In Progress | Pilot Only | Blocked | Kesiapan* |
 |---|---|---:|---:|---:|---:|---:|---:|---:|

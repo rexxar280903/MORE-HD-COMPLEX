@@ -86,5 +86,13 @@
     "delta_pp": 0.0,
     "items": 38,
     "summary": "docs: consistency audit — smoke budget, pilot scope, workbook schema map"
+  },
+  {
+    "date": "2026-10-01",
+    "commit": "cdd7edcfe209ccd358afb70a7734d43fbe6cef63",
+    "progress": 29.6,
+    "delta_pp": 0.0,
+    "items": 38,
+    "summary": "docs(sim): kunci backend simulasi statevector analitik (G4-01 sebagian, prasyarat G2-04)"
   }
 ]
