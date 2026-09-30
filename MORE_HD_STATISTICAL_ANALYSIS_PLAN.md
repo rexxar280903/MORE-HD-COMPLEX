@@ -1,11 +1,12 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.4  
+Version: 1.5  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
 Classical reference baselines and MORE reference policy (G1-10) frozen: 2026-09-27  
 Consistency audit (smoke/pilot budget, workbook schema map, Jalur B sheet): 2026-09-27  
+Quantum-label centroid rule (G2-07) and zero-norm safety (G2-04) frozen: 2026-10-01  
 Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
@@ -86,6 +87,10 @@ The smoke test uses `max_nfev = 70` for every architecture. SciPy COBYLA (verifi
 The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, per-class metrics, confusion patterns, optimizer behavior, gate/depth diagnostics, and runtime are secondary outcomes.
 
 Official-test metrics are computed only after optimization, checkpoint selection, and all protocol decisions for that run are frozen.
+
+**Centroid and label definition (G2-07, frozen 2026-10-01).** Quantum labels, the per-evaluation class centroids behind `pseudo_accuracy_val`, `min_separation`, and `min_separation_ratio`, and the validation centroids behind `min_separation_val` all follow the original MORE implementation (`MORE_clustering.py::find_center`): each sample output is normalized to a unit vector, the component-wise median is taken, and the result is normalized again. As in MORE, class centroids and quantum labels are built from the five clustering samples per class recorded in `pair_manifest.json` (validation centroids use all validation samples of the class, because MORE has no validation-centroid metric). This deviates from FRD-09 (mean of raw outputs over all training samples, then normalization); results for architecture A are therefore not protocol-identical to FRD-09 and the paper must state this.
+
+**Zero-norm safety (G2-04, frozen 2026-10-01).** Cosine distance and normalization use `eps_norm = 1e-10`: a vector with norm below `eps_norm` has no direction, its cosine distance is 1.0, its normalization is the zero vector, and it is excluded from the median centroid. Non-finite outputs fail the run. Nearest-label ties resolve to the first class in ascending class order. For vectors with norm at least `eps_norm` these definitions are identical to MORE. Per-evaluation degeneracy counts and the run-level flag `degenerate_quantum_label` are recorded; runs with a degenerate quantum label remain in the confirmatory aggregation (the protocol is deterministic) but are listed in the Gate D data-quality report and discussed if present.
 
 ## 6. Primary estimand
 
@@ -242,7 +247,7 @@ If Jalur B is executed, it starts from an already completed Jalur A source run a
 
 No weighted score is used. `active_dimensions`, `correlation_consistency`, and `avg_margin_val` are diagnostics and cannot affect checkpoint selection. The supervised objective-evaluation budget is inherited unchanged from the source Jalur A run. Official-test arrays are not read by the selector or supervised optimization and are used only by the final evaluation after the selected checkpoint and downstream training are frozen.
 
-Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. The number of eligible candidates per run is recorded. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation. Each Jalur B execution is recorded as one row of sheet `17_JalurB_Selection` (source `run_uid`, `selected_eval_id`, number of eligible candidates, the selection metrics of the chosen evaluation, supervised budget, and final official-test metrics); Jalur B never writes to sheets `01`–`04`.
+Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. Evaluations with any degenerate training or validation centroid (`n_degenerate_centroids_train > 0` or `n_degenerate_centroids_val > 0`) are also excluded (Gate G2-04, frozen 2026-10-01), because the zero-norm fallback can inflate `min_separation_val` for collapsed centroids. The number of eligible candidates per run is recorded. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation. Each Jalur B execution is recorded as one row of sheet `17_JalurB_Selection` (source `run_uid`, `selected_eval_id`, number of eligible candidates, the selection metrics of the chosen evaluation, supervised budget, and final official-test metrics); Jalur B never writes to sheets `01`–`04`.
 
 ## 13. Confirmatory boundary
 

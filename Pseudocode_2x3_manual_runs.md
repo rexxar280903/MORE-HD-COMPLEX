@@ -142,6 +142,27 @@ Loss adjuster R milik MORE **tidak** diimplementasikan (`loss_adjuster_policy="N
 acuan literatur memakai kolom MORE\R Tabel I Wu et al. (2023). Spesifikasi lengkap di
 **Bagian 12** dan `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.2.
 
+**Update (G2-04 + G2-07, sesi 2026-10-01 — zero-norm safety dan centroid mengikuti MORE):**
+(1) **G2-07 — centroid mengikuti MORE asli** (`github.com/Jindi0/MORE`, `MORE_clustering.py::find_center`):
+setiap output sampel dinormalisasi menjadi vektor satuan, lalu diambil **median per
+komponen**, lalu dinormalisasi lagi (`CLASS_CENTROID_MORE`, §4.3.1). Sumber datanya juga
+mengikuti MORE: centroid dibangun hanya dari **5 sampel clustering per kelas** (sampel
+yang sama dengan pairing G1-03, dibaca dari `pair_manifest.json`), bukan dari seluruh
+`X_train`. Berlaku untuk centroid sementara per objective evaluation (§5), centroid
+validation (§5, aturan rumus sama; sumbernya seluruh validation karena MORE tidak punya
+metrik ini), dan `quantum_labels` (§6); Jalur B dan ablation mewarisinya karena memanggil
+fungsi yang sama. Ini **menyimpang dari FRD-09** (mean vektor mentah seluruh train lalu
+normalisasi) dan wajib dinyatakan di metode paper (D-03). `X_train` 1000/kelas tetap
+dipakai penuh di `SUPERVISED_LOOP`. (2) **G2-04 — zero-norm safety:** `COSINE_DISTANCE`
+dan `NORMALIZE_VECTOR` kini didefinisikan eksplisit (§4.3.1) dengan `eps_norm = 1e-10`.
+Vektor dengan norm `< eps_norm` tidak punya arah: jarak cosine-nya = `1.0` (netral /
+ortogonal), normalisasinya = vektor nol, dan sampel seperti itu **dikeluarkan** dari
+median centroid serta dihitung. NaN/Inf membuat run `FAILED`. Tie `ARGMIN` jatuh ke
+kelas pertama dalam urutan `config.classes` (menaik), sama dengan
+`cos_dist.index(min_value)` di MORE. Untuk `‖v‖ ≥ eps_norm` hasilnya identik dengan
+rumus MORE yang tanpa perlindungan. Jalur B hanya memilih evaluasi tanpa centroid
+degenerate (§10.2). Kolom log degenerate baru ada di §5 dan §7.
+
 **Update (backend simulasi, sesi 2026-10-01 — prasyarat numerik G2-04/G2-05/G4-03):**
 Mode simulasi dikunci sebagai **statevector analitik tanpa shot noise**, konsisten
 dengan BAB 1: `simulation_mode = "ANALYTIC_STATEVECTOR"`, `shots = None`,
@@ -573,6 +594,11 @@ STRUCT Config:
     pair_weighting         = "NONE"            # tidak ada balancing/reweighting same-vs-different
     active_dim_threshold   = 1e-6
 
+    # numerik & centroid -- DIKUNCI 2026-10-01 (G2-04, G2-07)
+    eps_norm               = 1e-10              # di bawah ini vektor dianggap tanpa arah (G2-04)
+    centroid_rule          = "MORE_NORMALIZE_MEDIAN_NORMALIZE"  # G2-07: mengikuti find_center MORE
+    centroid_source        = "CLUSTER_SAMPLES"  # G2-07: 5 sampel pairing/kelas (pair_manifest.json)
+
     # backend simulasi -- DIKUNCI 2026-10-01 (prasyarat numerik G2-04/G2-05/G4-03)
     simulation_mode        = "ANALYTIC_STATEVECTOR"  # ekspektasi eksak dari statevector, tanpa sampling
     shots                  = None               # WAJIB None: shot noise merusak diagnosis structural zeros
@@ -629,6 +655,10 @@ FUNCTION VALIDATE_CONFIG(config):
     IF config.simulation_mode != "ANALYTIC_STATEVECTOR" OR config.shots IS NOT None:
         RAISE_ERROR("eksperimen mengunci ekspektasi analitik statevector (shots=None); " +
                     "shot noise membuat observable Y-odd MORE-HD tampak aktif")
+    IF config.eps_norm != 1e-10:
+        RAISE_ERROR("eps_norm dikunci 1e-10 (G2-04)")
+    IF config.centroid_rule != "MORE_NORMALIZE_MEDIAN_NORMALIZE" OR config.centroid_source != "CLUSTER_SAMPLES":
+        RAISE_ERROR("aturan centroid dikunci mengikuti MORE (G2-07)")
     IF config.sim_dtype != "complex128":
         RAISE_ERROR("sim_dtype harus complex128; presisi tunggal (~1e-7) bertabrakan dengan active_dim_threshold")
     IF config.device_name NOT IN ["default.qubit", "lightning.qubit"]:
@@ -1428,6 +1458,89 @@ FUNCTION MEASURE_15_OBSERVABLES(readout_wires):
     # skala epsilon numerik G2-04.
     RETURN [ EXPECTATION_VALUE(obs) FOR obs IN observables ]   # float64, panjang 15
 ```
+
+#### 4.3.1 Fungsi numerik bersama — cosine, normalisasi, centroid (G2-04, G2-07; DIKUNCI 2026-10-01)
+
+Seluruh pemanggilan `COSINE_DISTANCE`, `NORMALIZE_VECTOR`, `ARGMIN` atas jarak kelas,
+dan pembentukan centroid di dokumen ini (clustering, ekstraksi label, supervised,
+final evaluation, Jalur B, ablation) **wajib** memakai definisi di bawah. Tidak ada
+implementasi lokal lain.
+
+Alasan `eps_norm = 1e-10`: untuk 15 observable readout 2 qubit berlaku
+`‖v‖ ∈ [0, √3]` (lihat `MEASURE_15_OBSERVABLES`), dan noise numerik backend terkunci
+(`complex128`, `shots=None`) sekitar 1e-15, sehingga pada norm 1e-10 error relatif
+arah masih ~1e-5. Nilai ini sengaja **tidak** diikat ke `active_dim_threshold` agar
+uji sensitivitas threshold G2-05 tidak mengubah loss.
+
+MORE asli (`util.py`, `myNeuralNetworkClassifier_1/2.py`, `MORE_clustering.py`) menormalisasi
+dengan `x / np.linalg.norm(x)` tanpa perlindungan; untuk norm nol hasilnya NaN. Definisi di
+bawah identik dengan MORE untuk setiap `‖v‖ ≥ eps_norm` dan hanya berbeda pada kasus yang
+di MORE tidak terdefinisi.
+
+```
+FUNCTION ASSERT_FINITE(v):
+    IF ANY_NON_FINITE(v):
+        RAISE NumericalError("output sirkuit non-finite")   # bug; run -> FAILED (G3-04), bukan fallback
+
+
+FUNCTION IS_DEGENERATE(v, eps_norm):
+    RETURN L2_NORM(v) < eps_norm
+
+
+FUNCTION NORMALIZE_VECTOR(m, eps_norm=config.eps_norm):
+    ASSERT_FINITE(m)
+    n = L2_NORM(m)
+    IF n < eps_norm:
+        RETURN ZERO_VECTOR(LENGTH(m))       # tanpa arah; BUKAN vektor acak / unit sembarang
+    RETURN m / n
+
+
+FUNCTION COSINE_DISTANCE(u, v, eps_norm=config.eps_norm):
+    ASSERT_FINITE(u); ASSERT_FINITE(v)
+    n_u = L2_NORM(u); n_v = L2_NORM(v)
+    IF n_u < eps_norm OR n_v < eps_norm:
+        RETURN 1.0                          # netral/ortogonal; titik tengah rentang [0, 2]
+    c = DOT(u, v) / (n_u * n_v)
+    c = CLIP(c, -1.0, 1.0)                  # cegah 1 - c < 0 akibat pembulatan
+    RETURN 1.0 - c
+
+
+FUNCTION ARGMIN_CLASS(distances, classes):
+    # Tie -> kelas PERTAMA dalam urutan `classes` (config.classes menaik),
+    # setara dengan cos_dist.index(min_value) pada MORE. Semua pemanggilan
+    # ARGMIN(distances) atas jarak kelas di dokumen ini memakai aturan ini.
+    best = classes[0]
+    FOR c IN classes[1:]:
+        IF distances[c] < distances[best]:
+            best = c
+    RETURN best
+
+
+FUNCTION CLASS_CENTROID_MORE(outputs_c, eps_norm=config.eps_norm):
+    # G2-07: mengikuti MORE_clustering.py::find_center
+    #   normalisasi tiap sampel -> median per komponen -> normalisasi.
+    # G2-04: sampel tanpa arah DIKELUARKAN dari median (bukan dimasukkan sebagai nol).
+    units = []
+    n_excluded = 0
+    FOR v IN outputs_c:
+        ASSERT_FINITE(v)
+        IF IS_DEGENERATE(v, eps_norm):
+            n_excluded += 1
+        ELSE:
+            units.APPEND(v / L2_NORM(v))
+    IF LENGTH(units) == 0:
+        RETURN ZERO_VECTOR(15), n_excluded, 0.0, TRUE     # centroid degenerate
+    m = MEDIAN(units, axis=0)       # per komponen; jumlah genap -> rata-rata dua nilai tengah (NumPy)
+    prenorm = L2_NORM(m)
+    centroid = NORMALIZE_VECTOR(m, eps_norm)
+    RETURN centroid, n_excluded, prenorm, (prenorm < eps_norm)
+    # keluaran: (centroid, n_sampel_dikeluarkan, norm_sebelum_normalisasi, degenerate?)
+```
+
+Catatan G2-05: median per komponen dapat membuat satu komponen centroid bernilai ~0
+bila lebih dari separuh sampel bernilai ~0 pada dimensi itu. Karena itu
+`active_dimensions` yang dihitung dari centroid tidak boleh dijadikan satu-satunya
+ukuran aktivasi Y-odd; ukuran berbasis output per sampel diputuskan di G2-05.
  
 ### 4.4 Cadangan Riset Lanjutan — V2 & V3 (Belum Aktif, Tidak Dipanggil)
  
@@ -1641,7 +1754,19 @@ FUNCTION BUILD_PAIRING_DATASET(X_train, y_train, config):
     SAVE_ATOMIC_JSON(pair_manifest, run_dir + "/artifacts/pair_manifest.json")
     SAVE_ATOMIC_JSON(pair_stats,    run_dir + "/artifacts/pair_stats.json")
 
-    RETURN pairing_dataset, pair_stats
+    # G2-07: 5 sampel/kelas yang sama juga menjadi sumber centroid (mengikuti MORE).
+    cluster_samples = CLUSTER_SAMPLES_FROM_MANIFEST(X_train, pair_manifest, config.classes)
+
+    RETURN pairing_dataset, pair_stats, cluster_samples
+
+
+FUNCTION CLUSTER_SAMPLES_FROM_MANIFEST(X_train, pair_manifest, classes):
+    # Dipakai Jalur A (§5, §6) dan Jalur B (§10) agar sumber centroid identik.
+    # train_positions adalah indeks ke array X_train/X_train_scaled yang sama.
+    RETURN {
+        c: [X_train[pos] FOR pos IN pair_manifest.selected_by_class[c].train_positions]
+        FOR c IN classes
+    }
 ```
 
 Unit test implementasi Python nantinya wajib memverifikasi rumus jumlah pair,
@@ -1669,7 +1794,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
     SET_RANDOM_SEED(config.seed)
  
     # Dibangun SATU KALI dan dibekukan sebelum objective pertama.
-    pairing_dataset, pair_stats = BUILD_PAIRING_DATASET(
+    pairing_dataset, pair_stats, cluster_samples = BUILD_PAIRING_DATASET(
         X_train, y_train, config
     )
  
@@ -1706,24 +1831,34 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             pair_losses.APPEND(-s_ij * dist)
         train_loss = MEAN(pair_losses)
  
-        # --- (b) centroid sementara dari seluruh train ---
+        # --- (b) centroid sementara dari 5 sampel clustering/kelas (G2-07, mengikuti MORE) ---
         temp_centroids = {}
+        n_degenerate_cluster_outputs = 0
+        n_degenerate_centroids_train = 0
+        min_centroid_prenorm_train = +INFINITY
         FOR each c IN config.classes:
-            outputs_c = [circuit_fn(x, theta) FOR x IN X_train WHERE y_train == c]
-            temp_centroids[c] = NORMALIZE_VECTOR(MEAN(outputs_c))
+            outputs_c = [circuit_fn(x, theta) FOR x IN cluster_samples[c]]
+            temp_centroids[c], n_excl, prenorm, is_deg = CLASS_CENTROID_MORE(outputs_c)
+            n_degenerate_cluster_outputs += n_excl
+            n_degenerate_centroids_train += (1 IF is_deg ELSE 0)
+            min_centroid_prenorm_train = MIN(min_centroid_prenorm_train, prenorm)
+        # Output sampel yang sama dipakai pair loss (a); n_degenerate_cluster_outputs
+        # sekaligus menghitung vektor pair loss yang kena fallback COSINE_DISTANCE = 1.0.
  
         # --- (c) monitoring VALIDATION, pasif; tidak masuk objective ---
         correct = 0
         margins = []
         true_distances_val = []
         val_outputs_by_class = { c: [] FOR c IN config.classes }
+        n_degenerate_val_outputs = 0
 
         FOR each (x, true_class) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
             val_outputs_by_class[true_class].APPEND(v)
 
             distances = { c: COSINE_DISTANCE(v, temp_centroids[c]) FOR c IN config.classes }
-            predicted_class = ARGMIN(distances)
+            n_degenerate_val_outputs += (1 IF IS_DEGENERATE(v, config.eps_norm) ELSE 0)
+            predicted_class = ARGMIN_CLASS(distances, config.classes)
             IF predicted_class == true_class:
                 correct += 1
             dist_true  = distances[true_class]
@@ -1736,8 +1871,11 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         mean_true_distance_val = MEAN(true_distances_val)
 
         val_centroids = {}
+        n_degenerate_centroids_val = 0
         FOR each c IN config.classes:
-            val_centroids[c] = NORMALIZE_VECTOR(MEAN(val_outputs_by_class[c]))
+            # rumus MORE yang sama (G2-07); sumber = seluruh validation kelas c
+            val_centroids[c], _, _, is_deg = CLASS_CENTROID_MORE(val_outputs_by_class[c])
+            n_degenerate_centroids_val += (1 IF is_deg ELSE 0)
 
         min_separation_val = MIN(
             COSINE_DISTANCE(val_centroids[a], val_centroids[b])
@@ -1787,6 +1925,12 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             "closest_class_j": closest_class_j,
             "correlation_consistency": correlation_consistency,
             "active_dimensions": active_dimensions,
+            # G2-04: hitungan fallback zero-norm per objective evaluation
+            "n_degenerate_cluster_outputs": n_degenerate_cluster_outputs,
+            "n_degenerate_val_outputs": n_degenerate_val_outputs,
+            "n_degenerate_centroids_train": n_degenerate_centroids_train,
+            "n_degenerate_centroids_val": n_degenerate_centroids_val,
+            "min_centroid_prenorm_train": min_centroid_prenorm_train,
             "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start
         }
         APPEND_LINE(run_dir + "/logs/clustering_log.jsonl", TO_JSON(log_entry))
@@ -1887,14 +2031,21 @@ G1-09/G1-11, misalnya apakah pasangan terdekat HU/ZERNIKE di K=10 adalah 6–9),
 | Metrik | Fungsi (untuk apa dipakai) | Satuan / Rentang Nilai | Arah yang diharapkan | Interpretasi nilai yang lebih baik |
 |---|---|---|---|---|
 | `train_loss` | Objective utama yang diminimalkan COBYLA. | Skalar tak berdimensi dari `-S_ij × cosine_distance`. | ↓ **Semakin kecil semakin baik** | Nilai yang lebih kecil menunjukkan objective clustering semakin terpenuhi. |
-| `pseudo_accuracy_val` | Nearest-centroid accuracy pada validation menggunakan centroid yang dibangun hanya dari TRAIN. | Proporsi 0–1. | ↑ **Semakin besar semakin baik** | Nilai mendekati 1 menunjukkan semakin banyak sampel validation yang paling dekat dengan centroid kelas benar. Ini menjadi kriteria pertama selector Jalur B. |
+| `pseudo_accuracy_val` | Nearest-centroid accuracy pada validation menggunakan centroid yang dibangun dari 5 sampel clustering per kelas (subset TRAIN; rumus MORE, G2-07). | Proporsi 0–1. | ↑ **Semakin besar semakin baik** | Nilai mendekati 1 menunjukkan semakin banyak sampel validation yang paling dekat dengan centroid kelas benar. Ini menjadi kriteria pertama selector Jalur B. |
 | `avg_margin_val` | Margin validation antara centroid kelas benar dan centroid kelas salah terdekat. | Selisih cosine distance; teoretis -2 sampai +2. | ↑ **Semakin besar semakin baik** | Margin positif yang lebih besar menunjukkan keputusan nearest-centroid lebih aman. Metrik ini tetap diagnostik dan tidak dipakai sebagai kriteria selector G0-02. |
-| `mean_true_distance_val` | Rata-rata cosine distance sampel validation ke centroid TRAIN kelas benarnya. | 0–2. | ↓ **Semakin kecil semakin baik** | Mengukur compactness validation terhadap label/centroid kelas benar. Ini menjadi kriteria ketiga selector Jalur B. |
+| `mean_true_distance_val` | Rata-rata cosine distance sampel validation ke centroid kelas benarnya (centroid dari 5 sampel clustering/kelas, G2-07). | 0–2. | ↓ **Semakin kecil semakin baik** | Mengukur compactness validation terhadap label/centroid kelas benar. Ini menjadi kriteria ketiga selector Jalur B. |
 | `min_separation_val` | Jarak cosine minimum antar centroid yang dibangun dari output validation per kelas. | 0–2. | ↑ **Semakin besar semakin baik** | Menilai apakah kelas tetap terpisah pada validation. Ini menjadi kriteria kedua selector Jalur B. |
-| `min_separation` | Jarak cosine minimum antar centroid kelas yang dibangun dari TRAIN. | 0–2. | ↑ **Semakin besar semakin baik** | Nilai lebih besar menunjukkan pasangan centroid TRAIN yang paling berdekatan masih mempunyai pemisahan lebih lebar. Tetap dipakai sebagai outcome representasi/diagnostik. |
+| `min_separation` | Jarak cosine minimum antar centroid kelas yang dibangun dari 5 sampel clustering per kelas (subset TRAIN; rumus MORE, G2-07). | 0–2. | ↑ **Semakin besar semakin baik** | Nilai lebih besar menunjukkan pasangan centroid kelas yang paling berdekatan masih mempunyai pemisahan lebih lebar. Tetap dipakai sebagai outcome representasi/diagnostik. |
 | `min_separation_ratio` | `min_separation` dibagi batas optimum simplex beraturan `1 + 1/(K-1)`. | 0–1 (1 = pemisahan optimal untuk K kelas). | ↑ **Semakin besar semakin baik** | Membuat `min_separation` sebanding lintas K. Pada `final_point_eval_id`, nilainya sama dengan rasio pada `quantum_labels`. Definisi final sebagai outcome primer tetap dikunci di G2-06. |
-| `correlation_consistency` | Konsistensi urutan jarak centroid TRAIN terhadap matriks korelasi `S`. | Spearman -1 sampai +1. | ↑ **Semakin mendekati +1 semakin baik** | Mengukur kesesuaian struktur jarak dengan dissimilarity antarkelas. Metrik diagnostik, bukan kriteria pemilihan checkpoint. |
+| `correlation_consistency` | Konsistensi urutan jarak centroid kelas (5 sampel clustering/kelas) terhadap matriks korelasi `S`. | Spearman -1 sampai +1. | ↑ **Semakin mendekati +1 semakin baik** | Mengukur kesesuaian struktur jarak dengan dissimilarity antarkelas. Metrik diagnostik, bukan kriteria pemilihan checkpoint. |
 | `active_dimensions` | Jumlah dimensi observable aktif pada centroid. | Integer 0–15. | ↑ **Semakin besar umumnya semakin baik untuk pemanfaatan ruang observable** | Dipakai untuk diagnosis structural zeros. **Tidak boleh** dipakai untuk memilih checkpoint Jalur B karena dapat secara sistematis menguntungkan MORE-HD-C terhadap MORE-HD. |
+
+Kolom diagnostik G2-04 (bukan metrik kualitas): `n_degenerate_cluster_outputs`,
+`n_degenerate_val_outputs`, `n_degenerate_centroids_train`, `n_degenerate_centroids_val`
+(hitungan fallback zero-norm) dan `min_centroid_prenorm_train` (norm terkecil median
+sebelum normalisasi). Nilai normal adalah 0 untuk keempat hitungan. Bila centroid
+degenerate, jaraknya terbaca 1.0 sehingga `min_separation`/`min_separation_val` dapat
+tampak baik secara artifisial; baris seperti itu tidak eligible untuk Jalur B (§10.2).
 
 Ringkasan arah interpretasi:
 
@@ -1918,8 +2069,10 @@ jika tie, minimum `train_loss`; dan (5) jika masih tie, pilih `eval_id`
 paling awal. `active_dimensions`, `correlation_consistency`, dan
 `avg_margin_val` tidak memengaruhi keputusan selector.
 
-Domain kandidat dikunci oleh G1-06 (2026-09-27): hanya objective evaluation
-dengan `phase == "optimization"` yang eligible. Seluruh fase `initial_simplex`
+Domain kandidat dikunci oleh G1-06 (2026-09-27) dan G2-04 (2026-10-01): hanya
+objective evaluation dengan `phase == "optimization"` **dan** tanpa centroid
+degenerate (`n_degenerate_centroids_train == 0` dan `n_degenerate_centroids_val == 0`)
+yang eligible. Seluruh fase `initial_simplex`
 (`eval_id` 0..`n_params`, termasuk `x0`) dikecualikan karena titik-titik itu
 adalah probe konstruksi simplex, bukan keputusan optimizer, dan jumlahnya
 asimetris antar arsitektur (31 vs 61). G0-02 mengunci aturan ranking,
@@ -1941,15 +2094,33 @@ tambahan harus memakai sumbu-X **Objective Evaluation (`eval_id`)**, bukan
 ## 6. EKSTRAKSI LABEL KUANTUM
  
 ```
-FUNCTION QUANTUM_LABEL_EXTRACTION(circuit_fn, trained_params_clustering, X_train, y_train, config):
- 
+FUNCTION QUANTUM_LABEL_EXTRACTION(circuit_fn, trained_params_clustering, X_train, pair_manifest, config):
+    # G2-07: mengikuti MORE -- centroid dari 5 sampel clustering/kelas
+    # (pair_manifest.json run sumber), rumus normalisasi -> median -> normalisasi.
+    cluster_samples = CLUSTER_SAMPLES_FROM_MANIFEST(X_train, pair_manifest, config.classes)
+
     quantum_labels = {}
+    label_diagnostics = {}
     FOR each c IN config.classes:
-        outputs_c = [circuit_fn(x, trained_params_clustering) FOR x IN X_train WHERE y_train == c]
-        centroid = MEAN(outputs_c)
-        quantum_labels[c] = NORMALIZE_VECTOR(centroid)
- 
+        outputs_c = [circuit_fn(x, trained_params_clustering) FOR x IN cluster_samples[c]]
+        quantum_labels[c], n_excl, prenorm, is_deg = CLASS_CENTROID_MORE(outputs_c)
+        label_diagnostics[c] = {
+            "n_samples": LENGTH(outputs_c),
+            "n_degenerate_samples_excluded": n_excl,
+            "prenorm": prenorm,
+            "degenerate": is_deg
+        }
+
     SAVE(quantum_labels, run_dir + "/artifacts/quantum_labels.json")
+    SAVE_JSON({
+        "centroid_rule": config.centroid_rule,
+        "centroid_source": config.centroid_source,
+        "eps_norm": config.eps_norm,
+        "per_class": label_diagnostics,
+        "degenerate_quantum_label": ANY(d.degenerate FOR d IN label_diagnostics.values())
+    }, run_dir + "/artifacts/quantum_label_diagnostics.json")
+    # Label degenerate TIDAK menghentikan run (hasil tetap deterministik: jarak ke
+    # label itu selalu 1.0), tetapi flag ini masuk manifest dan diperiksa di Gate D.
     RETURN quantum_labels
 ```
  
@@ -1960,8 +2131,9 @@ selector deterministik Jalur B (G0-02, §10.2–10.3); fungsi ini sendiri tidak
 tahu dan tidak perlu tahu sumbernya.
 
 Karena `result.x` selalu identik dengan salah satu titik yang dievaluasi
-(`final_point_eval_id`, lihat §5), centroid `quantum_labels` sama persis dengan
-centroid TRAIN pada baris `clustering_log.jsonl` dengan `eval_id` tersebut. Metrik
+(`final_point_eval_id`, lihat §5), dan §5 serta §6 memakai sampel (`pair_manifest.json`)
+dan fungsi (`CLASS_CENTROID_MORE`) yang sama, centroid `quantum_labels` sama persis dengan
+centroid sampel clustering pada baris `clustering_log.jsonl` dengan `eval_id` tersebut. Metrik
 clustering per run di workbook (`01_Run_Summary`) karena itu dibaca dari baris
 `final_point_eval_id`, bukan dari baris terakhir log.
  
@@ -2003,8 +2175,10 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         t_eval_start = MONOTONIC_TIME()
  
         train_losses = []
+        n_degenerate_train_outputs = 0
         FOR each (x, c) IN ZIP(X_train, y_train):
             v = circuit_fn(x, theta)
+            n_degenerate_train_outputs += (1 IF IS_DEGENERATE(v, config.eps_norm) ELSE 0)
             train_losses.APPEND(COSINE_DISTANCE(v, quantum_labels[c]))
         train_loss = MEAN(train_losses)
  
@@ -2014,11 +2188,13 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         val_losses = []
         correct_val = 0
         margins_val = []
+        n_degenerate_val_outputs = 0
         FOR each (x, c) IN ZIP(X_val, y_val):
             v = circuit_fn(x, theta)
+            n_degenerate_val_outputs += (1 IF IS_DEGENERATE(v, config.eps_norm) ELSE 0)
             distances = { k: COSINE_DISTANCE(v, quantum_labels[k]) FOR k IN config.classes }
             val_losses.APPEND(distances[c])
-            IF ARGMIN(distances) == c:
+            IF ARGMIN_CLASS(distances, config.classes) == c:
                 correct_val += 1
             margins_val.APPEND(MIN(distances[k] FOR k IN config.classes IF k != c) - distances[c])
         val_loss = MEAN(val_losses)
@@ -2039,6 +2215,8 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
             "val_loss": val_loss,
             "pseudo_accuracy_val": pseudo_accuracy_val,   # pasif; tidak dibaca COBYLA
             "avg_margin_val": avg_margin_val,             # pasif; tidak dibaca COBYLA
+            "n_degenerate_train_outputs": n_degenerate_train_outputs,   # G2-04
+            "n_degenerate_val_outputs": n_degenerate_val_outputs,       # G2-04
             "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start
         }
         APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))
@@ -2135,10 +2313,12 @@ pada kriteria penerimaan G0-01.
 FUNCTION FINAL_EVALUATION(circuit_fn, trained_params_final, quantum_labels, X_test, y_test, config):
  
     y_pred = []
+    n_degenerate_test_outputs = 0
     FOR each x IN X_test:
         v = circuit_fn(x, trained_params_final)
+        n_degenerate_test_outputs += (1 IF IS_DEGENERATE(v, config.eps_norm) ELSE 0)
         distances = { c: COSINE_DISTANCE(v, quantum_labels[c]) FOR c IN config.classes }
-        y_pred.APPEND(ARGMIN(distances))
+        y_pred.APPEND(ARGMIN_CLASS(distances, config.classes))
  
     accuracy         = ACCURACY_SCORE(y_test, y_pred)
     precision        = PRECISION_SCORE(y_test, y_pred, average="macro")
@@ -2148,7 +2328,8 @@ FUNCTION FINAL_EVALUATION(circuit_fn, trained_params_final, quantum_labels, X_te
  
     metrics = {
         "accuracy": accuracy, "precision": precision,
-        "recall": recall, "f1_score": f1
+        "recall": recall, "f1_score": f1,
+        "n_degenerate_test_outputs": n_degenerate_test_outputs   # G2-04; diagnostik
     }
  
     SAVE(metrics,          run_dir + "/logs/metrics_final.json")
@@ -2197,7 +2378,8 @@ FUNCTION MAIN(config):
     )
 
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
-        circuit_fn, params_after_clustering, X_train, y_train, config
+        circuit_fn, params_after_clustering, X_train,
+        LOAD_JSON(config.run_dir + "/artifacts/pair_manifest.json"), config
     )
 
     params_final = SUPERVISED_LOOP(
@@ -2243,6 +2425,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "clustering_optimizer_result": "logs/clustering_optimizer_result.json",
 
         "quantum_labels": "artifacts/quantum_labels.json",
+        "quantum_label_diagnostics": "artifacts/quantum_label_diagnostics.json",
 
         "supervised_params_bin": "artifacts/supervised_params.bin",
         "supervised_params_final": "artifacts/supervised_params_final.npy",
@@ -2314,6 +2497,10 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "split_manifest": config.split_manifest_path,
         "n_cluster_pair_samples": config.n_cluster_pair_samples,
         "active_dim_threshold": config.active_dim_threshold,
+        "eps_norm": config.eps_norm,                          # G2-04
+        "centroid_rule": config.centroid_rule,                # G2-07
+        "centroid_source": config.centroid_source,            # G2-07
+        "degenerate_quantum_label": LOAD_JSON(config.run_dir + "/artifacts/quantum_label_diagnostics.json").degenerate_quantum_label,
         "mnist_root": config.mnist_root,
         "mnist_download": config.mnist_download,
         "local_spreadsheet_path": config.local_spreadsheet_path,
@@ -2460,7 +2647,10 @@ mengaktifkan dimensi Y-odd.
 Domain objective evaluation yang boleh menjadi kandidat ditentukan oleh
 `ELIGIBLE_CLUSTERING_EVAL_IDS`. **Dikunci G1-06 (2026-09-27):** hanya baris
 dengan `phase == "optimization"`; seluruh `initial_simplex` termasuk `x0`
-dikecualikan. Jika domain kosong (budget tidak melewati simplex), selector
+dikecualikan. **Ditambah G2-04 (2026-10-01):** baris dengan centroid degenerate
+(`n_degenerate_centroids_train > 0` atau `n_degenerate_centroids_val > 0`) juga
+dikecualikan, karena fallback jarak 1.0 dapat menggelembungkan `min_separation_val`
+(kriteria kedua selector) pada centroid yang sebenarnya kolaps. Jika domain kosong (budget tidak melewati simplex), selector
 menolak run tersebut.
 
 ```
@@ -2469,7 +2659,9 @@ FUNCTION ELIGIBLE_CLUSTERING_EVAL_IDS(log_rows, source_clustering_result):
     eligible = []
     FOR each row IN log_rows:
         ASSERT row.phase == OBJECTIVE_PHASE(row.eval_id, n_params)
-        IF row.phase == "optimization":
+        IF row.phase == "optimization"
+           AND row.n_degenerate_centroids_train == 0
+           AND row.n_degenerate_centroids_val == 0:          # G2-04
             eligible.APPEND(row.eval_id)
     RETURN eligible
 ```
@@ -2592,7 +2784,10 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         cobyla_rhobeg          = source_manifest.cobyla_rhobeg,
         seed                   = source_manifest.seed,
         run_mode               = source_manifest.run_mode,
-        n_cluster_pair_samples = source_manifest.n_cluster_pair_samples
+        n_cluster_pair_samples = source_manifest.n_cluster_pair_samples,
+        eps_norm               = source_manifest.eps_norm,          # G2-04
+        centroid_rule          = source_manifest.centroid_rule,     # G2-07
+        centroid_source        = source_manifest.centroid_source    # G2-07
     )
 
     selected_eval_id = SELECT_CLUSTERING_CHECKPOINT_DETERMINISTIC(
@@ -2639,8 +2834,10 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         record_size = record_size
     )
 
+    # G2-07: sampel centroid diambil dari pair_manifest.json RUN SUMBER.
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
-        circuit_fn, selected_theta, X_train_scaled, y_train, config
+        circuit_fn, selected_theta, X_train_scaled,
+        LOAD_JSON(source_run_dir + "/artifacts/pair_manifest.json"), config
     )
 
     trained_params_final = SUPERVISED_LOOP(
@@ -2700,6 +2897,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
         "total_runtime_sec": MONOTONIC_TIME() - config.run_start_time,
         "artifact_paths": {
             "quantum_labels": "artifacts/quantum_labels.json",
+            "quantum_label_diagnostics": "artifacts/quantum_label_diagnostics.json",
             "supervised_params_bin": "artifacts/supervised_params.bin",
             "supervised_params_final": "artifacts/supervised_params_final.npy",
             "supervised_params_best_observed": "artifacts/supervised_params_best_observed.npy",
@@ -3226,7 +3424,7 @@ boleh ditarik dari baseline ini.
  
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
-1. **Overhead langkah (b) dan (c)** di `objective_clustering` — menghitung ulang output SEMUA data train (untuk centroid sementara) di **setiap** panggilan objective bisa lumayan berat sekarang `n_train_per_class` sudah dikunci ke 1000 (naik 10× dari pilot 100). Ini diukur pada pilot konvergensi §1.1 (waktu per objective evaluation dicatat per run) sebelum `max_nfev` final (G1-01) dikunci, supaya total waktu 330 unique confirmatory executions (240 primary + 90 ablation) bisa diproyeksikan realistis.
+1. **Overhead langkah (b) dan (c)** di `objective_clustering` — sejak G2-07 (2026-10-01) centroid sementara (b) hanya memakai 5 sampel clustering/kelas (sampel yang sama dengan pair loss), sehingga beban per objective evaluation didominasi monitoring validation (c) sebanyak `100 × K` eksekusi sirkuit; sebelumnya (b) menghitung ulang output seluruh `1000 × K` sampel train. Ini diukur pada pilot konvergensi §1.1 (waktu per objective evaluation dicatat per run) sebelum `max_nfev` final (G1-01) dikunci, supaya total waktu 330 unique confirmatory executions (240 primary + 90 ablation) bisa diproyeksikan realistis.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_eval_id` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.

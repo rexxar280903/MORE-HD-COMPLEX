@@ -96,7 +96,7 @@ A/D dan B/C memakai split serta pair manifest yang sama pada cell yang berpasang
 ### Pipeline Dua Fase
 
 1. **Clustering (unsupervised)** — mengikuti konsep pairing MORE: tepat 5 sampel TRAIN per kelas dipilih secara deterministik tanpa replacement, lalu seluruh unordered unique pairs (`i < j`) digunakan sekali tanpa balancing/reweighting. Pair set dibekukan sebelum COBYLA dan disimpan melalui `pair_manifest.json` + `pair_stats.json`. COBYLA meminimalkan `train_loss` berbasis cosine distance berbobot matriks korelasi antar-kelas; monitoring memakai validation secara pasif dan official test tidak diakses selama optimasi.
-2. **Supervised** — fine-tuning terhadap label kuantum (centroid ternormalisasi) hasil fase clustering. Optimasi menggunakan train; monitoring selama pengembangan menggunakan validation. Official test hanya dipanggil sekali melalui `FINAL_EVALUATION` setelah seluruh keputusan run dibekukan.
+2. **Supervised** — fine-tuning terhadap label kuantum hasil fase clustering. Label kuantum dihitung seperti MORE asli: output tiap sampel dinormalisasi, diambil median per komponen, lalu dinormalisasi lagi, dari 5 sampel clustering per kelas. Optimasi menggunakan train; monitoring selama pengembangan menggunakan validation. Official test hanya dipanggil sekali melalui `FINAL_EVALUATION` setelah seluruh keputusan run dibekukan.
 
 Tersedia dua jalur eksekusi:
 - **Jalur A (otomatis)** — memakai `result.x` sebagai **final point resmi COBYLA**; `best_observed_point` dicatat terpisah dan tidak diasumsikan sama dengan `result.x`.
