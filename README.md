@@ -3,11 +3,11 @@
 <!-- RESEARCH_PROGRESS_START -->
 ## Research Progress
 
-![Research Progress](https://img.shields.io/badge/Research%20Progress-31.4%25-blue)
+![Research Progress](https://img.shields.io/badge/Research%20Progress-32.7%25-blue)
 
-**Current research readiness: 31.4%**
+**Current research readiness: 32.7%**
 
-`██████░░░░░░░░░░░░░░ 31.4%`
+`███████░░░░░░░░░░░░░ 32.7%`
 
 Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot:
 `CLOSED = 100%`, `READY FOR VERIFICATION = 75%`, `IN PROGRESS = 50%`, `PILOT ONLY = 25%`, dan `BLOCKED = 0%`.
@@ -29,9 +29,10 @@ Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot
 | 2026-09-27 | [`26b5fd2`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/26b5fd29fc15eb3298367a7507587bd35f16697c) | 29.6% | 0.0 pp | docs: consistency audit — smoke budget, pilot scope, workbook schema map |
 | 2026-10-01 | [`cdd7edc`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/cdd7edcfe209ccd358afb70a7734d43fbe6cef63) | 29.6% | 0.0 pp | docs(sim): kunci backend simulasi statevector analitik (G4-01 sebagian, prasyarat G2-04) |
 | 2026-10-01 | [`f71590b`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/f71590bf7ffb4df3a9c4705fbbdb5d6d74a2d934) | 31.4% | +1.8 pp | docs(gates): G2-04 zero-norm safety + G2-07 centroid mengikuti MORE |
-| 2026-10-01 | [`bba4657`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/bba46576330385c7c85cb7cb9e5fb508c117bc4d) | **31.4%** | **0.0 pp** | docs(gates): G1-03 mengikuti paper MORE untuk jumlah pasangan clustering |
+| 2026-10-01 | [`bba4657`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/bba46576330385c7c85cb7cb9e5fb508c117bc4d) | 31.4% | 0.0 pp | docs(gates): G1-03 mengikuti paper MORE untuk jumlah pasangan clustering |
+| 2026-10-01 | [`58b8380`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/58b838090c8190a75fc4ec28329cce8a2f327f58) | **32.7%** | **+1.3 pp** | docs(gates): G3-05 caching per sampel unik + monitoring validation FULL_VAL |
 
-**Trend terbaru:** `24.3% → 24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4%`
+**Trend terbaru:** `24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4% → 32.7%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
@@ -129,10 +130,10 @@ Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi 
 | G0 | Validitas data & evaluasi | 4 | 2 | 0 | 2 | 0 | 0 | **75.0%** |
 | G1 | Optimasi & desain eksperimen | 11 | 0 | 1 | 8 | 1 | 1 | **45.5%** |
 | G2 | Preprocessing & definisi numerik | 7 | 0 | 0 | 5 | 0 | 2 | **35.7%** |
-| G3 | Artefak & spreadsheet | 7 | 0 | 1 | 1 | 0 | 5 | **17.9%** |
+| G3 | Artefak & spreadsheet | 7 | 0 | 1 | 2 | 0 | 4 | **25.0%** |
 | G4 | Reproducibility & verifikasi sirkuit | 4 | 0 | 0 | 0 | 0 | 4 | **0.0%** |
 | D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 6 | 0 | 0 | 1 | 0 | 5 | **8.3%** |
-| **Total** |  | **39** | **2** | **2** | **17** | **1** | **17** | **31.4%** |
+| **Total** |  | **39** | **2** | **2** | **18** | **1** | **16** | **32.7%** |
 
 \* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `READY FOR VERIFICATION=75%`, `IN PROGRESS=50%`, `PILOT ONLY=25%`, dan `BLOCKED=0%`.
 <!-- READINESS_SUMMARY_END -->

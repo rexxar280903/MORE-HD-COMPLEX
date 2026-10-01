@@ -110,5 +110,13 @@
     "delta_pp": 0.0,
     "items": 39,
     "summary": "docs(gates): G1-03 mengikuti paper MORE untuk jumlah pasangan clustering"
+  },
+  {
+    "date": "2026-10-01",
+    "commit": "58b838090c8190a75fc4ec28329cce8a2f327f58",
+    "progress": 32.7,
+    "delta_pp": 1.3,
+    "items": 39,
+    "summary": "docs(gates): G3-05 caching per sampel unik + monitoring validation FULL_VAL"
   }
 ]
