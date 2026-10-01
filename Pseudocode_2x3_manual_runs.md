@@ -194,11 +194,28 @@ observable analitik dalam satu eksekusi per sampel sudah dikunci di G4-01.
 Set monitoring ditulis ke `artifacts/val_monitor_manifest.json` dan diwarisi
 Jalur B (§10.4) serta ablation (§11).
 
+**Update (G2-05 + G2-06, sesi 2026-10-01 — diagnostik Y-odd dan outcome pemisahan):**
+(1) **G2-05:** aktivasi Y-odd diukur dari **output per sampel**, bukan centroid
+(§4.3.2). Per objective evaluation clustering dicatat `yodd_norm_fraction` (rata-rata
+per sampel `‖v_Yodd‖²/‖v‖²`) dari cache 5K sampel clustering, tanpa eksekusi sirkuit
+tambahan. Setelah supervised, `STRUCTURAL_DIAGNOSTICS` menjalankan satu pass pada
+seluruh validation untuk `theta` akhir clustering dan supervised, lalu menyimpan
+statistik per observable (`mean_abs`, `max_abs`, `std_abs`, `norm_fraction`,
+`is_active`) dan tabel sensitivitas threshold `{1e-10, 1e-8, 1e-6, 1e-4, 1e-2}` ke
+`artifacts/structural_diagnostics.json`. `active_dim_threshold = 1e-6` tetap primer;
+`active_dimensions` berbasis centroid tetap dicatat. Untuk A/B nilai Y-odd di atas
+noise `float64` dianggap bug. (2) **G2-06:** outcome primer tetap `min_separation_ratio`
+dari quantum labels (konstruk "Min. label distance" Tabel I MORE, dinormalisasi
+simplex). `min_separation` mentah dilaporkan berdampingan untuk perbandingan
+deskriptif dengan Tabel I MORE. `min_separation_val_ratio` (centroid validation)
+ditambahkan sebagai outcome sekunder; tidak masuk selector Jalur B. Batas
+`1 + 1/(K-1)` adalah acuan normalisasi, bukan target yang pasti tercapai (D-06).
+
 **Update (pencatatan waktu, sesi 2026-10-01 — §9.4 dan §1.2.1):**
 Runtime run produksi kini dicatat di empat tingkat: per objective evaluation
 (`eval_runtime_sec` + `eval_cpu_sec` baru), per tahap (`logs/stage_timing.jsonl`:
 `data_pipeline`, `setup`, `clustering_loop`, `quantum_label_extraction`,
-`supervised_loop`, `final_evaluation`), awal run (`logs/run_started.json`: jam mulai,
+`supervised_loop`, `structural_diagnostics`, `final_evaluation`), awal run (`logs/run_started.json`: jam mulai,
 host, `n_parallel_declared`, load average, `thread_env`; tetap ada bila run crash),
 dan akhir run (`config.json` → `timing`). Berlaku identik untuk Jalur A, Jalur B
 (tahap `load_artifacts` menggantikan tiga tahap awal), dan ablation, yang
@@ -1750,7 +1767,106 @@ FUNCTION CLASS_CENTROID_MORE(outputs_c, eps_norm=config.eps_norm):
 Catatan G2-05: median per komponen dapat membuat satu komponen centroid bernilai ~0
 bila lebih dari separuh sampel bernilai ~0 pada dimensi itu. Karena itu
 `active_dimensions` yang dihitung dari centroid tidak boleh dijadikan satu-satunya
-ukuran aktivasi Y-odd; ukuran berbasis output per sampel diputuskan di G2-05.
+ukuran aktivasi Y-odd; ukuran berbasis output per sampel dikunci di §4.3.2.
+
+#### 4.3.2 Diagnostik aktivasi Y-odd dan sensitivitas threshold (G2-05, DIKUNCI 2026-10-01)
+
+Semua ukuran di bagian ini dihitung dari **output per sampel**, bukan dari centroid.
+`active_dimensions` berbasis centroid (§5) tetap dicatat apa adanya; ukuran di sini
+melengkapinya. Indeks mengikuti urutan observable yang dikunci di
+`MEASURE_15_OBSERVABLES`:
+
+```
+OBSERVABLE_LABELS = [IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ]
+YODD_LABELS       = [IY, XY, YI, YX, YZ, ZY]      # jumlah faktor Y ganjil
+YODD_INDICES      = [1, 5, 7, 8, 10, 13]          # 0-based; YY (indeks 9) BUKAN Y-odd
+ACTIVITY_THRESHOLDS = [1e-10, 1e-8, 1e-6, 1e-4, 1e-2]   # sensitivitas; primer = active_dim_threshold (1e-6)
+
+
+FUNCTION YODD_NORM_FRACTION(outputs, eps_norm):
+    # Rata-rata per sampel dari ||v_Yodd||^2 / ||v||^2. Sampel degenerate (||v|| < eps_norm)
+    # tidak punya arah sehingga dikeluarkan dan dihitung.
+    fractions = []
+    n_excluded = 0
+    FOR each v IN outputs:
+        n2 = SUM(v[k]^2 FOR k IN 0..14)
+        IF SQRT(n2) < eps_norm:
+            n_excluded += 1
+            CONTINUE
+        fractions.APPEND( SUM(v[k]^2 FOR k IN YODD_INDICES) / n2 )
+    IF LENGTH(fractions) == 0:
+        RETURN NULL, n_excluded
+    RETURN MEAN(fractions), n_excluded
+
+
+FUNCTION OBSERVABLE_ACTIVITY(outputs, eps_norm, primary_threshold):
+    nondeg = [v FOR v IN outputs IF L2_NORM(v) >= eps_norm]
+    per_observable = []
+    FOR k IN 0..14:
+        a = [ABS(v[k]) FOR v IN outputs]
+        per_observable.APPEND({
+            "observable": OBSERVABLE_LABELS[k],
+            "is_yodd": k IN YODD_INDICES,
+            "mean_abs": MEAN(a), "max_abs": MAX(a), "std_abs": STD(a),
+            "norm_fraction": MEAN(v[k]^2 / L2_NORM(v)^2 FOR v IN nondeg),   # NULL bila nondeg kosong
+            "is_active": MAX(a) > primary_threshold
+        })
+    sensitivity = []
+    FOR tau IN ACTIVITY_THRESHOLDS:
+        sensitivity.APPEND({
+            "threshold": tau,
+            "n_active": COUNT(p FOR p IN per_observable IF p.max_abs > tau),
+            "n_active_yodd": COUNT(p FOR p IN per_observable IF p.is_yodd AND p.max_abs > tau)
+        })
+    yfrac, n_excl = YODD_NORM_FRACTION(outputs, eps_norm)
+    RETURN {
+        "n_samples": LENGTH(outputs),
+        "n_degenerate_excluded": n_excl,
+        "yodd_norm_fraction": yfrac,
+        "yodd_max_abs": MAX(p.max_abs FOR p IN per_observable IF p.is_yodd),
+        "n_active_primary": COUNT(p FOR p IN per_observable IF p.is_active),
+        "per_observable": per_observable,
+        "threshold_sensitivity": sensitivity
+    }
+
+
+FUNCTION STRUCTURAL_DIAGNOSTICS(circuit_fn, checkpoints, X_val, y_val, config):
+    # Pass diagnostik SATU KALI setelah supervised selesai, pada SELURUH validation
+    # (bukan set monitoring G3-05b). checkpoints = {nama: theta}. Tidak membaca test.
+    result = { "source": "validation_full", "eps_norm": config.eps_norm,
+               "primary_threshold": config.active_dim_threshold,
+               "thresholds": ACTIVITY_THRESHOLDS, "checkpoints": {} }
+    FOR each (name, theta) IN checkpoints:
+        outputs = [circuit_fn(x, theta) FOR x IN X_val]
+        result.checkpoints[name] = OBSERVABLE_ACTIVITY(
+            outputs, config.eps_norm, config.active_dim_threshold
+        )
+    SAVE_ATOMIC_JSON(result, config.run_dir + "/artifacts/structural_diagnostics.json")
+    RETURN result
+```
+
+Titik yang didiagnosis: Jalur A dan ablation = `clustering_final` (`result.x`
+clustering, yang membentuk quantum labels) dan `supervised_final` (`result.x`
+supervised, classifier final); Jalur B = `clustering_selected` dan
+`supervised_final`. Biaya: 2 × `n_val_per_class` × K eksekusi sirkuit per run
+(K=10: 2.000).
+
+Interpretasi yang dikunci:
+
+- Untuk A=MORE-HD dan B=MORE-HD-60P (keluarga real), `yodd_norm_fraction` dan
+  `yodd_max_abs` harus berada di tingkat noise `float64` (~1e-30 untuk fraksi kuadrat,
+  ~1e-16 untuk nilai absolut). Nilai yang jauh di atas itu dianggap **bug** (sirkuit
+  atau simulator), bukan temuan; run ditandai di laporan Gate D dan diselidiki.
+- Untuk A dan B, `n_active_yodd` harus 0 pada ambang `1e-10` sampai `1e-2`. Bila
+  hitungan berubah antar-ambang di rentang itu, threshold primer dinyatakan tidak
+  stabil dan dilaporkan sebagai keterbatasan.
+- Klaim "RZ mengaktifkan subruang Y-odd" bersandar pada `yodd_norm_fraction`
+  (kontinu), bukan pada hitungan dimensi aktif saja.
+
+Unit test wajib (bersama G4-03): `YODD_INDICES` cocok dengan label pada
+`MEASURE_15_OBSERVABLES`; fixture MORE-HD acak memberi `yodd_norm_fraction < 1e-20`;
+fixture MORE-HD-C dengan RZ non-nol memberi `yodd_norm_fraction > 1e-6`; fraksi berada
+di `[0, 1]`; sampel degenerate dikeluarkan dan dihitung.
  
 ### 4.4 Cadangan Riset Lanjutan — V2 & V3 (Belum Aktif, Tidak Dipanggil)
  
@@ -2113,6 +2229,10 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             COSINE_DISTANCE(val_centroids[a], val_centroids[b])
             FOR all pairs (a, b) IN config.classes WHERE a != b
         )
+        # G2-06: versi ternormalisasi simplex dari centroid validation (outcome sekunder).
+        # Dalam satu run K tetap, sehingga peringkatnya identik dengan min_separation_val;
+        # TIDAK menggantikan kriteria selector Jalur B.
+        min_separation_val_ratio = min_separation_val / (1 + 1 / (LENGTH(config.classes) - 1))
 
         closest_class_i, closest_class_j = ARGMIN_PAIR(
             COSINE_DISTANCE(temp_centroids[a], temp_centroids[b])
@@ -2134,6 +2254,9 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
                 FOR c IN config.classes
             )
         )
+        # G2-05: fraksi norm Y-odd per sampel (§4.3.2) dari cache 5K sampel clustering;
+        # tanpa eksekusi sirkuit tambahan.
+        yodd_norm_fraction, _ = YODD_NORM_FRACTION(VALUES(cluster_cache), config.eps_norm)
 
         # Record ke-eval_id di binary log berisi theta yang benar-benar dievaluasi.
         APPEND_PARAM_RECORD(run_dir + "/artifacts/clustering_params.bin", theta)
@@ -2151,12 +2274,14 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             "avg_margin_val": avg_margin_val,
             "mean_true_distance_val": mean_true_distance_val,
             "min_separation_val": min_separation_val,
+            "min_separation_val_ratio": min_separation_val_ratio,   # G2-06, sekunder
             "min_separation": min_separation,
             "min_separation_ratio": min_separation_ratio,
             "closest_class_i": closest_class_i,
             "closest_class_j": closest_class_j,
             "correlation_consistency": correlation_consistency,
             "active_dimensions": active_dimensions,
+            "yodd_norm_fraction": yodd_norm_fraction,              # G2-05, sampel clustering
             # G2-04: hitungan fallback zero-norm per objective evaluation
             "n_degenerate_cluster_outputs": n_degenerate_cluster_outputs,
             "n_degenerate_val_outputs": n_degenerate_val_outputs,
@@ -2251,10 +2376,10 @@ FUNCTION FIND_EVAL_ID_OF_THETA(params_bin_path, theta, n_evals):
  
 ### Penjelasan Metrik Evaluasi pada Clustering Loop
 
-Sembilan metrik pada `clustering_log.jsonl` dicatat **per objective evaluation
-(`eval_id`)**, bukan per iterasi optimizer. Dari sembilan metrik tersebut,
+Sebelas metrik pada `clustering_log.jsonl` dicatat **per objective evaluation
+(`eval_id`)**, bukan per iterasi optimizer. Dari sebelas metrik tersebut,
 hanya `train_loss` yang secara langsung digunakan COBYLA sebagai fungsi
-objektif. Delapan metrik lainnya merupakan **monitoring pasif** untuk mengamati
+objektif. Sepuluh metrik lainnya merupakan **monitoring pasif** untuk mengamati
 kualitas representasi clustering pada data train/validation tanpa memengaruhi
 langkah optimasi COBYLA. Selain metrik, setiap baris juga menyimpan `phase`,
 pasangan kelas terdekat (`closest_class_i`, `closest_class_j`; berguna untuk
@@ -2272,6 +2397,8 @@ G1-09/G1-11, misalnya apakah pasangan terdekat HU/ZERNIKE di K=10 adalah 6–9),
 | `min_separation_ratio` | `min_separation` dibagi batas optimum simplex beraturan `1 + 1/(K-1)`. | 0–1 (1 = pemisahan optimal untuk K kelas). | ↑ **Semakin besar semakin baik** | Membuat `min_separation` sebanding lintas K. Pada `final_point_eval_id`, nilainya sama dengan rasio pada `quantum_labels`. Definisi final sebagai outcome primer tetap dikunci di G2-06. |
 | `correlation_consistency` | Konsistensi urutan jarak centroid kelas (5 sampel clustering/kelas) terhadap matriks korelasi `S`. | Spearman -1 sampai +1. | ↑ **Semakin mendekati +1 semakin baik** | Mengukur kesesuaian struktur jarak dengan dissimilarity antarkelas. Metrik diagnostik, bukan kriteria pemilihan checkpoint. |
 | `active_dimensions` | Jumlah dimensi observable aktif pada centroid. | Integer 0–15. | ↑ **Semakin besar umumnya semakin baik untuk pemanfaatan ruang observable** | Dipakai untuk diagnosis structural zeros. **Tidak boleh** dipakai untuk memilih checkpoint Jalur B karena dapat secara sistematis menguntungkan MORE-HD-C terhadap MORE-HD. |
+| `min_separation_val_ratio` | `min_separation_val` dibagi batas simplex `1 + 1/(K-1)` (G2-06). | 0–1. | ↑ **Semakin besar semakin baik** | Outcome **sekunder**: apakah pemisahan label juga tercermin pada centroid validation (data yang tidak membentuk label). Peringkat dalam satu run identik dengan `min_separation_val`; tidak masuk selector Jalur B. |
+| `yodd_norm_fraction` | Rata-rata per sampel `‖v_Yodd‖² / ‖v‖²` pada output 5K sampel clustering (G2-05, §4.3.2). | 0–1. | Diagnostik, bukan arah "lebih baik" | MORE-HD (A/B) harus ~0 (structural zero); nilai > 0 pada MORE-HD-C menunjukkan subruang Y-odd terpakai. **Tidak boleh** dipakai memilih checkpoint. |
 
 Kolom diagnostik G2-04 (bukan metrik kualitas): `n_degenerate_cluster_outputs`,
 `n_degenerate_val_outputs`, `n_degenerate_centroids_train`, `n_degenerate_centroids_val`
@@ -2292,6 +2419,8 @@ min_separation              -> lebih besar lebih baik (diagnostik)
 min_separation_ratio        -> lebih besar lebih baik (0-1; diagnostik per eval)
 correlation_consistency     -> lebih besar / lebih dekat ke +1 lebih baik (diagnostik)
 active_dimensions           -> lebih besar umumnya lebih baik; DIAGNOSTIK SAJA
+min_separation_val_ratio    -> lebih besar lebih baik (0-1; outcome sekunder G2-06)
+yodd_norm_fraction          -> DIAGNOSTIK SAJA (A/B harus ~0; G2-05)
 ```
 
 Untuk G0-02, selector Jalur B tidak menggunakan weighted score. Pemilihan
@@ -2299,8 +2428,9 @@ dilakukan secara **lexicographic deterministik** pada objective evaluation yang
 eligible: (1) maksimum `pseudo_accuracy_val`; (2) jika tie, maksimum
 `min_separation_val`; (3) jika tie, minimum `mean_true_distance_val`; (4)
 jika tie, minimum `train_loss`; dan (5) jika masih tie, pilih `eval_id`
-paling awal. `active_dimensions`, `correlation_consistency`, dan
-`avg_margin_val` tidak memengaruhi keputusan selector.
+paling awal. `active_dimensions`, `correlation_consistency`,
+`avg_margin_val`, `min_separation_val_ratio`, dan `yodd_norm_fraction` tidak
+memengaruhi keputusan selector.
 
 Domain kandidat dikunci oleh G1-06 (2026-09-27) dan G2-04 (2026-10-01): hanya
 objective evaluation dengan `phase == "optimization"` **dan** tanpa centroid
@@ -2644,6 +2774,15 @@ FUNCTION MAIN(config):
     )
     END_STAGE(config, "supervised_loop")
 
+    # G2-05: pass diagnostik Y-odd pada SELURUH validation; tidak membaca test.
+    BEGIN_STAGE(config, "structural_diagnostics")
+    STRUCTURAL_DIAGNOSTICS(
+        circuit_fn,
+        { "clustering_final": params_after_clustering, "supervised_final": params_final },
+        X_val, y_val, config
+    )
+    END_STAGE(config, "structural_diagnostics")
+
     BEGIN_STAGE(config, "final_evaluation")
     metrics, confusion_matrix = FINAL_EVALUATION(
         circuit_fn, params_final, quantum_labels, X_test, y_test, config
@@ -2673,6 +2812,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "val_monitor_manifest": "artifacts/val_monitor_manifest.json",
         "run_started": "logs/run_started.json",
         "stage_timing": "logs/stage_timing.jsonl",
+        "structural_diagnostics": "artifacts/structural_diagnostics.json",   # G2-05
         "X_test_scaled": "artifacts/X_test_scaled.npy",
         "y_test": "artifacts/y_test.npy",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
@@ -2890,8 +3030,9 @@ terkontrol §1.2.1. Lihat `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §4.5.
 
 Nama tahap dikunci: Jalur A dan ablation = `data_pipeline`, `setup`,
 `clustering_loop`, `quantum_label_extraction`, `supervised_loop`,
-`final_evaluation`; Jalur B = `load_artifacts`, `quantum_label_extraction`,
-`supervised_loop`, `final_evaluation`. Waktu sebelum tahap pertama (validasi config,
+`structural_diagnostics` (G2-05), `final_evaluation`; Jalur B = `load_artifacts`,
+`quantum_label_extraction`, `supervised_loop`, `structural_diagnostics`,
+`final_evaluation`. Waktu sebelum tahap pertama (validasi config,
 pembuatan folder, salinan spreadsheet) dan setelah tahap terakhir (penulisan
 manifest) termasuk `total_runtime_sec` tetapi tidak termasuk tahap mana pun.
 
@@ -3114,7 +3255,9 @@ FUNCTION SELECT_CLUSTERING_CHECKPOINT_DETERMINISTIC(source_run_dir):
         "diagnostics_excluded_from_selection": [
             "active_dimensions",
             "correlation_consistency",
-            "avg_margin_val"
+            "avg_margin_val",
+            "min_separation_val_ratio",     # G2-06
+            "yodd_norm_fraction"            # G2-05
         ]
     }
 
@@ -3250,6 +3393,14 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, n_parallel_declared):
     )
     END_STAGE(config, "supervised_loop")
 
+    BEGIN_STAGE(config, "structural_diagnostics")          # G2-05
+    STRUCTURAL_DIAGNOSTICS(
+        circuit_fn,
+        { "clustering_selected": selected_theta, "supervised_final": trained_params_final },
+        X_val_scaled, y_val, config
+    )
+    END_STAGE(config, "structural_diagnostics")
+
     BEGIN_STAGE(config, "final_evaluation")
     X_test_scaled = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
     y_test        = LOAD(source_run_dir + "/artifacts/y_test.npy")
@@ -3305,6 +3456,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
         "artifact_paths": {
             "quantum_labels": "artifacts/quantum_labels.json",
             "quantum_label_diagnostics": "artifacts/quantum_label_diagnostics.json",
+            "structural_diagnostics": "artifacts/structural_diagnostics.json",   # G2-05
             "supervised_params_bin": "artifacts/supervised_params.bin",
             "supervised_params_final": "artifacts/supervised_params_final.npy",
             "supervised_params_best_observed": "artifacts/supervised_params_best_observed.npy",
@@ -3530,8 +3682,9 @@ FUNCTION ABLATION_MAIN(config):
     X_val_mon, y_val_mon, val_monitor_positions = SELECT_VAL_MONITOR_SET(X_val, y_val, config)
     # §9.4: tahap dibungkus BEGIN_STAGE/END_STAGE dengan nama yang sama seperti
     # Jalur A (data_pipeline, setup, clustering_loop, quantum_label_extraction,
-    # supervised_loop, final_evaluation); log per evaluasi memuat eval_runtime_sec
-    # dan eval_cpu_sec.
+    # supervised_loop, structural_diagnostics, final_evaluation); log per evaluasi
+    # memuat eval_runtime_sec dan eval_cpu_sec. STRUCTURAL_DIAGNOSTICS (§4.3.2)
+    # dipanggil dengan checkpoint clustering_final dan supervised_final.
     RUN_STANDARD_TWO_STAGE_PIPELINE_WITH_EXISTING_SPLIT_AND_PAIRS(...)
     FINAL_EVALUATION(...)
     SAVE_ABLATION_MANIFEST(...)    # WAJIB memuat total_runtime_sec dan timing = RUN_TIMING_SUMMARY(config)
@@ -3842,7 +3995,7 @@ boleh ditarik dari baseline ini.
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
 1. **[DIKUNCI G3-05, sesi 2026-10-01] Overhead langkah (a)–(c)** di `objective_clustering` — output 5 sampel clustering/kelas dihitung sekali per evaluasi lewat `CLUSTER_OUTPUT_CACHE` (pair loss dan centroid sementara membaca cache), sehingga clustering K=10 turun dari 13.450 (sebelum G2-07) dan 3.500 (setelah G2-07 saja) ke 1.050 eksekusi sirkuit per evaluasi. Monitoring validation memakai `FULL_VAL` secara default; fallback `STRATIFIED_FIXED_SUBSET` hanya bila pilot timing membuktikan tidak layak menurut kriteria yang ditulis sebelum pilot timing (§1.2). Waktu per objective evaluation tetap dicatat (`eval_runtime_sec`) untuk proyeksi 330 unique confirmatory executions sebelum `max_nfev` final (G1-01) dikunci. Beban terbesar per run kini objective supervised (seluruh `X_train`, 11.000 eksekusi per evaluasi di K=10), yang tidak diubah oleh G3-05.
-2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
+2. **[DIKUNCI G2-05, sesi 2026-10-01] Validasi `active_dim_threshold = 1e-6`** — tetap sebagai threshold primer. Hitungan dimensi aktif berbasis output per sampel juga dilaporkan pada `{1e-10, 1e-8, 1e-6, 1e-4, 1e-2}` (§4.3.2), sehingga kestabilan threshold terlihat tanpa memilih ulang angka setelah hasil keluar. Peninjauan ulang angka primer hanya boleh terjadi pada smoke test/pilot (sebelum run konfirmatori) dan wajib dicatat di gate G2-05; setelah itu angka beku.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_eval_id` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
 5. **Konsolidasi spreadsheet lokal ke master** belum diotomatisasi pada pseudocode ini. Primary track menghasilkan hingga 240 `run_result.xlsx`, sedangkan targeted ablation menambah 90 B/C `run_result.xlsx` dalam namespace terpisah. Konsolidasi akhir harus mempertahankan workbook primer dan workbook ablation sebagai dua sumber yang dapat di-join tanpa menduplikasi A/D.

@@ -1,6 +1,6 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.7  
+Version: 1.8  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
@@ -9,6 +9,7 @@ Consistency audit (smoke/pilot budget, workbook schema map, Jalur B sheet): 2026
 Quantum-label centroid rule (G2-07) and zero-norm safety (G2-04) frozen: 2026-10-01  
 Validation-monitoring set and per-evaluation caching (G3-05) frozen: 2026-10-01  
 Runtime reporting policy and circuit microbenchmark frozen: 2026-10-01  
+Y-odd activation diagnostics (G2-05) and separation outcome definitions (G2-06) frozen: 2026-10-01  
 Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
@@ -98,13 +99,17 @@ Claims about the computational cost of A, B, C, and D rely only on a controlled 
 
 ## 5. Primary outcomes
 
-The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, per-class metrics, confusion patterns, optimizer behavior, and gate/depth diagnostics are secondary outcomes. Runtime is a descriptive measure only (§4.5).
+The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, `min_separation_val_ratio`, per-class metrics, confusion patterns, optimizer behavior, and gate/depth diagnostics are secondary outcomes. Runtime is a descriptive measure only (§4.5).
 
 Official-test metrics are computed only after optimization, checkpoint selection, and all protocol decisions for that run are frozen.
 
 **Centroid and label definition (G2-07, frozen 2026-10-01).** Quantum labels, the per-evaluation class centroids behind `pseudo_accuracy_val`, `min_separation`, and `min_separation_ratio`, and the validation centroids behind `min_separation_val` all follow the original MORE implementation (`MORE_clustering.py::find_center`): each sample output is normalized to a unit vector, the component-wise median is taken, and the result is normalized again. As in MORE, class centroids and quantum labels are built from the five clustering samples per class recorded in `pair_manifest.json` (validation centroids use all validation samples of the class, because MORE has no validation-centroid metric). This deviates from FRD-09 (mean of raw outputs over all training samples, then normalization); results for architecture A are therefore not protocol-identical to FRD-09 and the paper must state this.
 
 **Zero-norm safety (G2-04, frozen 2026-10-01).** Cosine distance and normalization use `eps_norm = 1e-10`: a vector with norm below `eps_norm` has no direction, its cosine distance is 1.0, its normalization is the zero vector, and it is excluded from the median centroid. Non-finite outputs fail the run. Nearest-label ties resolve to the first class in ascending class order. For vectors with norm at least `eps_norm` these definitions are identical to MORE. Per-evaluation degeneracy counts and the run-level flag `degenerate_quantum_label` are recorded; runs with a degenerate quantum label remain in the confirmatory aggregation (the protocol is deterministic) but are listed in the Gate D data-quality report and discussed if present.
+
+**Separation outcome definition (G2-06, frozen 2026-10-01).** `min_separation_ratio` is the minimum pairwise cosine distance between the quantum labels (the class centroids built from the five clustering samples per class, read at `final_point_eval_id`) divided by the regular-simplex bound `1 + 1/(K-1)`. This is the construct MORE reports as "Min. label distance" (Wu et al., 2023, Table I), normalized so that it is comparable across K; MORE identifies crowded quantum labels as the failure mechanism at large K, which is the mechanism MORE-HD-C targets. The unnormalized `min_separation` is reported alongside the ratio so that values can be placed next to MORE Table I; that comparison is descriptive only, because MORE uses a three-observable readout and a different implementation. The simplex bound is a normalization reference, not an attainable target: expectation vectors of two readout qubits cannot point in arbitrary directions of the unit sphere, and the paper must not describe a ratio below 1 as a shortfall from an achievable optimum. `min_separation_val_ratio`, computed in the same way from validation-class centroids, is a secondary outcome that checks whether label separation is also reflected in data not used to form the labels. Within a run K is fixed, so it ranks evaluations identically to `min_separation_val`; it is not a Jalur B selection criterion.
+
+**Y-odd activation diagnostics (G2-05, frozen 2026-10-01).** Activation of the six Y-odd observables `[IY, XY, YI, YX, YZ, ZY]` is measured on per-sample outputs, not on centroids, because the component-wise median can zero a centroid component that is active in individual samples. The continuous measure is `yodd_norm_fraction`, the per-sample mean of `||v_Yodd||^2 / ||v||^2`; it is logged per clustering evaluation from the clustering samples and computed once per run on the full validation split at the final clustering and final supervised parameters, together with per-observable mean, maximum, and standard deviation of absolute values and per-observable norm fractions. The primary activity threshold stays `active_dim_threshold = 1e-6`; active counts are also reported at `{1e-10, 1e-8, 1e-6, 1e-4, 1e-2}`. For the real-valued models A and B these quantities must be at `float64` noise level; values above that are treated as implementation errors and listed in the Gate D data-quality report. The claim that RZ activates the Y-odd subspace rests on `yodd_norm_fraction`, not on active-dimension counts alone. These diagnostics, like the other secondary outcomes added here, are summarized with the five-seed descriptive statistics of §7 and as seed-matched differences; they are not part of the inferential families of §9.
 
 ## 6. Primary estimand
 
