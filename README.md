@@ -16,7 +16,6 @@ Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot
 
 | Tanggal | Commit acuan | Progress | Perubahan | Ringkasan |
 |---|---|---:|---:|---|
-| 2026-09-22 | [`5a26fdd`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/5a26fdd13d09123de634997b62e6bf75dfee840f) | 13.9% | — | Baseline readiness setelah protokol ukuran dataset dikunci. |
 | 2026-09-23 | [`34e51ec`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/34e51ecdbc049f296113fbfa282d688b93ceebbe) | 10.1% | -3.8 pp | Scope diperketat dengan penambahan 10 item readiness baru. |
 | 2026-09-26 | [`6f8c7c1`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6f8c7c1f04b9d29e00f36bb6aa603a8681fd601b) | 18.2% | +8.1 pp | Protokol multi-seed, analysis plan, workbook 240-run, dan logging objective mulai terkunci/terverifikasi. |
 | 2026-09-27 | [`5aeb1ca`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/5aeb1cabe3e55673b51b0cf09e4c0865ba79f2f4) | 20.9% | +2.7 pp | Protokol deterministic clustering pairs dan dokumentasi 240-run diselaraskan. |
@@ -30,9 +29,10 @@ Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot
 | 2026-10-01 | [`cdd7edc`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/cdd7edcfe209ccd358afb70a7734d43fbe6cef63) | 29.6% | 0.0 pp | docs(sim): kunci backend simulasi statevector analitik (G4-01 sebagian, prasyarat G2-04) |
 | 2026-10-01 | [`f71590b`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/f71590bf7ffb4df3a9c4705fbbdb5d6d74a2d934) | 31.4% | +1.8 pp | docs(gates): G2-04 zero-norm safety + G2-07 centroid mengikuti MORE |
 | 2026-10-01 | [`bba4657`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/bba46576330385c7c85cb7cb9e5fb508c117bc4d) | 31.4% | 0.0 pp | docs(gates): G1-03 mengikuti paper MORE untuk jumlah pasangan clustering |
-| 2026-10-01 | [`58b8380`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/58b838090c8190a75fc4ec28329cce8a2f327f58) | **32.7%** | **+1.3 pp** | docs(gates): G3-05 caching per sampel unik + monitoring validation FULL_VAL |
+| 2026-10-01 | [`58b8380`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/58b838090c8190a75fc4ec28329cce8a2f327f58) | 32.7% | +1.3 pp | docs(gates): G3-05 caching per sampel unik + monitoring validation FULL_VAL |
+| 2026-10-01 | [`04f097d`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/04f097de9275f845cf7c8a0f60f06df58ddb5c35) | **32.7%** | **0.0 pp** | docs(runtime): pencatatan waktu 4 tingkat + runtime deskriptif + microbenchmark |
 
-**Trend terbaru:** `24.3% → 25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4% → 32.7%`
+**Trend terbaru:** `25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4% → 32.7% → 32.7%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
