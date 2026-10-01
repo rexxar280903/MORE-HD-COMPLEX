@@ -1,6 +1,6 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.6  
+Version: 1.7  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
@@ -8,6 +8,7 @@ Classical reference baselines and MORE reference policy (G1-10) frozen: 2026-09-
 Consistency audit (smoke/pilot budget, workbook schema map, Jalur B sheet): 2026-09-27  
 Quantum-label centroid rule (G2-07) and zero-norm safety (G2-04) frozen: 2026-10-01  
 Validation-monitoring set and per-evaluation caching (G3-05) frozen: 2026-10-01  
+Runtime reporting policy and circuit microbenchmark frozen: 2026-10-01  
 Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
@@ -73,7 +74,7 @@ Every run must save `pair_manifest.json` and `pair_stats.json`, including the ma
 
 For each `(seed, K, feature_method)` ablation cell, A/B/C/D must resolve to the same split manifest and the same pair manifest. Their manifest hashes are stored and checked before a four-model cell is admitted to analysis.
 
-Model B has six RY-only variational layers and therefore matches D in trainable parameter count (60), but not in circuit depth or repeated entangling-block count. B-versus-D is therefore an equal-trainable-parameter comparison rather than a claim that all circuit resources are matched. Trainable parameter count, fixed parameter count, variational depth, RY/RZ gate counts, CNOT count, entangling-block count, and runtime are recorded for every A/B/C/D model.
+Model B has six RY-only variational layers and therefore matches D in trainable parameter count (60), but not in circuit depth or repeated entangling-block count. B-versus-D is therefore an equal-trainable-parameter comparison rather than a claim that all circuit resources are matched. Trainable parameter count, fixed parameter count, variational depth, RY/RZ gate counts, CNOT count, entangling-block count, and runtime are recorded for every A/B/C/D model; runtime comparisons between models follow §4.5.
 
 ## 4.3 Optimizer-budget policy (G1-01/G1-06, frozen 2026-09-27)
 
@@ -89,9 +90,15 @@ Within each clustering objective evaluation, the circuit output of each of the 5
 
 All passive validation metrics in the clustering and supervised loops, including the Jalur B selector metrics (§12.1), are computed on the full validation split (`val_monitor_policy = FULL_VAL`). Computing passive metrics only at new `train_loss` records is not permitted, because it would silently shrink the Jalur B candidate domain. A fixed stratified subset (`STRATIFIED_FIXED_SUBSET`: the first `n_val_monitor_per_class` samples of each class in split-manifest order, hence paired across architectures and nested across K) may replace the full split only if the timing pilot shows that `FULL_VAL` is infeasible under a compute criterion written into Gate G3-05 before the timing pilot runs. That switch is global (all conditions, seeds, ablation runs, and Jalur B), and `n_val_monitor_per_class` is fixed before the convergence pilot. The subset never affects official-test evaluation, and classical baselines (§10.2) keep selecting `C` on the full validation split. The policy in force is recorded per run (`val_monitor_policy`, `n_val_monitor_per_class`, `val_monitor_manifest.json`) and reported in the methods.
 
+## 4.5 Runtime reporting and computational cost (frozen 2026-10-01)
+
+Production-run runtime (Jalur A, targeted ablation, and Jalur B) is recorded at four levels: per objective evaluation (wall-clock and process CPU time), per pipeline stage, at run start (start time, host, declared number of concurrent runs, load average, thread environment), and at run end. These values are reported descriptively only (mean, median, and IQR per condition) and are used for auditing and workload projection. No paired runtime Delta, confidence interval, statistical test, or claim that one architecture is faster than another is derived from production runs, because their wall-clock times depend on factors outside the architecture: the number of concurrent runs (intentionally not fixed), machine load, throttling, and execution order.
+
+Claims about the computational cost of A, B, C, and D rely only on a controlled microbenchmark (`Pseudocode_2x3_manual_runs.md` §1.2.1): one process, one thread, no other runs active, the confirmatory simulator settings, three blocks of 1,000 timed single-circuit executions per model after warm-up, with model order rotated across blocks. Because the objective-evaluation budget and data sizes are identical across architectures, the number of circuit executions per run is the same for A and D, so the per-execution cost measured by the benchmark accounts for the architectural difference in compute. The benchmark reports median, Q1, Q3, and 95th-percentile time per execution together with gate count, depth, and parameter count, and is repeated if the device, library versions, or machine change. It uses no test data and does not influence any protocol decision other than workload projection.
+
 ## 5. Primary outcomes
 
-The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, per-class metrics, confusion patterns, optimizer behavior, gate/depth diagnostics, and runtime are secondary outcomes.
+The primary classification outcomes are official-test accuracy and macro-F1. The primary representation outcome is `min_separation_ratio`. Structural-zero diagnostics, active-dimension measures, Y-odd norm fraction, per-class metrics, confusion patterns, optimizer behavior, and gate/depth diagnostics are secondary outcomes. Runtime is a descriptive measure only (§4.5).
 
 Official-test metrics are computed only after optimization, checkpoint selection, and all protocol decisions for that run are frozen.
 
@@ -107,7 +114,7 @@ For each feature_method × K combination and each confirmatory seed s:
 
 The primary estimand is the mean paired difference across the five confirmatory seeds. The same paired differences are also summarized by their median and interquartile range.
 
-Positive Delta indicates a larger metric for MORE-HD-C. For runtime, interpretation is reversed: positive Delta indicates greater computational cost.
+Positive Delta indicates a larger metric for MORE-HD-C. Runtime is not analyzed as a paired Delta (§4.5).
 
 ## 6.1 Pre-specified ablation estimands
 
@@ -128,7 +135,7 @@ The strongest phase-related interpretation requires the A-versus-C and B-versus-
 
 For every primary architecture × feature_method × K condition, report the five seed values and summarize them using mean ± standard deviation. Median [IQR] is reported as a robustness summary. Minimum and maximum may be retained in the workbook for diagnostics but are not the primary paper summary.
 
-The same five-seed summaries are produced for B and C in targeted ablation cells. No best-seed, best-run, or best-of-five result is used as the main reported performance.
+The same five-seed summaries are produced for B and C in targeted ablation cells. No best-seed, best-run, or best-of-five result is used as the main reported performance. Runtime is summarized in the same descriptive way (mean, median, IQR) but is excluded from §8 and §9 (see §4.5).
 
 ## 8. Confidence interval and effect size
 
@@ -230,7 +237,7 @@ A run with a protocol deviation is not silently repaired after official-test ins
 
 `MORE_HD_master_confirmatory_240runs.xlsx` remains the canonical primary-experiment aggregation template. Sheet `01_Run_Summary` contains one row per primary `run_uid`; `02_Run_Config` records seed propagation and split provenance; `12_Seed_Aggregation` stores the five-seed summaries; `13_Paired_Comparison` stores seed-matched A-versus-D differences. Detailed history and official-test prediction sheets are append-only during consolidation.
 
-The targeted ablation uses a separate planned template `MORE_HD_master_ablation_90runs.xlsx` with one row per new B/C `ablation_run_uid`. It records `matching_run_uid_A` and `matching_run_uid_D` rather than duplicating A/D executions. The ablation template additionally stores model code, trainable/fixed parameter counts, depth/gate counts, initialization namespaces/hashes, fixed-RZ hash for C, paired split/pair-manifest hashes, Y-odd diagnostics, and the four-model contrast linkage.
+The targeted ablation uses a separate planned template `MORE_HD_master_ablation_90runs.xlsx` with one row per new B/C `ablation_run_uid`. It records `matching_run_uid_A` and `matching_run_uid_D` rather than duplicating A/D executions. Stage-level timing and run-start metadata (§4.5) are recorded in `01_Run_Summary` and, for Jalur B, in `17_JalurB_Selection`; per-evaluation CPU time is recorded in `03`/`04`; microbenchmark results are stored in sheet `18_Circuit_Benchmark`. The ablation template additionally stores the same timing fields, model code, trainable/fixed parameter counts, depth/gate counts, initialization namespaces/hashes, fixed-RZ hash for C, paired split/pair-manifest hashes, Y-odd diagnostics, and the four-model contrast linkage.
 
 Sheet `00_Schema_Map` is the single source of truth for which artifact file and field fills every workbook column, at which granularity. Run-level clustering metrics in `01_Run_Summary` are read from the `clustering_log.jsonl` row whose `eval_id` equals `final_point_eval_id` (the evaluation identical to COBYLA's `result.x`, i.e. the parameters that define the quantum labels), not from the last logged row. Columns without a defined source are marked `GAP` or `PENDING` in the map and must be resolved before Gate C.
 

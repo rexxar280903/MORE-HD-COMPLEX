@@ -194,6 +194,18 @@ observable analitik dalam satu eksekusi per sampel sudah dikunci di G4-01.
 Set monitoring ditulis ke `artifacts/val_monitor_manifest.json` dan diwarisi
 Jalur B (§10.4) serta ablation (§11).
 
+**Update (pencatatan waktu, sesi 2026-10-01 — §9.4 dan §1.2.1):**
+Runtime run produksi kini dicatat di empat tingkat: per objective evaluation
+(`eval_runtime_sec` + `eval_cpu_sec` baru), per tahap (`logs/stage_timing.jsonl`:
+`data_pipeline`, `setup`, `clustering_loop`, `quantum_label_extraction`,
+`supervised_loop`, `final_evaluation`), awal run (`logs/run_started.json`: jam mulai,
+host, `n_parallel_declared`, load average, `thread_env`; tetap ada bila run crash),
+dan akhir run (`config.json` → `timing`). Berlaku identik untuk Jalur A, Jalur B
+(tahap `load_artifacts` menggantikan tiga tahap awal), dan ablation, yang
+sebelumnya tidak mencatat waktu sama sekali. Runtime run produksi hanya
+**deskriptif**; klaim biaya antar-arsitektur hanya dari microbenchmark terkontrol
+§1.2.1 (satu proses, satu thread, 3 blok × 1.000 eksekusi per model A/B/C/D).
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -626,6 +638,10 @@ STRUCT Config:
     n_val_monitor_per_class = NULL              # (b) NULL bila FULL_VAL; bila fallback aktif, angka tunggal
                                                 #     dikunci setelah pilot timing dan SEBELUM pilot konvergensi G1-01
 
+    # pencatatan waktu & metadata eksekusi -- DIKUNCI 2026-10-01 (§9.4)
+    n_parallel_declared    = NULL               # jumlah run yang SENGAJA dijalankan bersamaan saat run ini
+                                                # diluncurkan (diisi pengguna; audit saja, bukan kontrol)
+
     # dataset lokal / pilot download
     mnist_root              = "data/"
     mnist_download          = FALSE             # TRUE hanya saat pilot/initial download
@@ -700,6 +716,12 @@ FUNCTION VALIDATE_CONFIG(config):
             RAISE_ERROR("subset monitoring harus 0 < n < n_val_per_class (G3-05b)")
     ELSE:
         RAISE_ERROR("val_monitor_policy harus FULL_VAL atau STRATIFIED_FIXED_SUBSET")
+
+    # metadata eksekusi (§9.4, sesi 2026-10-01)
+    IF config.n_parallel_declared IS NULL OR config.n_parallel_declared < 1:
+        IF config.run_mode == "CONFIRMATORY":
+            RAISE_ERROR("n_parallel_declared wajib diisi (>= 1) untuk run konfirmatori (§9.4)")
+        PRINT_WARNING("n_parallel_declared kosong; hanya boleh untuk smoke test/pilot")
 
 
 FUNCTION CREATE_RUN_DIRECTORY_EXCLUSIVE(config):
@@ -988,6 +1010,69 @@ Unit test wajib (G3-05):
   seed dan K yang sama, dan posisi kelas `c` di K memuat posisi kelas `c` di K−1.
 - Indeks set monitoring ditulis ke `artifacts/val_monitor_manifest.json` dan Jalur B
   menolak run sumber bila indeks yang dimuat ulang berbeda.
+
+#### 1.2.1 Microbenchmark biaya sirkuit A/B/C/D (dikunci 2026-10-01)
+
+**Tujuan.** Satu-satunya sumber klaim biaya komputasi antar-arsitektur
+(§9.4, SAP §4.5). Di bawah budget `nfev` dan ukuran data yang sama, jumlah eksekusi
+sirkuit per run A dan D identik, sehingga selisih biaya antar-arsitektur seluruhnya
+berasal dari **biaya per eksekusi sirkuit**. Besaran itu diukur di sini dalam kondisi
+terkontrol, bukan dari wall-clock run produksi.
+
+**Kapan.** Bersamaan dengan pilot timing (sebelum G1-01 dikunci), setelah
+`device_name`, pin versi, dan pembatasan thread G4-01 dikunci, pada mesin yang sama
+dengan eksperimen konfirmatori. Bila device/versi/mesin berubah, benchmark diulang
+dan versi lama tidak dipakai untuk laporan.
+
+**Kondisi wajib.** Satu proses; tidak ada run lain aktif (`n_parallel_declared = 1`);
+semua variabel thread di `thread_env` = `"1"`; `simulation_mode`, `shots`, dan
+`sim_dtype` sama dengan protokol konfirmatori.
+
+| Setting | Nilai |
+|---|---|
+| Model | A=MORE-HD, B=MORE-HD-60P, C=MORE-HD-C-FixedRZ, D=MORE-HD-C |
+| Parameter | `BUILD_ABLATION_INITIALIZATION(42)` (A/C/D berbagi RY core; C/D berbagi RZ) |
+| Input | 50 baris tetap `X_train_scaled.npy` dari smoke test seed 42, K=10, PCA |
+| Warm-up | 50 eksekusi per model, tidak dicatat |
+| Pengukuran | 1.000 eksekusi per model per blok (input berputar 0..49) |
+| Blok | 3 proses terpisah; urutan model dirotasi A,B,C,D / B,C,D,A / C,D,A,B |
+| Dilaporkan | median, Q1, Q3, p95 wall-clock dan CPU per eksekusi; per blok dan gabungan; gate count, depth, `n_params` |
+
+```
+FUNCTION CIRCUIT_MICROBENCHMARK(block_id, model_order, X_bench, config):
+    ASSERT ALL(v == "1" FOR v IN READ_ENV(THREAD_VARS).values())
+    init = BUILD_ABLATION_INITIALIZATION(42)
+    rows = []
+    FOR model IN model_order:
+        circuit_fn, theta = BUILD_BENCHMARK_MODEL(model, init)   # builder §4.1, §4.2, §11.6
+        FOR i IN 0 .. 49:
+            circuit_fn(X_bench[i], theta)                         # warm-up
+        wall = []; cpu = []
+        FOR i IN 0 .. 999:
+            t0 = MONOTONIC_TIME(); c0 = PROCESS_CPU_TIME()
+            circuit_fn(X_bench[i MOD 50], theta)                  # 15 observable, satu eksekusi
+            wall.APPEND(MONOTONIC_TIME() - t0); cpu.APPEND(PROCESS_CPU_TIME() - c0)
+        rows.APPEND({
+            "block_id": block_id, "model": model, "n_params": LENGTH(theta),
+            "gate_count": GATE_COUNT(circuit_fn), "depth": CIRCUIT_DEPTH(circuit_fn),
+            "n_warmup": 50, "n_repeat": 1000,
+            "wall_median_sec": MEDIAN(wall), "wall_q1_sec": Q1(wall),
+            "wall_q3_sec": Q3(wall), "wall_p95_sec": P95(wall),
+            "cpu_median_sec": MEDIAN(cpu)
+        })
+    SAVE_ATOMIC_JSON({
+        "rows": rows,
+        "device_name": config.device_name, "sim_dtype": config.sim_dtype,
+        "pennylane_version": PENNYLANE_VERSION(), "numpy_version": NUMPY_VERSION(),
+        "hostname": HOSTNAME(), "cpu_model": CPU_MODEL_STRING(),
+        "thread_env": READ_ENV(THREAD_VARS), "timestamp": NOW_ISO8601_WITH_TZ()
+    }, "benchmarks/circuit_microbenchmark_block" + block_id + ".json")
+```
+
+Hasil benchmark tidak memakai data test dan tidak memengaruhi keputusan protokol
+apa pun selain proyeksi beban kerja. Perkiraan biaya per objective evaluation
+= median wall per eksekusi × jumlah eksekusi per evaluasi (tabel §1.2) dilaporkan
+deskriptif sebagai pembanding terhadap `eval_runtime_sec` pilot.
  
 ---
  
@@ -1963,6 +2048,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
 
         eval_id = n_objective_evals
         t_eval_start = MONOTONIC_TIME()
+        c_eval_start = PROCESS_CPU_TIME()                 # §9.4
  
         # --- (a) objective train_loss yang dibaca COBYLA ---
         # G3-05a: output 5K sampel clustering dihitung sekali; pasangan membaca cache.
@@ -2077,7 +2163,8 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
             "n_degenerate_centroids_train": n_degenerate_centroids_train,
             "n_degenerate_centroids_val": n_degenerate_centroids_val,
             "min_centroid_prenorm_train": min_centroid_prenorm_train,
-            "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start
+            "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start,   # wall-clock; lihat §9.4
+            "eval_cpu_sec": PROCESS_CPU_TIME() - c_eval_start      # CPU proses (semua thread); §9.4
         }
         APPEND_LINE(run_dir + "/logs/clustering_log.jsonl", TO_JSON(log_entry))
 
@@ -2172,7 +2259,7 @@ kualitas representasi clustering pada data train/validation tanpa memengaruhi
 langkah optimasi COBYLA. Selain metrik, setiap baris juga menyimpan `phase`,
 pasangan kelas terdekat (`closest_class_i`, `closest_class_j`; berguna untuk
 G1-09/G1-11, misalnya apakah pasangan terdekat HU/ZERNIKE di K=10 adalah 6–9), dan
-`eval_runtime_sec` (waktu satu objective evaluation, dibutuhkan pilot §1.1).
+`eval_runtime_sec` dan `eval_cpu_sec` (waktu wall-clock dan CPU satu objective evaluation, dibutuhkan pilot §1.1; cakupan pengukurannya di §9.4).
 
 | Metrik | Fungsi (untuk apa dipakai) | Satuan / Rentang Nilai | Arah yang diharapkan | Interpretasi nilai yang lebih baik |
 |---|---|---|---|---|
@@ -2319,6 +2406,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
 
         eval_id = n_objective_evals
         t_eval_start = MONOTONIC_TIME()
+        c_eval_start = PROCESS_CPU_TIME()                 # §9.4
  
         train_losses = []
         n_degenerate_train_outputs = 0
@@ -2364,7 +2452,8 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
             "avg_margin_val": avg_margin_val,             # pasif; tidak dibaca COBYLA
             "n_degenerate_train_outputs": n_degenerate_train_outputs,   # G2-04
             "n_degenerate_val_outputs": n_degenerate_val_outputs,       # G2-04
-            "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start
+            "eval_runtime_sec": MONOTONIC_TIME() - t_eval_start,   # wall-clock; lihat §9.4
+            "eval_cpu_sec": PROCESS_CPU_TIME() - c_eval_start      # §9.4
         }
         APPEND_LINE(run_dir + "/logs/supervised_log.jsonl", TO_JSON(log_entry))
  
@@ -2506,17 +2595,22 @@ Input budget optimasi dinyatakan sebagai maksimum objective-function evaluations
 
 ```
 FUNCTION MAIN(config):
-    config.run_start_time = MONOTONIC_TIME()
+    START_RUN_CLOCK(config)                          # §9.4: jam mulai, wall & CPU
     VALIDATE_CONFIG(config)
     CREATE_RUN_DIRECTORY_EXCLUSIVE(config)
+    WRITE_RUN_STARTED(config, path_type="jalur_a_automatic")   # §9.4: jejak awal, tahan crash
     INITIALIZE_LOCAL_RUN_SPREADSHEET(config)
 
     VALIDATE_SEED_PROTOCOL(config)
     config.split_manifest_path = RESOLVE_SPLIT_MANIFEST_PATH(config)
+
+    BEGIN_STAGE(config, "data_pipeline")
     IF config.run_mode == "CONFIRMATORY":
         CREATE_OR_LOAD_SPLIT_MANIFEST(config.seed)
-
     X_train, y_train, X_val, y_val, X_test, y_test = DATA_PIPELINE(config)
+    END_STAGE(config, "data_pipeline")
+
+    BEGIN_STAGE(config, "setup")
     S = CORRELATION_MATRIX(X_train, y_train, config.classes)
     circuit_fn, initial_params = MODEL_SETUP(config)
 
@@ -2528,26 +2622,35 @@ FUNCTION MAIN(config):
         "n_val_monitor_total": LENGTH(y_val_mon),
         "val_positions": val_monitor_positions
     }, config.run_dir + "/artifacts/val_monitor_manifest.json")
+    END_STAGE(config, "setup")
 
+    BEGIN_STAGE(config, "clustering_loop")
     params_after_clustering = CLUSTERING_LOOP(
         circuit_fn, initial_params, X_train, y_train, X_val_mon, y_val_mon, S, config
     )
+    END_STAGE(config, "clustering_loop")
 
+    BEGIN_STAGE(config, "quantum_label_extraction")
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
         circuit_fn, params_after_clustering, X_train,
         LOAD_JSON(config.run_dir + "/artifacts/pair_manifest.json"), config
     )
+    END_STAGE(config, "quantum_label_extraction")
 
+    BEGIN_STAGE(config, "supervised_loop")
     params_final = SUPERVISED_LOOP(
         circuit_fn, params_after_clustering, quantum_labels,
         X_train, y_train, X_val_mon, y_val_mon, config
     )
+    END_STAGE(config, "supervised_loop")
 
+    BEGIN_STAGE(config, "final_evaluation")
     metrics, confusion_matrix = FINAL_EVALUATION(
         circuit_fn, params_final, quantum_labels, X_test, y_test, config
     )
+    END_STAGE(config, "final_evaluation")
 
-    SAVE_ARTIFACT_BUNDLE(config, metrics)
+    SAVE_ARTIFACT_BUNDLE(config, metrics)            # menulis RUN_TIMING_SUMMARY ke config.json
 
     UPDATE_LOCAL_RUN_SPREADSHEET(
         local_spreadsheet_path = config.local_spreadsheet_path,
@@ -2568,6 +2671,8 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "X_val_scaled": "artifacts/X_val_scaled.npy",
         "y_val": "artifacts/y_val.npy",
         "val_monitor_manifest": "artifacts/val_monitor_manifest.json",
+        "run_started": "logs/run_started.json",
+        "stage_timing": "logs/stage_timing.jsonl",
         "X_test_scaled": "artifacts/X_test_scaled.npy",
         "y_test": "artifacts/y_test.npy",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
@@ -2610,7 +2715,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "run_id": config.run_id,
         "run_name": config.run_name,
         "path_type": "jalur_a_automatic",
-        "timestamp": NOW(),
+        "timestamp": NOW(),                       # = finished_at; dipertahankan untuk kompatibilitas
 
         "classes": config.classes,
         "n_classes": LENGTH(config.classes),
@@ -2660,6 +2765,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "cluster_output_cache": config.cluster_output_cache,  # G3-05a
         "val_monitor_policy": config.val_monitor_policy,      # G3-05b
         "n_val_monitor_per_class": config.n_val_monitor_per_class,  # G3-05b; NULL bila FULL_VAL
+        "n_parallel_declared": config.n_parallel_declared,          # §9.4
         "degenerate_quantum_label": LOAD_JSON(config.run_dir + "/artifacts/quantum_label_diagnostics.json").degenerate_quantum_label,
         "mnist_root": config.mnist_root,
         "mnist_download": config.mnist_download,
@@ -2672,6 +2778,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
 
         "final_metrics": metrics,
         "total_runtime_sec": MONOTONIC_TIME() - config.run_start_time,
+        "timing": RUN_TIMING_SUMMARY(config),     # §9.4: started/finished, CPU, per tahap, metadata paralel
         "artifact_paths": artifact_paths
     }
 
@@ -2753,13 +2860,130 @@ Process C -> runs/<run_C>/...
 Aturan yang dikunci untuk tahap eksperimen saat ini:
 
 1. Program tidak menentukan otomatis berapa banyak run yang boleh aktif bersamaan. Jumlah proses paralel ditentukan manual oleh pengguna setelah memantau CPU dan RAM pada mesin yang digunakan.
-2. Tidak ada auto-throttling CPU/RAM dan belum ada pembatasan thread internal NumPy/SciPy/PennyLane pada revisi ini.
+2. Tidak ada auto-throttling CPU/RAM dan belum ada pembatasan thread internal NumPy/SciPy/PennyLane pada revisi ini (dikunci di G4-01). Jumlah proses yang sengaja dijalankan bersamaan dicatat per run sebagai `n_parallel_declared`, bersama load average dan `thread_env` (§9.4); data ini untuk audit, bukan untuk membandingkan runtime antar-arsitektur.
 3. Overhead I/O storage dari beberapa run yang menulis log secara bersamaan belum diberi penanganan khusus dan untuk sementara diterima sebagai bagian dari eksperimen.
 4. `CREATE_RUN_DIRECTORY_EXCLUSIVE(config)` wajib dieksekusi sebelum training. Run dengan `run_dir` yang sudah ada langsung dibatalkan; program tidak melakukan overwrite atau resume otomatis.
 5. Master spreadsheet tidak pernah menjadi shared writable resource selama training. Setiap run hanya menulis `run_result.xlsx` lokal miliknya.
 6. Pengelolaan parallel collision khusus Jalur B belum menjadi fokus revisi ini dan tetap mengikuti desain sebelumnya.
 
 Dengan aturan ini, sumber daya yang dibagi antar proses hanya berupa resource read-only seperti source code dan dataset MNIST lokal. Semua output yang mutable tetap dipisahkan per `run_dir`.
+
+## 9.4 PENCATATAN WAKTU DAN METADATA EKSEKUSI (DIKUNCI 2026-10-01)
+
+**Posisi runtime dalam analisis.** Waktu dari run produksi (Jalur A, ablation,
+Jalur B) hanya dilaporkan **deskriptif** (mean, median, IQR per kondisi) dan dipakai
+untuk audit serta proyeksi beban kerja. Tidak ada paired Delta, CI inferensial,
+atau klaim "A lebih cepat/lambat dari D" dari angka ini, karena wall-clock run
+produksi dipengaruhi faktor di luar arsitektur (jumlah proses paralel yang
+sengaja tidak dikunci di §9.3, beban mesin, throttling, urutan eksekusi). Klaim
+biaya komputasi antar-arsitektur hanya boleh bersumber dari microbenchmark
+terkontrol §1.2.1. Lihat `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §4.5.
+
+**Apa yang dicatat.**
+
+| Tingkat | Field | File | Keterangan |
+|---|---|---|---|
+| per objective evaluation | `eval_runtime_sec`, `eval_cpu_sec` | `logs/clustering_log.jsonl`, `logs/supervised_log.jsonl` | Mencakup eksekusi sirkuit, metrik, dan penulisan record parameter; **tidak** mencakup penulisan baris log itu sendiri dan overhead internal COBYLA di antara evaluasi. |
+| per tahap | `stage`, `wall_sec`, `cpu_sec`, `finished_at` | `logs/stage_timing.jsonl` (append per tahap) | Total sebenarnya per tahap, termasuk overhead COBYLA dan I/O; inilah sumber proyeksi pilot timing. |
+| per run, awal | `started_at`, `hostname`, `pid`, `cpu_count`, `load_avg_1m_start`, `n_parallel_declared`, `thread_env` | `logs/run_started.json` | Ditulis tepat setelah folder run dibuat, sehingga run yang crash tetap meninggalkan jejak (terkait G3-04). |
+| per run, akhir | `total_runtime_sec`, `timing` (ringkasan seluruh field di atas + `finished_at`, `total_cpu_sec`, `load_avg_1m_end`) | `config.json` | `total_runtime_sec` tetap di level atas untuk kompatibilitas. |
+
+Nama tahap dikunci: Jalur A dan ablation = `data_pipeline`, `setup`,
+`clustering_loop`, `quantum_label_extraction`, `supervised_loop`,
+`final_evaluation`; Jalur B = `load_artifacts`, `quantum_label_extraction`,
+`supervised_loop`, `final_evaluation`. Waktu sebelum tahap pertama (validasi config,
+pembuatan folder, salinan spreadsheet) dan setelah tahap terakhir (penulisan
+manifest) termasuk `total_runtime_sec` tetapi tidak termasuk tahap mana pun.
+
+`cpu_sec` memakai waktu CPU **seluruh thread proses** (setara `time.process_time()`).
+Rasio `cpu_sec / wall_sec` mendekati 1 berarti proses praktis berjalan satu thread
+tanpa kontensi; jauh di atas 1 berarti multithread; jauh di bawah 1 berarti proses
+banyak menunggu (kontensi CPU atau I/O). `thread_env` merekam nilai
+`OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS`, dan
+`NUMEXPR_NUM_THREADS` apa adanya (kosong = tidak diset); pembatasan thread-nya
+sendiri dikunci di G4-01. `n_parallel_declared` diisi pengguna saat meluncurkan run;
+`load_avg_1m_*` dibaca otomatis dari OS (NULL bila OS tidak menyediakannya).
+
+```
+FUNCTION START_RUN_CLOCK(config):
+    config.run_start_time = MONOTONIC_TIME()
+    config.run_start_cpu  = PROCESS_CPU_TIME()
+    config.started_at     = NOW_ISO8601_WITH_TZ()
+    config.load_avg_1m_start = READ_LOAD_AVG_1M_OR_NULL()
+    config.open_stage     = NULL
+
+
+FUNCTION START_RUN_CLOCK_STANDALONE():
+    # Jalur B: config baru dibuat setelah manifest sumber dibaca.
+    tmp = {}
+    START_RUN_CLOCK(tmp)
+    RETURN tmp
+
+FUNCTION ATTACH_RUN_CLOCK(config, run_clock):
+    COPY_FIELDS(run_clock -> config,
+                ["run_start_time", "run_start_cpu", "started_at",
+                 "load_avg_1m_start", "open_stage"])
+
+
+FUNCTION WRITE_RUN_STARTED(config, path_type):
+    # Dipanggil SETELAH CREATE_RUN_DIRECTORY_EXCLUSIVE dan sebelum pekerjaan berat.
+    SAVE_ATOMIC_JSON({
+        "run_name": config.run_name,
+        "path_type": path_type,
+        "started_at": config.started_at,
+        "hostname": HOSTNAME(),
+        "pid": PROCESS_ID(),
+        "cpu_count": LOGICAL_CPU_COUNT(),
+        "load_avg_1m_start": config.load_avg_1m_start,
+        "n_parallel_declared": config.n_parallel_declared,
+        "thread_env": READ_ENV(["OMP_NUM_THREADS", "MKL_NUM_THREADS",
+                                "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS"])
+    }, config.run_dir + "/logs/run_started.json")
+    CREATE_EMPTY_FILE(config.run_dir + "/logs/stage_timing.jsonl")
+
+
+FUNCTION BEGIN_STAGE(config, stage):
+    ASSERT config.open_stage IS NULL              # tahap tidak boleh tumpang tindih
+    config.open_stage = { "stage": stage,
+                          "t0": MONOTONIC_TIME(), "c0": PROCESS_CPU_TIME() }
+
+FUNCTION END_STAGE(config, stage):
+    ASSERT config.open_stage.stage == stage
+    APPEND_LINE(config.run_dir + "/logs/stage_timing.jsonl", TO_JSON({
+        "stage": stage,
+        "wall_sec": MONOTONIC_TIME() - config.open_stage.t0,
+        "cpu_sec": PROCESS_CPU_TIME() - config.open_stage.c0,
+        "finished_at": NOW_ISO8601_WITH_TZ()
+    }))
+    config.open_stage = NULL
+    # Tahap yang gagal di tengah tidak menulis baris; tahap terakhir yang tercatat
+    # menunjukkan sampai mana run berjalan sebelum crash.
+
+
+FUNCTION RUN_TIMING_SUMMARY(config):
+    stages = READ_JSONL(config.run_dir + "/logs/stage_timing.jsonl")
+    started = LOAD_JSON(config.run_dir + "/logs/run_started.json")
+    RETURN {
+        "started_at": config.started_at,
+        "finished_at": NOW_ISO8601_WITH_TZ(),
+        "total_runtime_sec": MONOTONIC_TIME() - config.run_start_time,
+        "total_cpu_sec": PROCESS_CPU_TIME() - config.run_start_cpu,
+        "stage_wall_sec": { s.stage: s.wall_sec FOR s IN stages },
+        "stage_cpu_sec":  { s.stage: s.cpu_sec  FOR s IN stages },
+        "hostname": started.hostname,
+        "cpu_count": started.cpu_count,
+        "thread_env": started.thread_env,
+        "n_parallel_declared": config.n_parallel_declared,
+        "load_avg_1m_start": config.load_avg_1m_start,
+        "load_avg_1m_end": READ_LOAD_AVG_1M_OR_NULL()
+    }
+```
+
+Unit test wajib: (1) urutan dan nama tahap di `stage_timing.jsonl` sama dengan
+daftar terkunci untuk tiap jalur; (2) `SUM(stage wall_sec) <= total_runtime_sec`;
+(3) untuk tiap loop, `SUM(eval_runtime_sec)` ≤ `wall_sec` tahap loop tersebut;
+(4) run yang dipaksa gagal di tengah `clustering_loop` meninggalkan
+`run_started.json` dan baris `data_pipeline`/`setup`, tanpa baris `clustering_loop`.
 
 ---
 
@@ -2919,8 +3143,8 @@ urutan kandidat identik.
 ### 10.4 Pseudocode Jalur B
 
 ```
-FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
-    run_start_time = MONOTONIC_TIME()
+FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir, n_parallel_declared):
+    run_clock = START_RUN_CLOCK_STANDALONE()         # §9.4; dipasang ke config setelah config dibuat
  
     source_manifest = LOAD_JSON(source_run_dir + "/config.json")
     ASSERT source_manifest.path_type == "jalur_a_automatic"
@@ -2947,8 +3171,13 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         n_cluster_pair_samples = source_manifest.n_cluster_pair_samples,
         eps_norm               = source_manifest.eps_norm,          # G2-04
         centroid_rule          = source_manifest.centroid_rule,     # G2-07
-        centroid_source        = source_manifest.centroid_source    # G2-07
+        centroid_source        = source_manifest.centroid_source,   # G2-07
+        cluster_output_cache   = source_manifest.cluster_output_cache,      # G3-05a
+        val_monitor_policy     = source_manifest.val_monitor_policy,        # G3-05b
+        n_val_monitor_per_class = source_manifest.n_val_monitor_per_class,  # G3-05b
+        n_parallel_declared    = n_parallel_declared                # §9.4: kondisi run INI, bukan run sumber
     )
+    ATTACH_RUN_CLOCK(config, run_clock)
 
     selected_eval_id = SELECT_CLUSTERING_CHECKPOINT_DETERMINISTIC(
         source_run_dir
@@ -2964,7 +3193,9 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
     CREATE_RUN_DIRECTORY_EXCLUSIVE(config)
     CREATE_DIRECTORY(config.run_dir + "/artifacts")
     CREATE_DIRECTORY(config.run_dir + "/logs")
+    WRITE_RUN_STARTED(config, path_type="jalur_b_deterministic_validation_selection")   # §9.4
 
+    BEGIN_STAGE(config, "load_artifacts")
     X_train_scaled = LOAD(source_run_dir + "/artifacts/X_train_scaled.npy")
     y_train        = LOAD(source_run_dir + "/artifacts/y_train.npy")
     X_val_scaled   = LOAD(source_run_dir + "/artifacts/X_val_scaled.npy")
@@ -3002,18 +3233,24 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         eval_id = selected_eval_id,
         record_size = record_size
     )
+    END_STAGE(config, "load_artifacts")
 
     # G2-07: sampel centroid diambil dari pair_manifest.json RUN SUMBER.
+    BEGIN_STAGE(config, "quantum_label_extraction")
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
         circuit_fn, selected_theta, X_train_scaled,
         LOAD_JSON(source_run_dir + "/artifacts/pair_manifest.json"), config
     )
+    END_STAGE(config, "quantum_label_extraction")
 
+    BEGIN_STAGE(config, "supervised_loop")
     trained_params_final = SUPERVISED_LOOP(
         circuit_fn, selected_theta, quantum_labels,
         X_train_scaled, y_train, X_val_mon, y_val_mon, config
     )
+    END_STAGE(config, "supervised_loop")
 
+    BEGIN_STAGE(config, "final_evaluation")
     X_test_scaled = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
     y_test        = LOAD(source_run_dir + "/artifacts/y_test.npy")
 
@@ -3021,8 +3258,8 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
         circuit_fn, trained_params_final, quantum_labels,
         X_test_scaled, y_test, config
     )
+    END_STAGE(config, "final_evaluation")
 
-    config.run_start_time = run_start_time
     SAVE_ARTIFACT_BUNDLE_JALUR_B(
         config, metrics, source_run_dir, selected_eval_id
     )
@@ -3064,6 +3301,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
         "supervised_optimizer_result": supervised_optimizer_result,
         "final_metrics": metrics,
         "total_runtime_sec": MONOTONIC_TIME() - config.run_start_time,
+        "timing": RUN_TIMING_SUMMARY(config),     # §9.4
         "artifact_paths": {
             "quantum_labels": "artifacts/quantum_labels.json",
             "quantum_label_diagnostics": "artifacts/quantum_label_diagnostics.json",
@@ -3088,7 +3326,8 @@ FUNCTION SAVE_ARTIFACT_BUNDLE_JALUR_B(
 
 # Contoh:
 MAIN_FROM_SELECTED_CLUSTERING(
-    source_run_dir = "runs/R001-S101_..."
+    source_run_dir      = "runs/R001-S101_...",
+    n_parallel_declared = 2      # metadata audit §9.4; tidak memengaruhi selector
 )
 ```
  
@@ -3263,8 +3502,10 @@ STRUCT AblationConfig EXTENDS Config:
     seed              = one of [101,202,303,404,505]
 
 FUNCTION ABLATION_MAIN(config):
+    START_RUN_CLOCK(config)                          # §9.4 (sama dengan Jalur A)
     VALIDATE_ABLATION_CONFIG(config)
     CREATE_RUN_DIRECTORY_EXCLUSIVE(config)
+    WRITE_RUN_STARTED(config, path_type="ablation")
     LOAD_OR_COPY_ABLATION_RUN_SPREADSHEET(config)
 
     split_manifest = CREATE_OR_LOAD_SPLIT_MANIFEST(config.seed)
@@ -3287,9 +3528,13 @@ FUNCTION ABLATION_MAIN(config):
     # G3-05: cache output per sampel unik dan set monitoring validation sama persis
     # dengan Jalur A (SELECT_VAL_MONITOR_SET + val_monitor_manifest.json).
     X_val_mon, y_val_mon, val_monitor_positions = SELECT_VAL_MONITOR_SET(X_val, y_val, config)
+    # §9.4: tahap dibungkus BEGIN_STAGE/END_STAGE dengan nama yang sama seperti
+    # Jalur A (data_pipeline, setup, clustering_loop, quantum_label_extraction,
+    # supervised_loop, final_evaluation); log per evaluasi memuat eval_runtime_sec
+    # dan eval_cpu_sec.
     RUN_STANDARD_TWO_STAGE_PIPELINE_WITH_EXISTING_SPLIT_AND_PAIRS(...)
     FINAL_EVALUATION(...)
-    SAVE_ABLATION_MANIFEST(...)
+    SAVE_ABLATION_MANIFEST(...)    # WAJIB memuat total_runtime_sec dan timing = RUN_TIMING_SUMMARY(config)
 ```
 
 The standard clustering and supervised losses remain unchanged. The ablation does not introduce a new optimizer, new feature representation, new label definition, or new test-selection rule.
