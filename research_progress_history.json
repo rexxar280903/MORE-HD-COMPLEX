@@ -126,5 +126,13 @@
     "delta_pp": 0.0,
     "items": 39,
     "summary": "docs(runtime): pencatatan waktu 4 tingkat + runtime deskriptif + microbenchmark"
+  },
+  {
+    "date": "2026-10-01",
+    "commit": "634a784ea4b0d05e54c16cdb2b2bb46a8937b927",
+    "progress": 35.3,
+    "delta_pp": 2.6,
+    "items": 39,
+    "summary": "docs(gates): G2-05 diagnostik Y-odd per sampel + G2-06 outcome pemisahan mengikuti MORE"
   }
 ]

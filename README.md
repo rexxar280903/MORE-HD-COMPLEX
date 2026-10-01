@@ -3,11 +3,11 @@
 <!-- RESEARCH_PROGRESS_START -->
 ## Research Progress
 
-![Research Progress](https://img.shields.io/badge/Research%20Progress-32.7%25-blue)
+![Research Progress](https://img.shields.io/badge/Research%20Progress-35.3%25-blue)
 
-**Current research readiness: 32.7%**
+**Current research readiness: 35.3%**
 
-`███████░░░░░░░░░░░░░ 32.7%`
+`███████░░░░░░░░░░░░░ 35.3%`
 
 Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot:
 `CLOSED = 100%`, `READY FOR VERIFICATION = 75%`, `IN PROGRESS = 50%`, `PILOT ONLY = 25%`, dan `BLOCKED = 0%`.
@@ -16,7 +16,6 @@ Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot
 
 | Tanggal | Commit acuan | Progress | Perubahan | Ringkasan |
 |---|---|---:|---:|---|
-| 2026-09-23 | [`34e51ec`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/34e51ecdbc049f296113fbfa282d688b93ceebbe) | 10.1% | -3.8 pp | Scope diperketat dengan penambahan 10 item readiness baru. |
 | 2026-09-26 | [`6f8c7c1`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/6f8c7c1f04b9d29e00f36bb6aa603a8681fd601b) | 18.2% | +8.1 pp | Protokol multi-seed, analysis plan, workbook 240-run, dan logging objective mulai terkunci/terverifikasi. |
 | 2026-09-27 | [`5aeb1ca`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/5aeb1cabe3e55673b51b0cf09e4c0865ba79f2f4) | 20.9% | +2.7 pp | Protokol deterministic clustering pairs dan dokumentasi 240-run diselaraskan. |
 | 2026-09-27 | [`f753c85`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/f753c85a08d8e2d45cbe6429d8ea79c2a6e7eeaa) | 24.3% | +3.4 pp | docs: lock targeted ablation for G1-05 and G1-07 |
@@ -30,9 +29,10 @@ Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot
 | 2026-10-01 | [`f71590b`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/f71590bf7ffb4df3a9c4705fbbdb5d6d74a2d934) | 31.4% | +1.8 pp | docs(gates): G2-04 zero-norm safety + G2-07 centroid mengikuti MORE |
 | 2026-10-01 | [`bba4657`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/bba46576330385c7c85cb7cb9e5fb508c117bc4d) | 31.4% | 0.0 pp | docs(gates): G1-03 mengikuti paper MORE untuk jumlah pasangan clustering |
 | 2026-10-01 | [`58b8380`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/58b838090c8190a75fc4ec28329cce8a2f327f58) | 32.7% | +1.3 pp | docs(gates): G3-05 caching per sampel unik + monitoring validation FULL_VAL |
-| 2026-10-01 | [`04f097d`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/04f097de9275f845cf7c8a0f60f06df58ddb5c35) | **32.7%** | **0.0 pp** | docs(runtime): pencatatan waktu 4 tingkat + runtime deskriptif + microbenchmark |
+| 2026-10-01 | [`04f097d`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/04f097de9275f845cf7c8a0f60f06df58ddb5c35) | 32.7% | 0.0 pp | docs(runtime): pencatatan waktu 4 tingkat + runtime deskriptif + microbenchmark |
+| 2026-10-01 | [`634a784`](https://github.com/rexxar280903/MORE-HD-COMPLEX/commit/634a784ea4b0d05e54c16cdb2b2bb46a8937b927) | **35.3%** | **+2.6 pp** | docs(gates): G2-05 diagnostik Y-odd per sampel + G2-06 outcome pemisahan mengikuti MORE |
 
-**Trend terbaru:** `25.7% → 27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4% → 32.7% → 32.7%`
+**Trend terbaru:** `27.0% → 28.3% → 29.6% → 29.6% → 29.6% → 31.4% → 31.4% → 32.7% → 32.7% → 35.3%`
 
 Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progress_history.json).
 
@@ -129,11 +129,11 @@ Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi 
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | G0 | Validitas data & evaluasi | 4 | 2 | 0 | 2 | 0 | 0 | **75.0%** |
 | G1 | Optimasi & desain eksperimen | 11 | 0 | 1 | 8 | 1 | 1 | **45.5%** |
-| G2 | Preprocessing & definisi numerik | 7 | 0 | 0 | 5 | 0 | 2 | **35.7%** |
+| G2 | Preprocessing & definisi numerik | 7 | 0 | 0 | 7 | 0 | 0 | **50.0%** |
 | G3 | Artefak & spreadsheet | 7 | 0 | 1 | 2 | 0 | 4 | **25.0%** |
 | G4 | Reproducibility & verifikasi sirkuit | 4 | 0 | 0 | 0 | 0 | 4 | **0.0%** |
 | D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 6 | 0 | 0 | 1 | 0 | 5 | **8.3%** |
-| **Total** |  | **39** | **2** | **2** | **18** | **1** | **16** | **32.7%** |
+| **Total** |  | **39** | **2** | **2** | **20** | **1** | **14** | **35.3%** |
 
 \* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `READY FOR VERIFICATION=75%`, `IN PROGRESS=50%`, `PILOT ONLY=25%`, dan `BLOCKED=0%`.
 <!-- READINESS_SUMMARY_END -->
