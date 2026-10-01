@@ -1,12 +1,13 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.5  
+Version: 1.6  
 Primary design frozen: 2026-09-26  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
 Classical reference baselines and MORE reference policy (G1-10) frozen: 2026-09-27  
 Consistency audit (smoke/pilot budget, workbook schema map, Jalur B sheet): 2026-09-27  
 Quantum-label centroid rule (G2-07) and zero-norm safety (G2-04) frozen: 2026-10-01  
+Validation-monitoring set and per-evaluation caching (G3-05) frozen: 2026-10-01  
 Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
@@ -81,6 +82,12 @@ All architectures in a given track receive the same **total** COBYLA objective-e
 Every objective evaluation is labeled `phase = initial_simplex` (0-based `eval_id <= n_params`, including `x0`) or `phase = optimization`. The final budget is set from the seed-42 pilot (cap 300; K in {3,10} x {PCA, ZERNIKE} x {MORE-HD, MORE-HD-C}, plus MORE-HD-60P at K=10 x {PCA, ZERNIKE}, for 10 pilot runs; B is required because the final budget also governs the B ablation runs) using the plateau rule frozen in `Pseudocode_2x3_manual_runs.md` section 1.1 before the pilot is run. If any pilot run has not plateaued at 300, the final budget remains 300 and conclusions are stated as performance at equal objective-evaluation budget rather than at convergence. Pilot results are not used for any confirmatory estimate.
 
 The smoke test uses `max_nfev = 70` for every architecture. SciPy COBYLA (verified on 1.17.1) silently raises any budget below `n_params + 2`, so smaller smoke budgets would not be the budget actually applied; the pipeline rejects them in every run mode.
+
+## 4.4 Validation-monitoring set and per-evaluation caching (G3-05, frozen 2026-10-01)
+
+Within each clustering objective evaluation, the circuit output of each of the 5K clustering samples is computed once and reused by the pair loss and the per-evaluation class centroids. This is a computational change only: the cached loss must equal the per-pair loss exactly.
+
+All passive validation metrics in the clustering and supervised loops, including the Jalur B selector metrics (§12.1), are computed on the full validation split (`val_monitor_policy = FULL_VAL`). Computing passive metrics only at new `train_loss` records is not permitted, because it would silently shrink the Jalur B candidate domain. A fixed stratified subset (`STRATIFIED_FIXED_SUBSET`: the first `n_val_monitor_per_class` samples of each class in split-manifest order, hence paired across architectures and nested across K) may replace the full split only if the timing pilot shows that `FULL_VAL` is infeasible under a compute criterion written into Gate G3-05 before the timing pilot runs. That switch is global (all conditions, seeds, ablation runs, and Jalur B), and `n_val_monitor_per_class` is fixed before the convergence pilot. The subset never affects official-test evaluation, and classical baselines (§10.2) keep selecting `C` on the full validation split. The policy in force is recorded per run (`val_monitor_policy`, `n_val_monitor_per_class`, `val_monitor_manifest.json`) and reported in the methods.
 
 ## 5. Primary outcomes
 
@@ -235,7 +242,7 @@ The frozen count of 330 unique confirmatory executions refers only to the 240 pr
 
 The primary result for every A/D run remains the Jalur A result obtained by passing the COBYLA final point `result.x` from clustering into quantum-label extraction and supervised training. Jalur B must not replace that primary result or be used to redefine the primary estimand after official-test outcomes are known.
 
-If Jalur B is executed, it starts from an already completed Jalur A source run and does not rerun data preprocessing or clustering. The clustering checkpoint is chosen automatically from eligible objective evaluations using the pre-specified lexicographic rule:
+If Jalur B is executed, it starts from an already completed Jalur A source run and does not rerun data preprocessing or clustering. The clustering checkpoint is chosen automatically from eligible objective evaluations using the pre-specified lexicographic rule (validation metrics are computed on the validation-monitoring set of §4.4, inherited unchanged from the source run):
 
 ```text
 1. pseudo_accuracy_val      DESC

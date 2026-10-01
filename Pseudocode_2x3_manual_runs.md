@@ -179,6 +179,21 @@ threshold tersebut. Seluruh epsilon/threshold numerik (G2-04, G2-05) berasumsi n
 direkam di manifest setiap run. `diff_method` tidak relevan karena COBYLA tidak
 memakai gradien.
 
+**Update (G3-05, sesi 2026-10-01 — biaya komputasi per objective evaluation):**
+(a) Output sirkuit untuk 5 sampel clustering/kelas dihitung **sekali per objective
+evaluation** (`CLUSTER_OUTPUT_CACHE`, §1.2) dan dibaca ulang oleh pair loss dan
+centroid sementara; `train_loss` wajib identik persis dengan versi per-pasangan.
+Pada K=10 beban clustering per evaluasi turun dari 13.450 (sebelum G2-07) dan
+3.500 (setelah G2-07 saja) ke 1.050 eksekusi sirkuit. (b) Monitoring validation memakai **`FULL_VAL`** (`val_monitor_policy`)
+di kedua loop. Fallback `STRATIFIED_FIXED_SUBSET` (n sampel pertama per kelas
+menurut urutan split manifest) hanya boleh aktif bila pilot timing membuktikan
+`FULL_VAL` tidak layak berdasarkan kriteria yang ditulis sebelum pilot timing,
+dikunci global dan sebelum pilot konvergensi. Metrik pasif "hanya saat rekor
+`train_loss`" ditolak karena mempersempit domain kandidat Jalur B. (c) 15
+observable analitik dalam satu eksekusi per sampel sudah dikunci di G4-01.
+Set monitoring ditulis ke `artifacts/val_monitor_manifest.json` dan diwarisi
+Jalur B (§10.4) serta ablation (§11).
+
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
 **satu file binary append-only** (`clustering_params.bin`,
@@ -605,6 +620,12 @@ STRUCT Config:
     sim_dtype              = "complex128"       # presisi ganda; ekspektasi dibaca sebagai float64
     device_name            = "TBD_G4-01"        # "default.qubit" | "lightning.qubit"; dikunci di G4-01 sebelum pilot
 
+    # biaya komputasi per objective evaluation -- DIKUNCI 2026-10-01 (G3-05)
+    cluster_output_cache   = "PER_UNIQUE_SAMPLE_PER_EVAL"  # (a) output 5K sampel clustering dihitung sekali per eval
+    val_monitor_policy     = "FULL_VAL"         # (b) "FULL_VAL" | "STRATIFIED_FIXED_SUBSET"; default FULL_VAL
+    n_val_monitor_per_class = NULL              # (b) NULL bila FULL_VAL; bila fallback aktif, angka tunggal
+                                                #     dikunci setelah pilot timing dan SEBELUM pilot konvergensi G1-01
+
     # dataset lokal / pilot download
     mnist_root              = "data/"
     mnist_download          = FALSE             # TRUE hanya saat pilot/initial download
@@ -665,6 +686,20 @@ FUNCTION VALIDATE_CONFIG(config):
         IF config.run_mode == "CONFIRMATORY":
             RAISE_ERROR("device_name belum dikunci (G4-01); run konfirmatori ditolak")
         PRINT_WARNING("device_name belum dikunci (G4-01); hanya boleh untuk smoke test")
+
+    # biaya komputasi (G3-05, sesi 2026-10-01)
+    IF config.cluster_output_cache != "PER_UNIQUE_SAMPLE_PER_EVAL":
+        RAISE_ERROR("caching output per sampel unik wajib (G3-05a)")
+    IF config.val_monitor_policy == "FULL_VAL":
+        IF config.n_val_monitor_per_class IS NOT NULL:
+            RAISE_ERROR("n_val_monitor_per_class harus NULL pada FULL_VAL")
+    ELSE IF config.val_monitor_policy == "STRATIFIED_FIXED_SUBSET":
+        IF config.n_val_monitor_per_class IS NULL
+           OR config.n_val_monitor_per_class <= 0
+           OR config.n_val_monitor_per_class >= config.n_val_per_class:
+            RAISE_ERROR("subset monitoring harus 0 < n < n_val_per_class (G3-05b)")
+    ELSE:
+        RAISE_ERROR("val_monitor_policy harus FULL_VAL atau STRATIFIED_FIXED_SUBSET")
 
 
 FUNCTION CREATE_RUN_DIRECTORY_EXCLUSIVE(config):
@@ -863,6 +898,96 @@ Unit test wajib: pada fixture COBYLA nyata, untuk `eval_id` 1..`n_params`, titik
 yang dievaluasi berbeda dari vertex terbaik sebelumnya pada tepat satu koordinat
 sebesar `±rhobeg`. Test ini memverifikasi label `phase` terhadap versi SciPy yang
 dipakai (versi SciPy dicatat di summary optimizer).
+
+### 1.2 Biaya per objective evaluation dan set monitoring validation (G3-05, dikunci 2026-10-01)
+
+**Beban per objective evaluation pada K=10** (jumlah eksekusi sirkuit; satu
+eksekusi = satu sampel, 15 observable analitik sekaligus, lihat G4-01):
+
+| Komponen | Sebelum G2-07 dan G3-05 | Sesudah G2-07 + G3-05 |
+|---|---:|---:|
+| Clustering — pair loss | 2 × 1.225 = 2.450 | 50 (cache per sampel unik) |
+| Clustering — centroid sementara | 10.000 (seluruh train) | 0 (memakai cache yang sama) |
+| Clustering — monitoring validation | 1.000 | 1.000 (`FULL_VAL`) |
+| **Clustering per evaluasi** | **13.450** | **1.050** |
+| Supervised — objective `train_loss` (seluruh `X_train`) | 10.000 | 10.000 (tidak diubah G3-05) |
+| Supervised — monitoring validation | 1.000 | 1.000 (`FULL_VAL`) |
+| **Supervised per evaluasi** | **11.000** | **11.000** |
+
+Catatan: setelah G3-05, beban terbesar satu run ada di objective supervised
+(seluruh `X_train`), bukan di metrik pasif. Objective itu bagian dari protokol
+pelatihan, bukan monitoring, sehingga berada di luar cakupan G3-05.
+
+**(a) Caching output per sampel unik.** Dalam satu objective evaluation, output
+`circuit_fn(x, theta)` untuk 5 sampel clustering/kelas dihitung tepat sekali dan
+disimpan di cache berkunci `train_position`. Pair loss dan centroid sementara
+membaca cache tersebut. Cache dibuang setiap evaluasi selesai karena `theta`
+berubah; tidak ada cache lintas evaluasi.
+
+**(b) Set monitoring validation.** Default `val_monitor_policy = "FULL_VAL"`:
+seluruh `n_val_per_class` dipakai untuk semua metrik pasif di `CLUSTERING_LOOP`
+dan `SUPERVISED_LOOP`, sehingga selector Jalur B (G0-02) membaca metrik
+validation penuh di setiap `eval_id`. Opsi "hitung metrik pasif hanya saat
+`train_loss` mencatat rekor baru" **ditolak**, karena akan mempersempit domain
+kandidat Jalur B tanpa terlihat.
+
+Fallback `STRATIFIED_FIXED_SUBSET` hanya boleh diaktifkan bila pilot timing
+membuktikan `FULL_VAL` tidak layak. Aturannya:
+
+1. Kriteria "tidak layak" (anggaran waktu komputasi untuk 330 unique
+   confirmatory executions pada cap pilot) **wajib ditulis di gate G3-05 sebelum
+   pilot timing dijalankan**.
+2. Keputusan diambil satu kali dan berlaku global (seluruh kondisi, seed,
+   arsitektur, ablation, dan Jalur B), bukan per kondisi.
+3. `n_val_monitor_per_class` dikunci sebagai satu angka setelah pilot timing dan
+   **sebelum** pilot konvergensi G1-01, sehingga pilot konvergensi sudah memakai
+   set monitoring final.
+4. Subset tidak memakai seed baru: ambil `n_val_monitor_per_class` sampel pertama
+   tiap kelas menurut urutan `val_idx_by_class` di split manifest (urutan itu sudah
+   acak ber-seed, G0-04). Akibatnya subset otomatis paired lintas
+   arsitektur/feature method dan nested lintas K.
+5. Subset hanya mengganti data monitoring pasif. `FINAL_EVALUATION` (official
+   test) tidak terpengaruh. Baseline klasik G1-10 tetap memilih `C` dengan
+   validation penuh.
+
+```
+FUNCTION SELECT_VAL_MONITOR_SET(X_val, y_val, config):
+    # Dipanggil sekali per run setelah DATA_PIPELINE (Jalur A) atau setelah
+    # artefak validation dimuat (Jalur B). Urutan baris X_val per kelas
+    # mengikuti urutan val_idx_by_class pada split manifest.
+    IF config.val_monitor_policy == "FULL_VAL":
+        RETURN X_val, y_val, ALL_POSITIONS(X_val)
+
+    keep = []
+    FOR each c IN config.classes:
+        positions_c = [pos FOR pos IN 0 .. LENGTH(y_val) - 1 IF y_val[pos] == c]   # urutan array
+        ASSERT LENGTH(positions_c) == config.n_val_per_class
+        keep.EXTEND(FIRST config.n_val_monitor_per_class OF positions_c)
+    RETURN X_val[keep], y_val[keep], keep
+
+
+FUNCTION CLUSTER_OUTPUT_CACHE(circuit_fn, theta, X_train, cluster_positions):
+    # G3-05a: satu eksekusi sirkuit per sampel clustering unik per evaluasi.
+    # cluster_positions[c] = pair_manifest.selected_by_class[c].train_positions,
+    # urutan sama dengan cluster_samples[c] dari CLUSTER_SAMPLES_FROM_MANIFEST.
+    cache = {}
+    FOR each c IN KEYS(cluster_positions):
+        FOR each pos IN cluster_positions[c]:
+            cache[pos] = circuit_fn(X_train[pos], theta)
+    RETURN cache
+```
+
+Unit test wajib (G3-05):
+
+- `train_loss` hasil cache identik persis (`==`, bukan toleransi) dengan versi
+  per-pasangan tanpa cache untuk `theta` dan pair set yang sama, pada K=3 dan K=10,
+  untuk A/B/C/D. Ketidaksamaan dianggap bug atau nondeterminisme thread (G4-01).
+- Penghitung pemanggilan `circuit_fn` dalam satu `objective_clustering` sama dengan
+  `5 × K + LENGTH(X_val_monitor)`.
+- `SELECT_VAL_MONITOR_SET` memberi posisi yang sama untuk dua arsitektur pada
+  seed dan K yang sama, dan posisi kelas `c` di K memuat posisi kelas `c` di K−1.
+- Indeks set monitoring ditulis ke `artifacts/val_monitor_manifest.json` dan Jalur B
+  menolak run sumber bila indeks yang dimuat ulang berbeda.
  
 ---
  
@@ -1809,6 +1934,12 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
     pairing_dataset, pair_stats, cluster_samples = BUILD_PAIRING_DATASET(
         X_train, y_train, config
     )
+    pair_manifest = LOAD_JSON(run_dir + "/artifacts/pair_manifest.json")
+    cluster_positions = {
+        c: pair_manifest.selected_by_class[c].train_positions FOR c IN config.classes
+    }
+    # G3-05b: X_val/y_val yang diterima fungsi ini adalah set monitoring dari
+    # SELECT_VAL_MONITOR_SET (§1.2); pada FULL_VAL identik dengan seluruh validation.
  
     n_objective_evals = 0
     callback_id = 0
@@ -1834,12 +1965,14 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         t_eval_start = MONOTONIC_TIME()
  
         # --- (a) objective train_loss yang dibaca COBYLA ---
+        # G3-05a: output 5K sampel clustering dihitung sekali; pasangan membaca cache.
+        cluster_cache = CLUSTER_OUTPUT_CACHE(circuit_fn, theta, X_train, cluster_positions)
         pair_losses = []
-        FOR each (x_i, x_j, class_i, class_j) IN pairing_dataset:
-            v_i = circuit_fn(x_i, theta)
-            v_j = circuit_fn(x_j, theta)
+        FOR each pair IN pairing_dataset:
+            v_i = cluster_cache[pair.train_position_i]
+            v_j = cluster_cache[pair.train_position_j]
             dist = COSINE_DISTANCE(v_i, v_j)
-            s_ij = S[class_i][class_j]
+            s_ij = S[pair.class_i][pair.class_j]
             pair_losses.APPEND(-s_ij * dist)
         train_loss = MEAN(pair_losses)
  
@@ -1849,7 +1982,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         n_degenerate_centroids_train = 0
         min_centroid_prenorm_train = +INFINITY
         FOR each c IN config.classes:
-            outputs_c = [circuit_fn(x, theta) FOR x IN cluster_samples[c]]
+            outputs_c = [cluster_cache[pos] FOR pos IN cluster_positions[c]]   # tanpa eksekusi sirkuit baru
             temp_centroids[c], n_excl, prenorm, is_deg = CLASS_CENTROID_MORE(outputs_c)
             n_degenerate_cluster_outputs += n_excl
             n_degenerate_centroids_train += (1 IF is_deg ELSE 0)
@@ -1858,6 +1991,7 @@ FUNCTION CLUSTERING_LOOP(circuit_fn, initial_params, X_train, y_train, X_val, y_
         # sekaligus menghitung vektor pair loss yang kena fallback COSINE_DISTANCE = 1.0.
  
         # --- (c) monitoring VALIDATION, pasif; tidak masuk objective ---
+        # X_val/y_val = set monitoring G3-05b (FULL_VAL: seluruh validation).
         correct = 0
         margins = []
         true_distances_val = []
@@ -2197,6 +2331,7 @@ FUNCTION SUPERVISED_LOOP(circuit_fn, trained_params_clustering, quantum_labels,
         # Monitoring VALIDATION pasif. Output validation sudah dihitung untuk
         # val_loss, jadi klasifikasi ke quantum label terdekat tidak menambah
         # evaluasi sirkuit. Aturan klasifikasinya identik dengan FINAL_EVALUATION.
+        # X_val/y_val = set monitoring G3-05b yang sama dengan CLUSTERING_LOOP.
         val_losses = []
         correct_val = 0
         margins_val = []
@@ -2385,8 +2520,17 @@ FUNCTION MAIN(config):
     S = CORRELATION_MATRIX(X_train, y_train, config.classes)
     circuit_fn, initial_params = MODEL_SETUP(config)
 
+    # G3-05b: set monitoring validation (FULL_VAL = seluruh validation).
+    X_val_mon, y_val_mon, val_monitor_positions = SELECT_VAL_MONITOR_SET(X_val, y_val, config)
+    SAVE_ATOMIC_JSON({
+        "val_monitor_policy": config.val_monitor_policy,
+        "n_val_monitor_per_class": config.n_val_monitor_per_class,
+        "n_val_monitor_total": LENGTH(y_val_mon),
+        "val_positions": val_monitor_positions
+    }, config.run_dir + "/artifacts/val_monitor_manifest.json")
+
     params_after_clustering = CLUSTERING_LOOP(
-        circuit_fn, initial_params, X_train, y_train, X_val, y_val, S, config
+        circuit_fn, initial_params, X_train, y_train, X_val_mon, y_val_mon, S, config
     )
 
     quantum_labels = QUANTUM_LABEL_EXTRACTION(
@@ -2396,7 +2540,7 @@ FUNCTION MAIN(config):
 
     params_final = SUPERVISED_LOOP(
         circuit_fn, params_after_clustering, quantum_labels,
-        X_train, y_train, X_val, y_val, config
+        X_train, y_train, X_val_mon, y_val_mon, config
     )
 
     metrics, confusion_matrix = FINAL_EVALUATION(
@@ -2423,6 +2567,7 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "y_train": "artifacts/y_train.npy",
         "X_val_scaled": "artifacts/X_val_scaled.npy",
         "y_val": "artifacts/y_val.npy",
+        "val_monitor_manifest": "artifacts/val_monitor_manifest.json",
         "X_test_scaled": "artifacts/X_test_scaled.npy",
         "y_test": "artifacts/y_test.npy",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
@@ -2512,6 +2657,9 @@ FUNCTION SAVE_ARTIFACT_BUNDLE(config, metrics):
         "eps_norm": config.eps_norm,                          # G2-04
         "centroid_rule": config.centroid_rule,                # G2-07
         "centroid_source": config.centroid_source,            # G2-07
+        "cluster_output_cache": config.cluster_output_cache,  # G3-05a
+        "val_monitor_policy": config.val_monitor_policy,      # G3-05b
+        "n_val_monitor_per_class": config.n_val_monitor_per_class,  # G3-05b; NULL bila FULL_VAL
         "degenerate_quantum_label": LOAD_JSON(config.run_dir + "/artifacts/quantum_label_diagnostics.json").degenerate_quantum_label,
         "mnist_root": config.mnist_root,
         "mnist_download": config.mnist_download,
@@ -2822,6 +2970,15 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
     X_val_scaled   = LOAD(source_run_dir + "/artifacts/X_val_scaled.npy")
     y_val          = LOAD(source_run_dir + "/artifacts/y_val.npy")
 
+    # G3-05b: set monitoring validation diwarisi dari run sumber (config juga
+    # mewarisi val_monitor_policy/n_val_monitor_per_class dari manifest sumber).
+    X_val_mon, y_val_mon, val_monitor_positions = SELECT_VAL_MONITOR_SET(X_val_scaled, y_val, config)
+    source_val_monitor = LOAD_JSON(source_run_dir + "/artifacts/val_monitor_manifest.json")
+    IF val_monitor_positions != source_val_monitor.val_positions:
+        RAISE_ERROR("set monitoring validation Jalur B berbeda dari run sumber (G3-05b)")
+    COPY_FILE(source_run_dir + "/artifacts/val_monitor_manifest.json",
+              config.run_dir + "/artifacts/val_monitor_manifest.json")
+
     # Official test SENGAJA belum dimuat di tahap ini.
 
     IF config.architecture == "MORE-HD":
@@ -2854,7 +3011,7 @@ FUNCTION MAIN_FROM_SELECTED_CLUSTERING(source_run_dir):
 
     trained_params_final = SUPERVISED_LOOP(
         circuit_fn, selected_theta, quantum_labels,
-        X_train_scaled, y_train, X_val_scaled, y_val, config
+        X_train_scaled, y_train, X_val_mon, y_val_mon, config
     )
 
     X_test_scaled = LOAD(source_run_dir + "/artifacts/X_test_scaled.npy")
@@ -3127,6 +3284,9 @@ FUNCTION ABLATION_MAIN(config):
         initial_params = init_bundle.ry_core
         SAVE(fixed_rz, run_dir + "/artifacts/fixed_rz.npy")
 
+    # G3-05: cache output per sampel unik dan set monitoring validation sama persis
+    # dengan Jalur A (SELECT_VAL_MONITOR_SET + val_monitor_manifest.json).
+    X_val_mon, y_val_mon, val_monitor_positions = SELECT_VAL_MONITOR_SET(X_val, y_val, config)
     RUN_STANDARD_TWO_STAGE_PIPELINE_WITH_EXISTING_SPLIT_AND_PAIRS(...)
     FINAL_EVALUATION(...)
     SAVE_ABLATION_MANIFEST(...)
@@ -3436,7 +3596,7 @@ boleh ditarik dari baseline ini.
  
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
-1. **Overhead langkah (b) dan (c)** di `objective_clustering` — sejak G2-07 (2026-10-01) centroid sementara (b) hanya memakai 5 sampel clustering/kelas (sampel yang sama dengan pair loss), sehingga beban per objective evaluation didominasi monitoring validation (c) sebanyak `100 × K` eksekusi sirkuit; sebelumnya (b) menghitung ulang output seluruh `1000 × K` sampel train. Ini diukur pada pilot konvergensi §1.1 (waktu per objective evaluation dicatat per run) sebelum `max_nfev` final (G1-01) dikunci, supaya total waktu 330 unique confirmatory executions (240 primary + 90 ablation) bisa diproyeksikan realistis.
+1. **[DIKUNCI G3-05, sesi 2026-10-01] Overhead langkah (a)–(c)** di `objective_clustering` — output 5 sampel clustering/kelas dihitung sekali per evaluasi lewat `CLUSTER_OUTPUT_CACHE` (pair loss dan centroid sementara membaca cache), sehingga clustering K=10 turun dari 13.450 (sebelum G2-07) dan 3.500 (setelah G2-07 saja) ke 1.050 eksekusi sirkuit per evaluasi. Monitoring validation memakai `FULL_VAL` secara default; fallback `STRATIFIED_FIXED_SUBSET` hanya bila pilot timing membuktikan tidak layak menurut kriteria yang ditulis sebelum pilot timing (§1.2). Waktu per objective evaluation tetap dicatat (`eval_runtime_sec`) untuk proyeksi 330 unique confirmatory executions sebelum `max_nfev` final (G1-01) dikunci. Beban terbesar per run kini objective supervised (seluruh `X_train`, 11.000 eksekusi per evaluasi di K=10), yang tidak diubah oleh G3-05.
 2. **Validasi `active_dim_threshold = 1e-6`** — akan ditinjau ulang setelah prototipe MORE-HD-C benar-benar dijalankan dan dilihat skala nilai aktualnya.
 3. **Perilaku Jalur B saat `clustering_params.bin` sendiri korup/tidak lengkap** (bukan sekadar `selected_eval_id` di luar rentang, tapi filenya sendiri rusak) — belum dirancang penanganannya secara eksplisit; untuk pilot ini diasumsikan tidak terjadi karena skala data kecil.
 4. **Jumlah parallel run maksimum** sengaja tidak dikunci di kode. Pengguna akan menentukan sendiri jumlah proses aktif berdasarkan observasi CPU dan RAM saat pilot serta saat eksperimen berlangsung.
