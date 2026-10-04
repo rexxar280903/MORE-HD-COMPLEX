@@ -1,0 +1,6 @@
+# Test-only reference libraries (G2-01 OpenCV Hu, G2-02 mahotas Zernike, MORE Qiskit circuit check)
+-r requirements.txt
+pytest==9.1.1
+opencv-python-headless==5.0.0.93
+mahotas==1.4.19
+qiskit==2.5.2
