@@ -36,7 +36,7 @@ The G1-05/G1-07 ablation is restricted to K in {3, 6, 10}, all three feature rep
 | C | MORE-HD-C-FixedRZ | complex allowed | 30 RY | 30 non-zero RZ | complex-state access at the same trainable count as A |
 | D | MORE-HD-C | complex allowed | 30 RY + 30 RZ = 60 | 0 | proposed primary model; reused from main experiment |
 
-Only B and C create new executions. There are `3 K × 3 features × 2 new variants = 18` new ablation conditions per seed and `18 × 5 = 90` additional confirmatory runs. A and D are linked to their matching primary `run_uid` and are not rerun. Therefore the project contains 330 unique confirmatory executions: 240 primary + 90 additional ablation runs.
+Only B and C create new executions. There are `3 K × 3 features × 2 new variants = 18` new ablation conditions per seed and `18 × 5 = 90` additional confirmatory runs. A and D are linked to their matching primary `run_uid` and are not rerun. Therefore the primary and ablation tracks contain 330 unique confirmatory executions: 240 primary + 90 additional ablation runs (450 with the MORE reproduction track of §2.3, added in v2.0).
 
 Ablation conditions use separate identifiers `ABL001-ABL018` in deterministic order `K: 3 -> 6 -> 10`, then `feature: PCA -> HU -> ZERNIKE`, then `model: B -> C`. A unique ablation execution is `ablation_run_uid = ablation_condition_id-S<seed>`.
 
@@ -281,7 +281,7 @@ The MORE reproduction track uses its own template `research_data/MORE_HD_master_
 
 ## 12.1 Secondary Jalur B sensitivity analysis
 
-The frozen count of 330 unique confirmatory executions refers only to the 240 primary A/D runs plus the 90 new B/C targeted-ablation runs. Jalur B is a separate secondary sensitivity path and is not included in that count.
+The frozen count of 330 unique confirmatory executions refers only to the 240 primary A/D runs plus the 90 new B/C targeted-ablation runs (450 with the 120 MORE-REPRO runs of §2.3). Jalur B is a separate secondary sensitivity path and is not included in either count.
 
 The primary result for every A/D run remains the Jalur A result obtained by passing the COBYLA final point `result.x` from clustering into quantum-label extraction and supervised training. Jalur B must not replace that primary result or be used to redefine the primary estimand after official-test outcomes are known.
 

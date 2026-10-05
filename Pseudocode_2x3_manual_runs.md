@@ -88,7 +88,8 @@ ditambahkan track ablation terpisah hanya pada `K={3,6,10}`, seluruh
 `PCA/HU/ZERNIKE`, dan lima seed konfirmatori yang sama. A dan D **tidak dirun ulang**;
 model baru B=MORE-HD-60P (6 layer RY-only, 60 trainable) dan
 C=MORE-HD-C-FixedRZ (3 layer, 30 trainable RY + 30 fixed non-zero RZ)
-menghasilkan 90 run tambahan. Total unique confirmatory executions menjadi 330.
+menghasilkan 90 run tambahan. Total unique confirmatory executions menjadi 330
+(**450** setelah track MORE-REPRO ditambahkan 2026-10-04, Bagian 13).
 Primary A/D diselaraskan ke structured paired initialization agar reuse A/D valid.
 Spesifikasi penuh ablation berada di **Bagian 11** dokumen ini; primary `MAIN(config)` dan identity R001-R048 tidak diubah oleh keputusan ini.
 
@@ -316,6 +317,7 @@ new ablation models = {MORE-HD-60P, MORE-HD-C-FixedRZ}
 18 kondisi tambahan per seed × 5 confirmatory seeds = 90 run baru
 A=MORE-HD dan D=MORE-HD-C direuse dari primary matrix, tidak dirun ulang
 TOTAL = 240 primary + 90 ablation = 330 unique confirmatory executions
+      (+ 120 MORE-REPRO, Bagian 13, ditambahkan 2026-10-04 = 450)
 ```
 
 Ablation bukan level baru pada `GENERATE_RUN_ID()` primer. Ia memakai ID terpisah
@@ -3626,7 +3628,7 @@ MAIN_FROM_SELECTED_CLUSTERING(
 | Akses official test sebelum keputusan model selesai | Tidak | Tidak |
 | `active_dimensions` dipakai memilih checkpoint | Tidak | **Tidak; diagnostik saja** |
 | Nama run | normal | suffix `_jalurB_auto_evalXXXX` |
-| Peran dalam 330 execution plan | Termasuk primary 240 A/D | **Tidak termasuk**; secondary analysis tambahan |
+| Peran dalam 330 execution plan (450 dengan MORE-REPRO) | Termasuk primary 240 A/D | **Tidak termasuk**; secondary analysis tambahan |
 | Provenance | manifest Jalur A | `source_run_dir` + `selected_eval_id` + selection log deterministik |
 
 ---
@@ -3674,6 +3676,7 @@ The complete confirmatory workload becomes:
 
 ```text
 240 primary runs + 90 additional ablation runs = 330 unique confirmatory runs
+(+ 120 MORE-REPRO runs, Bagian 13, added 2026-10-04 = 450)
 ```
 
 The four-model analysis still contains A/B/C/D for each ablation cell, but A and D are linked to existing primary runs and are not counted again.
