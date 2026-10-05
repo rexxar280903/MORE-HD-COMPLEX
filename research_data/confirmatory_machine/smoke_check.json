@@ -1,0 +1,127 @@
+{
+  "tag": "smoke",
+  "n_runs": 5,
+  "all_criteria_ok": true,
+  "runs": [
+    {
+      "run_uid": "ABL001-S42",
+      "architecture": "MORE-HD-60P",
+      "K": 3,
+      "clustering": {
+        "nfev": 100,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 100,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 1.1657341758564144e-15,
+      "accuracy": 0.8666666666666667
+    },
+    {
+      "run_uid": "ABL002-S42",
+      "architecture": "MORE-HD-C-FixedRZ",
+      "K": 3,
+      "clustering": {
+        "nfev": 100,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 100,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 1.2212453270876722e-15,
+      "accuracy": 0.87
+    },
+    {
+      "run_uid": "R002-S42",
+      "architecture": "MORE-HD-C",
+      "K": 3,
+      "clustering": {
+        "nfev": 100,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 100,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 1.2212453270876722e-15,
+      "accuracy": 0.9266666666666666
+    },
+    {
+      "run_uid": "R001-S42",
+      "architecture": "MORE-HD",
+      "K": 3,
+      "clustering": {
+        "nfev": 100,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 100,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 6.106226635438361e-16,
+      "accuracy": 0.8866666666666667
+    },
+    {
+      "run_uid": "MREF001-S42",
+      "architecture": "MORE-REPRO",
+      "K": 3,
+      "clustering": {
+        "nfev": 100,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 100,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 4.996003610813204e-16,
+      "accuracy": 0.5033333333333333
+    }
+  ]
+}

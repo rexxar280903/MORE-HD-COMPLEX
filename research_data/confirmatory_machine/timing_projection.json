@@ -1,0 +1,64 @@
+{
+  "cap": 1000,
+  "n_confirmatory_executions": 450,
+  "n_jalur_b": 90,
+  "projected_cpu_hours_confirmatory": 39.61402978074063,
+  "projected_cpu_hours_jalur_b": 7.079060430928262,
+  "projected_cpu_hours_total": 46.69309021166889,
+  "projected_val_monitoring_share": 0.10303899508887933,
+  "per_architecture_cpu_hours": {
+    "MORE-HD": 12.13974711256342,
+    "MORE-HD-C": 12.343593733836258,
+    "MORE-REPRO": 5.720495930931856,
+    "MORE-HD-60P": 5.061666225876836,
+    "MORE-HD-C-FixedRZ": 4.348526777532226
+  },
+  "fits_sec": {
+    "MORE-HD-60P|clustering": {
+      "a": 0.08562925664355929,
+      "b_per_execution": 2.174460302346574e-05
+    },
+    "MORE-HD-60P|supervised": {
+      "a": 0.08039869136796646,
+      "b_per_execution": 3.1975209456905967e-05
+    },
+    "MORE-HD-C-FixedRZ|clustering": {
+      "a": 0.05764646481964998,
+      "b_per_execution": 2.4070040046707803e-05
+    },
+    "MORE-HD-C-FixedRZ|supervised": {
+      "a": 0.054247115696944695,
+      "b_per_execution": 3.135511517906609e-05
+    },
+    "MORE-HD-C|clustering": {
+      "a": 0.05422611523522456,
+      "b_per_execution": 3.179324882840836e-05
+    },
+    "MORE-HD-C|supervised": {
+      "a": 0.04827173505919492,
+      "b_per_execution": 3.420097463465449e-05
+    },
+    "MORE-HD|clustering": {
+      "a": 0.0551677373275724,
+      "b_per_execution": 3.119136419981129e-05
+    },
+    "MORE-HD|supervised": {
+      "a": 0.0474763404675107,
+      "b_per_execution": 3.334592856355923e-05
+    },
+    "MORE-REPRO|clustering": {
+      "a": 0.03171558830729627,
+      "b_per_execution": 1.2979656359580208e-05
+    },
+    "MORE-REPRO|supervised": {
+      "a": 0.029590954611812458,
+      "b_per_execution": 1.3984140414536174e-05
+    }
+  },
+  "criterion": {
+    "limit_cpu_hours": 240.0,
+    "limit_val_share": 0.5
+  },
+  "full_val_infeasible": false,
+  "machine_note": "single-thread projection on the machine that ran the timing pilot; rerun on the confirmatory machine"
+}
