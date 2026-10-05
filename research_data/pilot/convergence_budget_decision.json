@@ -1,0 +1,55 @@
+{
+  "rule": "pseudocode §1.1 (frozen 2026-09-27; cap revised to 1000 on 2026-10-04 before any pilot run)",
+  "tol_fraction": 0.02,
+  "tail": 30,
+  "cap": 1000,
+  "n_runs": 14,
+  "clustering": {
+    "n_star_max": 834,
+    "n_star_by_run": {
+      "ABL013-S42": 656,
+      "ABL017-S42": 834,
+      "R044-S42": 691,
+      "R043-S42": 583,
+      "R048-S42": 564,
+      "R047-S42": 341,
+      "R002-S42": 211,
+      "R001-S42": 293,
+      "R006-S42": 493,
+      "R005-S42": 833,
+      "MREF001-S42": 821,
+      "MREF003-S42": 436,
+      "MREF022-S42": 586,
+      "MREF024-S42": 758
+    },
+    "not_plateaued_runs": [],
+    "final_max_nfev": 840,
+    "rule5_floor_applied": false,
+    "limitation": false
+  },
+  "supervised": {
+    "n_star_max": 971,
+    "n_star_by_run": {
+      "ABL013-S42": 849,
+      "ABL017-S42": 915,
+      "R044-S42": 865,
+      "R043-S42": 757,
+      "R048-S42": 971,
+      "R047-S42": 882,
+      "R002-S42": 759,
+      "R001-S42": 583,
+      "R006-S42": 948,
+      "R005-S42": 833,
+      "MREF001-S42": 855,
+      "MREF003-S42": 749,
+      "MREF022-S42": 937,
+      "MREF024-S42": 916
+    },
+    "not_plateaued_runs": [
+      "R048-S42"
+    ],
+    "final_max_nfev": 1000,
+    "rule5_floor_applied": false,
+    "limitation": true
+  }
+}

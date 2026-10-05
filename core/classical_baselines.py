@@ -21,7 +21,7 @@ from sklearn.neighbors import NearestCentroid
 
 from . import constants as C
 from .artifact_io import load_json, load_npy, save_json_atomic, save_npy_atomic, sha256_file
-from .config import auto_generate_run_name, primary_condition_id
+from .config import primary_condition_id, run_name_for
 from .environment import git_info
 from .run_status import existing_attempts
 
@@ -39,10 +39,10 @@ def _attempt_with_arrays(base: Path) -> Path | None:
     return with_arrays[-1] if with_arrays else None
 
 
-def resolve_baseline_source(root: Path, seed: int, feature: str, k: int, sizes=(1000, 100, 200)) -> dict:
-    classes = list(range(k))
-    a_base = root / C.RUNS_DIR / auto_generate_run_name(classes, *sizes, C.ARCH_MORE_HD, feature, seed)
-    d_base = root / C.RUNS_DIR / auto_generate_run_name(classes, *sizes, C.ARCH_MORE_HD_C, feature, seed)
+def resolve_baseline_source(root: Path, seed: int, feature: str, k: int, sizes=(1000, 100, 200),
+                            run_mode: str = "CONFIRMATORY", pilot_tag: str = "") -> dict:
+    a_base = root / C.RUNS_DIR / run_name_for(C.ARCH_MORE_HD, feature, k, seed, sizes, run_mode, pilot_tag)
+    d_base = root / C.RUNS_DIR / run_name_for(C.ARCH_MORE_HD_C, feature, k, seed, sizes, run_mode, pilot_tag)
     dir_a = _attempt_with_arrays(a_base)
     if dir_a is None:
         raise FileNotFoundError(f"primary MORE-HD data arrays not found for {a_base.name}")
@@ -76,8 +76,8 @@ def _fit_lr(x, y, c):
 
 
 def run_baseline_cell(root: Path, seed: int, feature: str, k: int, out_root: Path, sizes=(1000, 100, 200),
-                      access_log: list | None = None) -> list:
-    src = resolve_baseline_source(root, seed, feature, k, sizes)
+                      access_log: list | None = None, run_mode: str = "CONFIRMATORY", pilot_tag: str = "") -> list:
+    src = resolve_baseline_source(root, seed, feature, k, sizes, run_mode, pilot_tag)
     cell_dir = out_root / f"S{seed}_cls-{'-'.join(str(c) for c in range(k))}_{feature}"
     cell_dir.mkdir(parents=True, exist_ok=False)
     art = src["dir_A"] / "artifacts"

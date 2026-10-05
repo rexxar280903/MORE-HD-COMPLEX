@@ -21,6 +21,7 @@ def main() -> None:
     p.add_argument("--ks", type=int, nargs="*", default=list(C.K_VALUES))
     p.add_argument("--sizes", type=int, nargs=3, default=[C.N_TRAIN_PER_CLASS, C.N_VAL_PER_CLASS, C.N_TEST_PER_CLASS],
                    help="per-class train/val/test sizes of the source runs (PILOT only)")
+    p.add_argument("--pilot-tag", default="", help="PILOT only: tag of the source pilot runs")
     p.add_argument("--project-root", default=".")
     args = p.parse_args()
     seeds = args.seeds or (list(C.CONFIRMATORY_SEEDS) if args.run_mode == "CONFIRMATORY" else [C.PILOT_SEED])
@@ -38,7 +39,8 @@ def main() -> None:
         for k in args.ks:
             for feature in args.features:
                 try:
-                    rows += run_baseline_cell(root, seed, feature, k, out_root, tuple(args.sizes))
+                    rows += run_baseline_cell(root, seed, feature, k, out_root, tuple(args.sizes),
+                                              run_mode=args.run_mode, pilot_tag=args.pilot_tag)
                 except Exception as exc:  # cell skipped and logged; rerun later in a new folder
                     errors.append({"seed": seed, "K": k, "feature_method": feature, "error": repr(exc)})
     write_results_csv(rows, out_root / "baseline_results.csv")

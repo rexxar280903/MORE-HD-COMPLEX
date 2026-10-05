@@ -77,10 +77,13 @@ COBYLA_TOL = 1e-4
 COBYLA_RHOBEG = 1.0
 SMOKE_MAX_NFEV = 100             # revised 2026-10-04 (MORE-REPRO has 91 params)
 PILOT_MAX_NFEV_CAP = 1000        # revised 2026-10-04 before any pilot run (see gate log)
-# Final confirmatory budget (G1-01): set ONLY from the frozen plateau rule applied to the
-# seed-42 convergence pilot (scripts/analyze_pilot_budget.py). None = confirmatory runs blocked.
-FINAL_MAX_NFEV_CLUSTERING = None
-FINAL_MAX_NFEV_SUPERVISED = None
+# Final confirmatory budget (G1-01), frozen 2026-10-05 from the plateau rule applied to the
+# seed-42 convergence pilot (scripts/analyze_pilot_budget.py ->
+# research_data/pilot/convergence_budget_decision.json). Clustering: every pilot run plateaued,
+# max N* = 834 -> 840. Supervised: R048-S42 had not plateaued at the cap -> 1000 (cap), reported
+# as "equal objective-evaluation budget" for the supervised phase.
+FINAL_MAX_NFEV_CLUSTERING = 840
+FINAL_MAX_NFEV_SUPERVISED = 1000
 
 # --- clustering pairs (G1-03, G1-08) ----------------------------------------
 N_CLUSTER_PAIR_SAMPLES = 5

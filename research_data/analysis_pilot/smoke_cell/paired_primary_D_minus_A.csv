@@ -1,0 +1,7 @@
+contrast,feature_method,K,metric,seeds,n_pairs,mean_delta,sd_delta,median_delta,iqr_delta,ci95_low,ci95_high,hedges_g,sign_flip_p,deltas
+A-D (D-A),PCA,3,accuracy,42,1,0.030000000000000027,,0.030000000000000027,0.0,,,,1.0,0.03
+A-D (D-A),PCA,3,f1_macro,42,1,0.030436056309480652,,0.030436056309480652,0.0,,,,1.0,0.0304361
+A-D (D-A),PCA,3,min_separation_ratio,42,1,0.19491243741703473,,0.19491243741703473,0.0,,,,1.0,0.194912
+A-D (D-A),PCA,3,min_separation,42,1,0.2923686561255521,,0.2923686561255521,0.0,,,,1.0,0.292369
+A-D (D-A),PCA,3,min_separation_val_ratio,42,1,0.21434768088144884,,0.21434768088144884,0.0,,,,1.0,0.214348
+A-D (D-A),PCA,3,yodd_norm_fraction,42,1,0.5528566141816161,,0.5528566141816161,0.0,,,,1.0,0.552857

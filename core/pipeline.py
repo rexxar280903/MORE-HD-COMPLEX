@@ -17,7 +17,7 @@ from . import constants as C
 from .artifact_io import load_json, save_json_atomic, save_npy_atomic, sha256_array, sha256_file, sha256_json
 from .circuits import BatchedStatevector, backend_self_check, build_initialization_bundle, build_model, initial_params
 from .clustering import ClusteringInputs, clustering_loop
-from .config import RunConfig, auto_generate_run_name, primary_condition_id, validate_config
+from .config import RunConfig, primary_condition_id, run_name_for, validate_config
 from .correlation import correlation_matrix
 from .data_pipeline import run_data_pipeline
 from .environment import environment_record
@@ -61,8 +61,9 @@ def pair_identity_hash(pair_manifest: dict) -> str:
 
 
 def primary_run_dir(root: Path, cfg: RunConfig, architecture: str) -> Path:
-    name = auto_generate_run_name(cfg.classes, cfg.n_train_per_class, cfg.n_val_per_class,
-                                  cfg.n_test_per_class, architecture, cfg.feature_method, cfg.seed)
+    name = run_name_for(architecture, cfg.feature_method, cfg.k, cfg.seed,
+                        (cfg.n_train_per_class, cfg.n_val_per_class, cfg.n_test_per_class),
+                        cfg.run_mode, cfg.pilot_tag)
     return root / C.RUNS_DIR / name
 
 

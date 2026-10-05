@@ -485,7 +485,49 @@ def select_completed_attempts(run_dirs: list[Path]) -> dict:
     return by_uid
 
 
-def consolidate(template_path, run_dirs: list[Path], out_path, track: str) -> dict:
+def benchmark_rows(benchmark_files) -> list:
+    rows = []
+    for f in benchmark_files:
+        d = load_json(f)
+        meta = {k: d.get(k) for k in ("device_name", "sim_dtype", "pennylane_version", "numpy_version",
+                                      "hostname", "cpu_model", "thread_env", "timestamp")}
+        for r in d["rows"]:
+            rows.append({"benchmark_file": Path(f).name, **r, **meta})
+    return rows
+
+
+def baseline_rows(baseline_csv, primary_rows: dict) -> list:
+    """Rows of sheet 15 from runs/baselines*/baseline_results.csv, joined with A/D summaries."""
+    import csv
+
+    out = []
+    with open(baseline_csv, encoding="utf-8") as fh:
+        for b in csv.DictReader(fh):
+            k = int(b["K"])
+            a = primary_rows.get(b["source_run_uid_A"])
+            d = primary_rows.get(b["check_run_uid_D"]) if b["check_run_uid_D"] else None
+            acc = float(b["accuracy"])
+            f1 = float(b["macro_f1"])
+            row = {"K": k, "classes": ",".join(str(c) for c in range(k)), "feature_method": b["feature_method"],
+                   "seed": int(b["seed"]), "baseline": b["baseline"], "source_run_uid_A": b["source_run_uid_A"],
+                   "check_run_uid_D": b["check_run_uid_D"] or None,
+                   "input_hash_match_A_D": None if b["input_hash_match_A_D"] in ("", "None") else b["input_hash_match_A_D"] == "True",
+                   "C_selected": b["C_selected"] or "n/a", "lr_converged": b["lr_converged"] or "n/a",
+                   "accuracy": acc, "macro_f1": f1, "chance_1_over_K": 1.0 / k, "status": "COMPLETED"}
+            if a:
+                row.update({"accuracy_more_hd": a["accuracy"], "f1_more_hd": a["f1_macro"],
+                            "delta_acc_more_hd_minus_baseline": a["accuracy"] - acc,
+                            "delta_f1_more_hd_minus_baseline": a["f1_macro"] - f1})
+            if d:
+                row.update({"accuracy_more_hd_c": d["accuracy"], "f1_more_hd_c": d["f1_macro"],
+                            "delta_acc_more_hd_c_minus_baseline": d["accuracy"] - acc,
+                            "delta_f1_more_hd_c_minus_baseline": d["f1_macro"] - f1})
+            out.append(row)
+    return out
+
+
+def consolidate(template_path, run_dirs: list[Path], out_path, track: str, jalur_b_dirs=(), benchmark_files=(),
+                baseline_csv=None) -> dict:
     """Rebuild a consolidated workbook from the template and run artifacts (idempotent).
 
     The output is always regenerated from scratch, so repeating the consolidation
@@ -499,13 +541,22 @@ def consolidate(template_path, run_dirs: list[Path], out_path, track: str) -> di
         raise ValueError("template schema map invalid: " + "; ".join(problems[:10]))
     per_sheet: dict = {name: [] for name in RUN_SHEETS}
     log_rows = []
+    summaries = {}
     for uid in sorted(selected):
         d = selected[uid]
         rows = rows_for_run(d)
+        summaries[uid] = rows["01_Run_Summary"][0]
         for sheet, items in rows.items():
             per_sheet[sheet].extend(_rename_ids(it, track) for it in items)
         m = load_json(d / "config.json")
         log_rows.append([uid, m["attempt"], str(d), sha256_file(d / "config.json")])
+    if track == C.TRACK_PRIMARY:
+        from .jalur_b import jalur_b_row
+
+        per_sheet["17_JalurB_Selection"] = [jalur_b_row(d) for d in sorted(jalur_b_dirs)]
+        per_sheet["18_Circuit_Benchmark"] = benchmark_rows(sorted(benchmark_files))
+        if baseline_csv is not None:
+            per_sheet["15_Classical_Baselines"] = baseline_rows(baseline_csv, summaries)
     out = openpyxl.Workbook(write_only=True)
     id_col = ID_COLUMNS[track][1]
     for ws_t in tpl.worksheets:
@@ -515,7 +566,21 @@ def consolidate(template_path, run_dirs: list[Path], out_path, track: str) -> di
             ws.append(list(r))
         hdr = headers(ws_t)
         body = tpl_rows[HEADER_ROW:]
-        if ws_t.title in PREFILLED_SHEETS:
+        if ws_t.title == "15_Classical_Baselines" and per_sheet.get(ws_t.title):
+            key_cols = ("K", "feature_method", "seed", "baseline")
+            fill = {tuple(row[c] for c in key_cols): row for row in per_sheet[ws_t.title]}
+            used = set()
+            for r in body:
+                r = list(r)[: len(hdr)]
+                key = tuple(r[hdr.index(c)] for c in key_cols)
+                if key in fill:
+                    r = [v if v is not None else r[i] for i, v in enumerate(_row_values(hdr, fill[key]))]
+                    used.add(key)
+                ws.append(r)
+            for key, row in fill.items():
+                if key not in used:
+                    ws.append(_row_values(hdr, row))
+        elif ws_t.title in PREFILLED_SHEETS:
             fill = {row[id_col]: row for row in per_sheet[ws_t.title]}
             used = set()
             for r in body:

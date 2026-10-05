@@ -42,6 +42,10 @@ NEW_PRIMARY_COLUMNS = {
         ("correlation_rule", "per_run", CFG, "correlation_rule", "OK", "G4-04 (2026-10-04): MORE calc_class_rela, MSE/max, diagonal -1"),
         ("pca_svd_solver", "per_run", CFG, "pca_svd_solver", "OK", "2026-10-04: 'full' (SVD eksak); NULL bila bukan PCA"),
     ],
+    "18_Circuit_Benchmark": [
+        ("batch_size", "per_block_model", "benchmarks/circuit_microbenchmark_block<k>.json", "rows[].batch_size", "OK", "2026-10-04: satu repeat = satu forward pass batch ini (termasuk satu konstruksi U(theta)); waktu wall/cpu = per sampel"),
+        ("unitary_median_sec", "per_block_model", "benchmarks/circuit_microbenchmark_block<k>.json", "rows[].unitary_median_sec", "OK", "Median waktu membangun kolom U(theta) sekali per objective evaluation"),
+    ],
 }
 SCHEMA_FIXES = {
     ("01_Run_Summary", "status"): ("logs/run_status.json", "status", "OK", "G3-04: RUNNING/COMPLETED/FAILED; konsolidator hanya memakai COMPLETED"),

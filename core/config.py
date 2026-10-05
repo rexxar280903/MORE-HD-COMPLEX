@@ -79,14 +79,9 @@ class RunConfig:
 
     @property
     def run_name(self) -> str:
-        if self.track == C.TRACK_PRIMARY:
-            base = auto_generate_run_name(self.classes, self.n_train_per_class, self.n_val_per_class,
-                                          self.n_test_per_class, self.architecture, self.feature_method, self.seed)
-        else:
-            sub = "ablation" if self.track == C.TRACK_ABLATION else "more_reference"
-            cls = "-".join(str(c) for c in self.classes)
-            base = f"{sub}/{self.run_uid}_cls-{cls}_{self.feature_method}_{self.architecture}"
-        return base if self.attempt == 1 else f"{base}_attempt{self.attempt}"
+        return run_name_for(self.architecture, self.feature_method, self.k, self.seed,
+                            (self.n_train_per_class, self.n_val_per_class, self.n_test_per_class),
+                            self.run_mode, self.pilot_tag, self.attempt)
 
     @property
     def run_dir(self) -> Path:
@@ -112,6 +107,25 @@ def auto_generate_run_name(classes, n_train, n_val, n_test, architecture, featur
         "cls-" + "-".join(str(c) for c in classes)
         + f"_ntrain{n_train}_nval{n_val}_ntest{n_test}_{feature_method}_{architecture}_seed{seed}"
     )
+
+
+def run_name_for(architecture: str, feature_method: str, k: int, seed: int, sizes=(1000, 100, 200),
+                 run_mode: str = "CONFIRMATORY", pilot_tag: str = "", attempt: int = 1) -> str:
+    """Run folder name (relative to runs/). PILOT runs carry their pilot tag so that the
+    smoke, timing and convergence stages of one condition never collide; confirmatory
+    names are exactly AUTO_GENERATE (primary) or <uid>_cls-..._<feature>_<model>."""
+    classes = list(range(k))
+    track = C.TRACK_OF_ARCHITECTURE[architecture]
+    if track == C.TRACK_PRIMARY:
+        base = auto_generate_run_name(classes, *sizes, architecture, feature_method, seed)
+    else:
+        sub = "ablation" if track == C.TRACK_ABLATION else "more_reference"
+        cid = ablation_condition_id(k, feature_method, architecture) if track == C.TRACK_ABLATION \
+            else more_reference_condition_id(k, feature_method)
+        base = f"{sub}/{cid}-S{seed}_cls-{'-'.join(str(c) for c in classes)}_{feature_method}_{architecture}"
+    if run_mode == "PILOT" and pilot_tag:
+        base = f"{base}_{pilot_tag}"
+    return base if attempt == 1 else f"{base}_attempt{attempt}"
 
 
 def primary_condition_id(k: int, feature_method: str, architecture: str) -> str:

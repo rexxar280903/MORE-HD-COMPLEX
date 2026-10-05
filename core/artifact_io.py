@@ -48,6 +48,7 @@ def save_json_atomic(obj: Any, path: str | os.PathLike) -> None:
             fh.write("\n")
             fh.flush()
             os.fsync(fh.fileno())
+        os.chmod(tmp, 0o644)
         os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):
@@ -95,6 +96,7 @@ def save_npy_atomic(array: np.ndarray, path: str | os.PathLike) -> None:
             np.save(fh, np.asarray(array), allow_pickle=False)
             fh.flush()
             os.fsync(fh.fileno())
+        os.chmod(tmp, 0o644)
         os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):

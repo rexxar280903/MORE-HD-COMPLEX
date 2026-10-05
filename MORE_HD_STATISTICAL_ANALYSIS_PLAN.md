@@ -1,7 +1,8 @@
 # MORE-HD-C Statistical Analysis Plan
 
-Version: 1.8  
+Version: 2.0  
 Primary design frozen: 2026-09-26  
+MORE reproduction track, MORE correlation rule, simulation backend, G1-11 sensitivity analysis, Jalur B scope, and Gate C/D split: 2026-10-04 (before any pilot or confirmatory run; see §14)  
 Targeted ablation extension frozen: 2026-09-27  
 Cumulative class-sequence scope (G1-09) frozen: 2026-09-27  
 Classical reference baselines and MORE reference policy (G1-10) frozen: 2026-09-27  
@@ -10,7 +11,7 @@ Quantum-label centroid rule (G2-07) and zero-norm safety (G2-04) frozen: 2026-10
 Validation-monitoring set and per-evaluation caching (G3-05) frozen: 2026-10-01  
 Runtime reporting policy and circuit microbenchmark frozen: 2026-10-01  
 Y-odd activation diagnostics (G2-05) and separation outcome definitions (G2-06) frozen: 2026-10-01  
-Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + secondary classical reference baselines
+Scope: confirmatory primary experiment + targeted G1-05/G1-07 ablation + MORE reproduction track (secondary, pre-specified) + secondary classical reference baselines
 
 ## 1. Purpose and freeze rule
 
@@ -38,6 +39,10 @@ The G1-05/G1-07 ablation is restricted to K in {3, 6, 10}, all three feature rep
 Only B and C create new executions. There are `3 K × 3 features × 2 new variants = 18` new ablation conditions per seed and `18 × 5 = 90` additional confirmatory runs. A and D are linked to their matching primary `run_uid` and are not rerun. Therefore the project contains 330 unique confirmatory executions: 240 primary + 90 additional ablation runs.
 
 Ablation conditions use separate identifiers `ABL001-ABL018` in deterministic order `K: 3 -> 6 -> 10`, then `feature: PCA -> HU -> ZERNIKE`, then `model: B -> C`. A unique ablation execution is `ablation_run_uid = ablation_condition_id-S<seed>`.
+
+### 2.3 MORE reproduction track (added 2026-10-04, before any run)
+
+To make the study directly comparable with MORE (Wu et al., 2023), the MORE classifier is reproduced inside the same pipeline as model M = `MORE-REPRO`: the circuit of the public MORE code (`github.com/Jindi0/MORE@867d194`, `model.py::build_qcnn`; 8 qubits, ZFeatureMap with two repetitions applied to `2·x` because MORE scales features to `[0, 2π]` while our features are scaled to `[0, π]`, QCNN ansatz with 91 parameters in Qiskit's parameter order, readout qubit 7 measured with X/Y/Z, initialisation `U[0,1)`), without the loss adjuster R. M uses exactly the same split manifest, feature arrays, clustering pair set, correlation matrix, centroid/label rule, losses, optimiser budget, validation monitoring, and official test set as A and D. Scope: all K=3..10, all three feature methods, the five confirmatory seeds: `8 × 3 × 5 = 120` runs with identifiers `MREF001-MREF024` (order K 3→10, then PCA→HU→ZERNIKE) and `reference_run_uid = MREF###-S<seed>`. The project therefore contains **450 unique confirmatory executions** (240 primary + 90 ablation + 120 MORE reference). M is a pre-specified secondary comparator; it does not change the primary estimand (§6).
 
 ## 3. Paired split and nested-K rule
 
@@ -85,17 +90,33 @@ Every objective evaluation is labeled `phase = initial_simplex` (0-based `eval_i
 
 The smoke test uses `max_nfev = 70` for every architecture. SciPy COBYLA (verified on 1.17.1) silently raises any budget below `n_params + 2`, so smaller smoke budgets would not be the budget actually applied; the pipeline rejects them in every run mode.
 
+**Amendment 2026-10-04 (decided before any pilot run; gate log, commit e3d7b3a).** (i) The smoke budget is 100 because MORE-REPRO has 91 parameters (simplex 92). (ii) The convergence-pilot cap is raised from 300 to 1,000 for both phases: the verified batched simulator is about two orders of magnitude cheaper than per-sample PennyLane execution, and a larger cap makes it more likely that the final budget reflects convergence rather than an arbitrary limit. The timing pilot, run after this decision and before the convergence pilot, projected ≈32 single-thread CPU-hours for all 450 confirmatory runs plus 90 Jalur B runs at the 1,000 cap, confirming feasibility. (iii) MORE-REPRO joins the convergence pilot at K∈{3,10} × {PCA, ZERNIKE} (14 pilot runs in total) because the final budget also governs M. The plateau rule (2% of total improvement, last-30-evaluation check, rounding to a multiple of 10, fallback to the cap) is unchanged. Equal total `nfev` across A/B/C/D/M remains the fairness rule; M spends 92 evaluations on its initial simplex.
+
+**Final budget (frozen 2026-10-05 from the seed-42 convergence pilot with the unchanged plateau rule):** `max_nfev_clustering = 840`, `max_nfev_supervised = 1000` for every model and track; every pilot run plateaued in the clustering phase; in the supervised phase R048-S42 had not plateaued at the cap, so the supervised budget is the cap and supervised-phase results are stated at equal objective-evaluation budget (rule 4 applied per phase, consistent with rule 3). Evidence: `research_data/pilot/convergence_budget_decision.json`.
+
 ## 4.4 Validation-monitoring set and per-evaluation caching (G3-05, frozen 2026-10-01)
 
 Within each clustering objective evaluation, the circuit output of each of the 5K clustering samples is computed once and reused by the pair loss and the per-evaluation class centroids. This is a computational change only: the cached loss must equal the per-pair loss exactly.
 
 All passive validation metrics in the clustering and supervised loops, including the Jalur B selector metrics (§12.1), are computed on the full validation split (`val_monitor_policy = FULL_VAL`). Computing passive metrics only at new `train_loss` records is not permitted, because it would silently shrink the Jalur B candidate domain. A fixed stratified subset (`STRATIFIED_FIXED_SUBSET`: the first `n_val_monitor_per_class` samples of each class in split-manifest order, hence paired across architectures and nested across K) may replace the full split only if the timing pilot shows that `FULL_VAL` is infeasible under a compute criterion written into Gate G3-05 before the timing pilot runs. That switch is global (all conditions, seeds, ablation runs, and Jalur B), and `n_val_monitor_per_class` is fixed before the convergence pilot. The subset never affects official-test evaluation, and classical baselines (§10.2) keep selecting `C` on the full validation split. The policy in force is recorded per run (`val_monitor_policy`, `n_val_monitor_per_class`, `val_monitor_manifest.json`) and reported in the methods.
 
+**Outcome (timing pilot, 2026-10-05).** The infeasibility criterion recorded in the gate log before the timing pilot (single-thread projection for all 450 confirmatory plus 90 Jalur B executions at the pilot cap above 240 CPU-hours, or validation monitoring above 50% of objective-evaluation time) was not met: 32.2 CPU-hours and 9.1%. `FULL_VAL` is retained and `n_val_monitor_per_class = NULL` (`research_data/pilot/timing_projection.json`).
+
 ## 4.5 Runtime reporting and computational cost (frozen 2026-10-01)
 
 Production-run runtime (Jalur A, targeted ablation, and Jalur B) is recorded at four levels: per objective evaluation (wall-clock and process CPU time), per pipeline stage, at run start (start time, host, declared number of concurrent runs, load average, thread environment), and at run end. These values are reported descriptively only (mean, median, and IQR per condition) and are used for auditing and workload projection. No paired runtime Delta, confidence interval, statistical test, or claim that one architecture is faster than another is derived from production runs, because their wall-clock times depend on factors outside the architecture: the number of concurrent runs (intentionally not fixed), machine load, throttling, and execution order.
 
 Claims about the computational cost of A, B, C, and D rely only on a controlled microbenchmark (`Pseudocode_2x3_manual_runs.md` §1.2.1): one process, one thread, no other runs active, the confirmatory simulator settings, three blocks of 1,000 timed single-circuit executions per model after warm-up, with model order rotated across blocks. Because the objective-evaluation budget and data sizes are identical across architectures, the number of circuit executions per run is the same for A and D, so the per-execution cost measured by the benchmark accounts for the architectural difference in compute. The benchmark reports median, Q1, Q3, and 95th-percentile time per execution together with gate count, depth, and parameter count, and is repeated if the device, library versions, or machine change. It uses no test data and does not influence any protocol decision other than workload projection.
+
+**Adaptation 2026-10-04 (batched engine, §4.6; before the benchmark was run).** With the production engine one objective evaluation costs one construction of `U(θ)` plus one forward pass over the evaluated samples, so a single-sample execution no longer represents production cost. One timed repeat is therefore one forward pass over a fixed batch of 1,000 samples including one `U(θ)` construction, reported per sample (divided by 1,000) together with the median `U(θ)` construction time. Three blocks in separate processes, rotated model order, one thread, and model M are included (`scripts/circuit_microbenchmark.py`). The pilot benchmark in `research_data/pilot/benchmarks/` documents the procedure only; cost statements in the paper use the benchmark repeated on the confirmatory machine.
+
+## 4.6 Simulation backend and verification (G4-01, frozen 2026-10-04)
+
+All runs use exact statevector simulation (complex128, no shot noise). The production engine `core.engine.BatchedStatevector` builds the columns of `U(θ)` once per objective evaluation and evaluates all samples with fixed-shape real matrix products; per-sample results are independent of batch composition. Its outputs equal PennyLane `default.qubit` to `< 1e-12` in unit tests for A/B/C/D/M, and every run repeats a self-check against PennyLane on four training samples at the initial parameters (tolerance `1e-10`; failure aborts the run). The M circuit additionally equals MORE's Qiskit circuit to `< 1e-12`. Each process uses one BLAS/OpenMP thread; library versions are pinned in `requirements.txt` and recorded per run.
+
+## 4.7 Inter-class correlation matrix (G4-04, frozen 2026-10-04)
+
+`S` follows MORE `calc_class_rela`: class means of the first 100 training samples per class (split-manifest order), `MSE_ij` = mean over the eight channels of the squared difference of class means, `S_ij = MSE_ij / max_{a≠b} MSE_ab` for `i ≠ j`, `S_ii = −1`; computed in full precision (MORE rounds to three decimals). This replaces the `[0.5, 1]` min–max rescaling of the superseded thesis protocol. Raw MSE values are stored with every run.
 
 ## 5. Primary outcomes
 
@@ -232,9 +253,17 @@ Wu et al. (2023) Table I reports both MORE\R (without R) and MORE (with R) accur
 
 Comparison with MORE uses accuracy only (MORE does not report macro-F1), is descriptive, and carries no statistical test, because each MORE value is a single reported number from a different protocol (data sizes, feature extraction, number of runs/seeds, and, for the +R column, the loss adjuster). Every table or sentence comparing with MORE must state that the protocols differ.
 
+## 10.3 MORE reproduction comparisons (secondary, pre-specified 2026-10-04)
+
+For every `(feature_method, K)` cell and the five confirmatory seeds, the seed-matched differences `Delta_MA,s = Metric(A,s) − Metric(M,s)` and `Delta_MD,s = Metric(D,s) − Metric(M,s)` are summarised exactly as in §7–§9 (mean ± SD, median [IQR], 95% t-CI, paired Hedges g, exact sign-flip test) for accuracy, macro-F1, `min_separation`, and `min_separation_ratio`. These two contrasts form their own family; if p-values are reported for both within one `(feature_method, K, metric)`, Holm correction is applied across the two. They are secondary and cannot change the primary A-versus-D conclusion. `min_separation` of M is placed next to the "Min. label distance" of Table I of Wu et al. (2023) descriptively. Reported Table I accuracies (MORE\R primary, MORE with R as context) remain descriptive (§10.2.6); the paper states the protocol differences listed in `docs/METHODS_DRAFT.md` §8. The admission check for a comparison cell requires identical split-manifest hash, clustering-pair identity hash, and input-array hashes for A, D, and M.
+
+## 10.4 Rotation-invariance sensitivity analysis for digits 6 and 9 (G1-11, frozen 2026-10-04)
+
+Hu moments and Zernike magnitudes are rotation invariant, so digits 6 and 9 are ambiguous at the feature level. For every K=10 run (A, D, M, and the NC/LR baselines) the following are computed from the official-test confusion matrix and reported as five-seed mean ± SD per feature method and model: (1) the 6↔9 confusion rate `(cm[6,9] + cm[9,6]) / (n_6 + n_9)`; (2) the share of all errors that are 6↔9 confusions; (3) accuracy with digits 6 and 9 merged (a 6→9 or 9→6 prediction counted as correct). This is a descriptive sensitivity analysis without inferential tests. Interpretation rule fixed in advance: a decrease in HU/ZERNIKE accuracy at K=10 that is matched by a high 6↔9 confusion share is attributed to feature-level ambiguity, not to crowded quantum labels; only the part of the decrease that remains after merging 6 and 9 may be discussed in terms of label crowding, and only together with `min_separation_ratio`.
+
 ## 11. Missing, failed, and repeated attempts
 
-A technical failure before a valid final evaluation does not create a new seed. The same `run_uid` or `ablation_run_uid` is repeated as a new attempt using the same split manifest, pair manifest, initialization protocol, and seed. The corresponding workbook records attempt number and retains provenance. Exactly one valid completed attempt per execution identifier is used in confirmatory aggregation; failed attempts remain auditable.
+A technical failure before a valid final evaluation does not create a new seed. The same `run_uid`, `ablation_run_uid`, or `reference_run_uid` is repeated as a new attempt using the same split manifest, pair manifest, initialization protocol, and seed. The corresponding workbook records attempt number and retains provenance. Exactly one valid completed attempt per execution identifier is used in confirmatory aggregation; failed attempts remain auditable. Implementation (G3-04): every run writes `logs/run_status.json` (`RUNNING` → `COMPLETED` or `FAILED` with traceback); a new attempt gets a new folder `..._attempt<N>` and is refused unless every earlier attempt is `FAILED` (a hard crash that leaves `RUNNING` must be marked `FAILED` explicitly with `scripts/mark_run_failed.py`); the consolidator refuses more than one `COMPLETED` attempt per identifier.
 
 A run with a protocol deviation is not silently repaired after official-test inspection. The deviation is logged and handled according to the readiness-gate decision made before aggregate analysis.
 
@@ -247,6 +276,8 @@ The targeted ablation uses a separate planned template `MORE_HD_master_ablation_
 Sheet `00_Schema_Map` is the single source of truth for which artifact file and field fills every workbook column, at which granularity. Run-level clustering metrics in `01_Run_Summary` are read from the `clustering_log.jsonl` row whose `eval_id` equals `final_point_eval_id` (the evaluation identical to COBYLA's `result.x`, i.e. the parameters that define the quantum labels), not from the last logged row. Columns without a defined source are marked `GAP` or `PENDING` in the map and must be resolved before Gate C.
 
 Publication analysis joins the two workbooks by seed, K, feature method, and matching execution identifiers. Classical reference baselines (Section 10.2) are recorded in sheet `15_Classical_Baselines` of the primary workbook (one row per `(seed, feature_method, K, baseline)`, linked to `source_run_uid_A` and `check_run_uid_D`), and the reported MORE values in sheet `16_MORE_Reference`. The primary 240-run workbook is not replaced or expanded merely to duplicate A/D rows.
+
+The MORE reproduction track uses its own template `research_data/MORE_HD_master_more_reference_120runs.xlsx` (one row per `reference_run_uid`, linked to `matching_run_uid_A/D`, with sheet `21_MORE_Comparison`); the ablation template `research_data/MORE_HD_master_ablation_90runs.xlsx` contains sheet `20_Ablation_Contrasts`. Cross-track tables (§6, §6.1, §10.2–§10.4) are produced by `analysis/run_analysis.py` from run artifacts and written to `research_data/analysis/`.
 
 ## 12.1 Secondary Jalur B sensitivity analysis
 
@@ -266,10 +297,18 @@ If Jalur B is executed, it starts from an already completed Jalur A source run a
 
 No weighted score is used. `active_dimensions`, `correlation_consistency`, and `avg_margin_val` are diagnostics and cannot affect checkpoint selection. The supervised objective-evaluation budget is inherited unchanged from the source Jalur A run. Official-test arrays are not read by the selector or supervised optimization and are used only by the final evaluation after the selected checkpoint and downstream training are frozen.
 
-Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. Evaluations with any degenerate training or validation centroid (`n_degenerate_centroids_train > 0` or `n_degenerate_centroids_val > 0`) are also excluded (Gate G2-04, frozen 2026-10-01), because the zero-norm fallback can inflate `min_separation_val` for collapsed centroids. The number of eligible candidates per run is recorded. The scope of Jalur B executions (all primary runs or a pre-specified subset) must be frozen before those secondary results are analyzed; no subset may be selected because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation. Each Jalur B execution is recorded as one row of sheet `17_JalurB_Selection` (source `run_uid`, `selected_eval_id`, number of eligible candidates, the selection metrics of the chosen evaluation, supervised budget, and final official-test metrics); Jalur B never writes to sheets `01`–`04`.
+Only objective evaluations with `phase = optimization` are eligible candidates (Gate G1-06, frozen 2026-09-27); all initial-simplex evaluations, including `x0`, are excluded. Evaluations with any degenerate training or validation centroid (`n_degenerate_centroids_train > 0` or `n_degenerate_centroids_val > 0`) are also excluded (Gate G2-04, frozen 2026-10-01), because the zero-norm fallback can inflate `min_separation_val` for collapsed centroids. The number of eligible candidates per run is recorded. The scope of Jalur B executions is frozen (2026-10-04, before any run) as the A and D runs at K ∈ {3, 6, 10} for all three feature methods and the five confirmatory seeds (90 executions), mirroring the ablation regimes; no subset may be changed because of official-test performance. Jalur B results are reported as secondary/sensitivity evidence and are kept separate from the primary 240-run A/D aggregation and the 90-run B/C ablation aggregation. Each Jalur B execution is recorded as one row of sheet `17_JalurB_Selection` (source `run_uid`, `selected_eval_id`, number of eligible candidates, the selection metrics of the chosen evaluation, supervised budget, and final official-test metrics); Jalur B never writes to sheets `01`–`04`.
 
 ## 13. Confirmatory boundary
 
 Seed 42 and any other development run are PILOT ONLY. They may be used for debugging, convergence inspection, timing, and protocol locking, but they are excluded from confirmatory means, standard deviations, confidence intervals, effect sizes, tests, and publication tables presenting final performance.
 
 No official-test outcome from either the primary or ablation track may be inspected to alter the frozen K subset, feature set, model definitions, initialization pairing, fixed-RZ vector policy, planned contrasts, multiplicity rule, optimizer-budget policy, classical baseline set and hyperparameter grid, or loss-adjuster policy.
+
+## 14. Amendment log and Gate C/D boundary
+
+| Date | Version | Change | Results available at the time |
+|---|---|---|---|
+| 2026-10-04/05 | 2.0 | MORE reproduction track (§2.3, §10.3); MORE correlation rule (§4.7); simulation backend and verification (§4.6); smoke budget 100, convergence cap 1,000 and MORE-REPRO in the pilot (§4.3); 6↔9 sensitivity analysis (§10.4); Jalur B scope (§12.1); attempt implementation (§11). | Decisions recorded in the gate log before any pilot run (commit e3d7b3a). This text was written after the seed-42 smoke and timing pilots and before the convergence pilot results and any confirmatory run; the smoke test was used only as a pass/fail check of the pipeline, and the timing pilot only for the feasibility criterion of §4.4 that was recorded before it ran. The final budget was added on 2026-10-05 by applying the unchanged plateau rule to the convergence pilot (§4.3). |
+
+Readiness Gate C (before the confirmatory experiment) requires the design, implementation, and verification parts of every gate item; obligations that can only be met with confirmatory results (for example reporting the ablation contrasts, the 240 classical-baseline fits, the 6↔9 sensitivity tables, and the MORE comparison tables) are tracked as post-execution reporting obligations (Gate D list `P-01…` in `MORE_HD_RESEARCH_READINESS_GATES (1).md`) and do not block the start of the confirmatory runs.

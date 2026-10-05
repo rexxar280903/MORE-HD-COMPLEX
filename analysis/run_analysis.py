@@ -44,11 +44,13 @@ METRICS = {
 PRIMARY_INFERENTIAL = ("accuracy", "f1_macro", "min_separation_ratio")
 
 
-def load_runs(runs_root: Path, run_mode: str) -> list[dict]:
+def load_runs(runs_root: Path, run_mode: str, pilot_tag: str | None = None) -> list[dict]:
     runs = []
     for cfg_path in sorted(runs_root.rglob("config.json")):
         m = load_json(cfg_path)
         if "track" not in m or m.get("track") == "JALUR_B" or m.get("run_mode") != run_mode:
+            continue
+        if run_mode == "PILOT" and pilot_tag is not None and m.get("pilot_tag") != pilot_tag:
             continue
         d = cfg_path.parent
         st = load_json(d / "logs" / "run_status.json")
@@ -241,9 +243,10 @@ def main():
     p.add_argument("--run-mode", choices=C.RUN_MODES, default="CONFIRMATORY")
     p.add_argument("--project-root", default=str(ROOT))
     p.add_argument("--out-dir", default=None)
+    p.add_argument("--pilot-tag", default=None, help="PILOT only: analyse one pilot stage (e.g. convergence)")
     a = p.parse_args()
     root = Path(a.project_root)
-    runs = load_runs(root / C.RUNS_DIR, a.run_mode)
+    runs = load_runs(root / C.RUNS_DIR, a.run_mode, a.pilot_tag)
     seeds = list(C.CONFIRMATORY_SEEDS) if a.run_mode == "CONFIRMATORY" else [C.PILOT_SEED]
     out = Path(a.out_dir) if a.out_dir else root / "research_data" / ("analysis" if a.run_mode == "CONFIRMATORY" else "analysis_pilot")
     out.mkdir(parents=True, exist_ok=True)

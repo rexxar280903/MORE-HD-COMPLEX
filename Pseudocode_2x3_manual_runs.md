@@ -1,7 +1,9 @@
 # Pseudocode — Pilot Training Pipeline MORE-HD-C
  
-Dokumen ini adalah **alur logika (pseudocode)**, bukan kode Python yang bisa dijalankan.
-Tujuannya untuk direview dulu sebelum implementasi asli ditulis.
+Dokumen ini adalah **alur logika (pseudocode)**. Sejak 2026-10-04 seluruh fungsi di dokumen ini
+**sudah diimplementasikan** sebagai kode Python yang dapat dijalankan (`core/`, `main_*.py`) dan
+diverifikasi oleh unit test (`tests/`); peta fungsi → file → test ada di **Bagian 14**. Bila teks
+dokumen ini dan kode berbeda, keputusan terbaru di `MORE_HD_RESEARCH_READINESS_GATES (1).md` yang berlaku.
 
 **Source of truth teknis:** seluruh desain implementasi eksperimen utama A/D, Jalur A/B, dan targeted ablation B/C berada di file ini.
  
@@ -222,6 +224,23 @@ dan akhir run (`config.json` → `timing`). Berlaku identik untuk Jalur A, Jalur
 sebelumnya tidak mencatat waktu sama sekali. Runtime run produksi hanya
 **deskriptif**; klaim biaya antar-arsitektur hanya dari microbenchmark terkontrol
 §1.2.1 (satu proses, satu thread, 3 blok × 1.000 eksekusi per model A/B/C/D).
+
+**Update (implementasi + keputusan 2026-10-04, sebelum pilot apa pun):**
+Arahan Ken: penelitian harus dapat dibandingkan langsung dengan MORE (Wu et al., 2023) dengan
+tetap memakai sirkuit MORE-HD/MORE-HD-C; skripsi lama (BAB 1, FRD-09) tidak lagi mengikat karena
+training diulang dari awal. Keputusan: (1) **track referensi MORE-REPRO** — sirkuit MORE asli
+(QCNN 8 qubit, 91 parameter, readout qubit 7 X/Y/Z) direproduksi dan dijalankan pada protokol
+identik: 8 K × 3 fitur × 5 seed = 120 run (`MREF001-MREF024`, entry point
+`main_more_reference.py`, Bagian 13); total eksekusi konfirmatori **450**. (2) Matriks korelasi
+`S` mengikuti `calc_class_rela` MORE (Bagian 3, direvisi). (3) Backend produksi
+`core.engine.BatchedStatevector` (statevector analitik complex128, shots=None, 1 thread/proses),
+diverifikasi terhadap PennyLane `default.qubit` (Bagian 4.8). (4) PCA `svd_solver="full"`.
+(5) Hu/Zernike diimplementasikan NumPy dan diverifikasi terhadap OpenCV/mahotas. (6) Smoke test
+`max_nfev = 100`; cap pilot konvergensi 1.000 dan MORE-REPRO ikut pilot (14 run); kriteria
+"tidak layak" G3-05 ditulis sebelum timing pilot (§1.1, §1.2). (7) Nama folder run PILOT diberi
+akhiran tag pilot (`_smoke`, `_timing`, `_convergence`) agar tahap pilot satu kondisi tidak
+bertabrakan; nama run konfirmatori tetap sama. (8) Status run + kebijakan attempt (§9.5).
+(9) Scope Jalur B dikunci: K∈{3,6,10} × 3 fitur × A/D × 5 seed = 90 eksekusi sekunder.
 
 **Update (crash-safe append-only log):** Parameter pada setiap **objective-function
 evaluation** (baik di `CLUSTERING_LOOP` maupun `SUPERVISED_LOOP`) ditulis ke
@@ -598,8 +617,9 @@ STRUCT Config:
                                                 # serta untuk pemilihan checkpoint deterministik di Jalur B.
     n_test_per_class       = 200               # DIKUNCI (G0-03, sesi 2026-09-22): official test -- TIDAK diakses
                                                 # sebelum FINAL_EVALUATION (G0-01)
-    max_nfev_clustering      = 70               # SMOKE TEST = 70; PILOT G1-01 = 300 (lihat §1.1); final dikunci dari pilot
-    max_nfev_supervised      = 70               # jumlah maksimum objective-function evaluations, BUKAN iterasi
+    max_nfev_clustering      = 100              # SMOKE TEST = 100 (2026-10-04); PILOT G1-01 cap = 1000 (§1.1);
+    max_nfev_supervised      = 100              # final konfirmatori = FINAL_MAX_NFEV_* di core/constants.py (dari pilot)
+                                                # jumlah maksimum objective-function evaluations, BUKAN iterasi
                                                 # budget SAMA untuk semua arsitektur (aturan total-nfev G1-06)
 
     architecture           = "MORE-HD"        # "MORE-HD" | "MORE-HD-C"
@@ -611,8 +631,8 @@ STRUCT Config:
 
     # konfigurasi PCA
     pca_n_components       = 8
-    pca_random_state       = 42               # = config.seed; menjaga determinisme FIT_PCA
-    pca_svd_solver         = "auto"           # default sklearn; deterministik selama random_state dikunci
+    pca_random_state       = 42               # = config.seed; dicatat (tidak berpengaruh pada solver "full")
+    pca_svd_solver         = "full"           # DIREVISI 2026-10-04: SVD eksak LAPACK (sebelumnya "auto"/randomized)
 
     # konfigurasi Hu
     hu_raw_dim             = 7                # sifat intrinsik Hu Moments
@@ -647,7 +667,8 @@ STRUCT Config:
     simulation_mode        = "ANALYTIC_STATEVECTOR"  # ekspektasi eksak dari statevector, tanpa sampling
     shots                  = None               # WAJIB None: shot noise merusak diagnosis structural zeros
     sim_dtype              = "complex128"       # presisi ganda; ekspektasi dibaca sebagai float64
-    device_name            = "TBD_G4-01"        # "default.qubit" | "lightning.qubit"; dikunci di G4-01 sebelum pilot
+    device_name            = "core.engine.BatchedStatevector"  # DIKUNCI G4-01 2026-10-04; acuan verifikasi:
+                                                # PennyLane "default.qubit" (unit test + self-check tiap run, toleransi 1e-10)
 
     # biaya komputasi per objective evaluation -- DIKUNCI 2026-10-01 (G3-05)
     cluster_output_cache   = "PER_UNIQUE_SAMPLE_PER_EVAL"  # (a) output 5K sampel clustering dihitung sekali per eval
@@ -862,10 +883,10 @@ D=MORE-HD-C 60 → 61.
 
 | Setting | Nilai |
 |---|---|
-| `max_nfev_clustering` / `max_nfev_supervised` | 70 / 70 (sama untuk kedua arsitektur; direvisi dari 10 pada audit 2026-09-27) |
-| Kondisi | K=3, PCA, MORE-HD dan MORE-HD-C (2 run) |
-| Tujuan | Pipeline berjalan end-to-end; artefak/log tertulis; `LENGTH(log) == result.nfev`; `phase` berpindah dari `initial_simplex` ke `optimization` tepat di `eval_id` 31 (MORE-HD) dan 61 (MORE-HD-C); `final_point_eval_id` terisi; tidak ada warning budget dari SciPy |
-| Batasan | MORE-HD-C hanya mendapat 9 evaluasi fase `optimization` (MORE-HD 39); cukup untuk menguji label dan pipeline, tidak untuk menilai konvergensi; hasil tidak dianalisis |
+| `max_nfev_clustering` / `max_nfev_supervised` | ~~70 / 70~~ → **100 / 100** untuk semua model (direvisi 2026-10-04 sebelum pilot, log gate R6: MORE-REPRO 91 parameter butuh `>= 93`; 70 sendiri direvisi dari 10 pada audit 2026-09-27) |
+| Kondisi | K=3, PCA, ~~MORE-HD dan MORE-HD-C (2 run)~~ → A/B/C/D + MORE-REPRO (5 run; direvisi 2026-10-04 sebelum pilot, log gate R6) |
+| Tujuan | Pipeline berjalan end-to-end; artefak/log tertulis; `LENGTH(log) == result.nfev`; `phase` berpindah dari `initial_simplex` ke `optimization` tepat di `eval_id` 31 (A/C), 61 (B/D), dan 92 (M); `final_point_eval_id` terisi; tidak ada warning budget dari SciPy |
+| Batasan | Pada budget 100: A/C 69, B/D 39, M 8 evaluasi fase `optimization` (semula pada 70: MORE-HD-C 9, MORE-HD 39); cukup untuk menguji label dan pipeline, tidak untuk menilai konvergensi; hasil tidak dianalisis |
 
 Alasan revisi dari 10: COBYLA SciPy (terverifikasi pada 1.17.1) menolak budget
 di bawah `n_params + 2` dan diam-diam menaikkannya (menjadi 32 untuk 30 parameter
@@ -879,11 +900,11 @@ B/D: 61 simplex + 9 optimasi).
 
 | Setting | Nilai |
 |---|---|
-| `max_nfev_clustering` / `max_nfev_supervised` | 300 / 300 (cap pilot, sama untuk semua arsitektur) |
+| `max_nfev_clustering` / `max_nfev_supervised` | ~~300 / 300~~ → **1.000 / 1.000** (cap pilot, sama untuk semua model; direvisi 2026-10-04 sebelum pilot, log gate R6) |
 | `cobyla_tol` | `1e-4` |
 | `cobyla_rhobeg` | `1.0` |
-| Kondisi | K ∈ {3, 10} × {PCA, ZERNIKE} × {MORE-HD, MORE-HD-C} = 8 run, **ditambah** MORE-HD-60P (B) pada K=10 × {PCA, ZERNIKE} = 2 run; **total 10 run**. B wajib (audit 2026-09-27) karena budget final juga dipakai B di ablation dan B adalah model terdalam (6 layer, simplex 61). C tidak dipilot karena jumlah trainable-nya sama dengan A (30). |
-| Urutan eksekusi | Run pertama K=3/PCA/MORE-HD-C dijalankan sendiri dan diperiksa (`phase` = `initial_simplex` untuk `eval_id` 0–60 dan `optimization` mulai `eval_id` 61; `LENGTH(log) == result.nfev`; summary optimizer lengkap; waktu per evaluasi tercatat) sebelum 9 run sisanya dijalankan |
+| Kondisi | K ∈ {3, 10} × {PCA, ZERNIKE} × {MORE-HD, MORE-HD-C} = 8 run, **ditambah** MORE-HD-60P (B) pada K=10 × {PCA, ZERNIKE} = 2 run; **total 10 run**. B wajib (audit 2026-09-27) karena budget final juga dipakai B di ablation dan B adalah model terdalam (6 layer, simplex 61). C tidak dipilot karena jumlah trainable-nya sama dengan A (30). **Revisi 2026-10-04 (sebelum pilot, log gate R6):** ditambah MORE-REPRO (M) pada K ∈ {3, 10} × {PCA, ZERNIKE} = 4 run → **total 14 run**. |
+| Urutan eksekusi | Run pertama K=3/PCA/MORE-HD-C dijalankan sendiri dan diperiksa (`phase` = `initial_simplex` untuk `eval_id` 0–60 dan `optimization` mulai `eval_id` 61; `LENGTH(log) == result.nfev`; summary optimizer lengkap; waktu per evaluasi tercatat) sebelum 9 run sisanya (13 setelah revisi R6) dijalankan |
 | Dicatat per run | best-observed `train_loss` vs `eval_id` + `phase`; `pseudo_accuracy_val`/`val_loss`; waktu per objective evaluation; `success`/`status`/`message` (berhenti karena `tol` atau budget) |
 
 **Aturan keputusan budget final** (dikunci sebelum pilot dijalankan):
@@ -893,18 +914,34 @@ B/D: 61 simplex + 9 optimasi).
 2. `N*` per run = `eval_id` terkecil (dihitung sebagai total `nfev`) di mana
    best-observed loss sudah berada dalam **2%** dari total perbaikan yang dicapai
    pada akhir run (`L(N) - L_end <= 0.02 × (L_x0 - L_end)`).
-3. `max_nfev` final per loop = maksimum `N*` dari seluruh 10 run pilot, dibulatkan ke
-   atas ke kelipatan 10, dengan batas atas 300.
+3. `max_nfev` final per loop = maksimum `N*` dari seluruh run pilot (10; 14 setelah revisi R6), dibulatkan ke
+   atas ke kelipatan 10, dengan batas atas = cap pilot (300; 1.000 setelah revisi R6).
 4. Sebuah run dinyatakan **belum plateau** jika berhenti karena budget (bukan `tol`)
    **dan** perbaikan best-observed loss pada 30 evaluasi terakhir melebihi 2% dari
    total perbaikan run (`L(nfev-30) - L_end > 0.02 × (L_x0 - L_end)`). Jika ada run
-   yang belum plateau pada 300, `max_nfev` final tetap
-   300 atas dasar biaya komputasi; kondisi tersebut dilaporkan sebagai limitation
+   yang belum plateau pada cap, `max_nfev` final tetap
+   = cap (300; 1.000 setelah revisi R6) atas dasar biaya komputasi; kondisi tersebut dilaporkan sebagai limitation
    dan klaim publikasi dirumuskan sebagai "pada budget objective evaluation yang
    sama", bukan "pada konvergensi".
 5. Untuk run konfirmatori, `max_nfev` final wajib `> n_params + 1` untuk semua
-   model (A/B/C/D); `VALIDATE_OPTIMIZER_BUDGET` menolak konfigurasi yang
+   model (A/B/C/D, dan M setelah revisi R6); `VALIDATE_OPTIMIZER_BUDGET` menolak konfigurasi yang
    melanggar.
+
+**Revisi pra-pilot 2026-10-04 (dicatat sebelum pilot apa pun, commit e3d7b3a):** smoke test
+`max_nfev = 100` untuk semua model (MORE-REPRO 91 parameter butuh `>= 93`); timing pilot = K=10 ×
+PCA × A/B/C/D/M pada budget 100; pilot konvergensi memakai **cap 1.000** (bukan 300) dan **ditambah
+MORE-REPRO** pada K∈{3,10} × {PCA, ZERNIKE} → **14 run**. Aturan keputusan 1–5 di atas tidak berubah
+(kecuali angka cap). Nama folder run pilot diberi akhiran tag (`_smoke`, `_timing`, `_convergence`).
+
+**Hasil pilot (2026-10-05, PILOT ONLY):** smoke test lulus seluruh kriteria tabel Tahap 0 untuk lima
+model (transisi `phase` di `eval_id` 31 untuk A/C, 61 untuk B/D, 92 untuk M). Pilot konvergensi 14 run:
+N* maksimum clustering = 834 (semua run plateau → 840); supervised = 971, dengan run R048-S42 belum
+plateau pada cap menurut aturan 4 → supervised = cap 1000. Aturan 4 diterapkan **per loop** (konsisten dengan aturan 3);
+karena itu klaim untuk fase supervised dirumuskan "pada budget objective evaluation yang sama".
+**Budget final konfirmatori dibekukan: `max_nfev_clustering = 840`, `max_nfev_supervised = 1000`**
+(`core/constants.py::FINAL_MAX_NFEV_*`; entry point menolak nilai lain pada `CONFIRMATORY`). Bukti:
+`research_data/pilot/convergence_budget_decision.json`, `convergence_curves_summary.csv`
+(dihasilkan `scripts/analyze_pilot_budget.py`).
 
 **Aturan anggaran adil (G1-06).** Primary: **total `nfev` sama** untuk semua
 arsitektur. Karena simplex D (61) lebih panjang dari A (31), D mendapat 30
@@ -975,7 +1012,13 @@ membuktikan `FULL_VAL` tidak layak. Aturannya:
 
 1. Kriteria "tidak layak" (anggaran waktu komputasi untuk 330 unique
    confirmatory executions pada cap pilot) **wajib ditulis di gate G3-05 sebelum
-   pilot timing dijalankan**.
+   pilot timing dijalankan**. **Ditulis 2026-10-04 (sebelum timing pilot):** `FULL_VAL` tidak
+   layak bila proyeksi komputasi single-thread untuk 450 eksekusi konfirmatori + 90 Jalur B pada
+   cap pilot (1.000/1.000) > 240 CPU-jam, atau monitoring validation > 50% waktu objective
+   evaluation. **Hasil timing pilot (2026-10-05):** 32.2 CPU-jam dan
+   9.1% → `FULL_VAL` **dipertahankan**,
+   `n_val_monitor_per_class = NULL` (`research_data/pilot/timing_projection.json`,
+   `scripts/timing_projection.py`).
 2. Keputusan diambil satu kali dan berlaku global (seluruh kondisi, seed,
    arsitektur, ablation, dan Jalur B), bukan per kondisi.
 3. `n_val_monitor_per_class` dikunci sebagai satu angka setelah pilot timing dan
@@ -1029,6 +1072,14 @@ Unit test wajib (G3-05):
   menolak run sumber bila indeks yang dimuat ulang berbeda.
 
 #### 1.2.1 Microbenchmark biaya sirkuit A/B/C/D (dikunci 2026-10-01)
+
+**Adaptasi 2026-10-04 untuk engine batch (G4-01).** Pada engine produksi biaya satu objective
+evaluation = satu konstruksi `U(θ)` + satu forward pass atas sampel yang dievaluasi, sehingga
+"satu eksekusi sampel tunggal" tidak lagi mewakili biaya produksi. Satu *repeat* kini = satu forward
+pass batch tetap 1.000 sampel (termasuk satu `U(θ)`); waktu dilaporkan per sampel (dibagi 1.000),
+plus median waktu konstruksi `U(θ)`. Tetap 3 blok proses terpisah, urutan model dirotasi
+(A,B,C,D,M / B,C,D,M,A / C,D,M,A,B), satu thread, `n_parallel_declared = 1`, ditambah model M.
+Implementasi: `scripts/circuit_microbenchmark.py`; hasil pilot di `research_data/pilot/benchmarks/`.
 
 **Tujuan.** Satu-satunya sumber klaim biaya komputasi antar-arsitektur
 (§9.4, SAP §4.5). Di bawah budget `nfev` dan ukuran data yang sama, jumlah eksekusi
@@ -1328,8 +1379,8 @@ implementasi kode nyata + unit test sebelum Gate G2-01/G2-02 bisa ditutup
 |---|---|
 | Preprocessing sebelum fit | Flatten citra `(N, 784)`; normalisasi piksel `/255.0` ke `[0,1]`. Tidak ada standardisasi z-score — PCA hanya mean-center otomatis. |
 | Jumlah komponen | `pca_n_components = 8` |
-| `svd_solver` | `"auto"` (default sklearn; untuk `n_components=8 << 784` kemungkinan besar memilih randomized SVD) |
-| `random_state` | `42` (= `config.seed`), menjaga determinisme meski solver randomized |
+| `svd_solver` | `"full"` (DIREVISI 2026-10-04: SVD eksak LAPACK; sebelumnya `"auto"` yang memilih randomized SVD) |
+| `random_state` | `= config.seed`, dicatat di manifest (tidak berpengaruh pada solver `"full"`) |
 | Fit | Hanya pada train (`fit_transform` di train, `transform` di val dan test) — tidak ada data leakage |
 | Scaler akhir | `MinMaxScaler(feature_range=(0, PI))`, di-fit hanya pada `X_train_pca` |
 | Clipping setelah scaling | **Tidak ada.** `X_val_scaled`/`X_test_scaled` boleh sedikit keluar dari `[0, PI]` akibat proyeksi val/test di luar rentang train |
@@ -1436,40 +1487,45 @@ pseudocode ini.
 ---
 
 ## 3. CORRELATION MATRIX
- 
+
+**DIREVISI 2026-10-04 (G4-04, komparabilitas dengan MORE):** aturan normalisasi `[0.5, 1]`
+warisan skripsi diganti aturan MORE `data_helper.py::calc_class_rela`. Implementasi:
+`core/correlation.py`; test: `tests/test_correlation_pairing_splits.py`.
+
 ```
 FUNCTION CORRELATION_MATRIX(X_train_scaled, y_train, classes):
     K = LENGTH(classes)
-    S = ZEROS(K, K)
- 
-    # 3.1 Hitung rata-rata fitur per kelas
-    class_means = {}
+    class_to_index = {c: i FOR i, c IN ENUMERATE(classes)}      # label non-kontigu aman
+
+    # 3.1 Mean per kelas dari 100 sampel TRAIN pertama per kelas (urutan split manifest = acak ber-seed),
+    #     sama dengan x_keep[:num_data], num_data = 100 pada MORE
     FOR each c IN classes:
-        class_means[c] = MEAN(X_train_scaled WHERE y_train == c)
- 
-    # 3.2 Isi matriks S dengan MSE antar rata-rata kelas
-    FOR i IN range(K):
-        FOR j IN range(K):
-            IF i == j:
-                S[i][j] = -1                      # placeholder, diisi ulang di 3.3
-            ELSE:
-                S[i][j] = MEAN_SQUARED_ERROR(class_means[classes[i]], class_means[classes[j]])
- 
-    # 3.3 Normalisasi sel non-diagonal ke rentang [0.5, 1]
-    off_diag_values = ALL S[i][j] WHERE i != j
-    S_normalized = NORMALIZE(off_diag_values, range=[0.5, 1])
-    PUT_BACK S_normalized INTO S (kecuali diagonal)
- 
-    # 3.4 Set diagonal = -1 (menandakan "kelas sama, harus didekatkan")
-    FOR i IN range(K):
-        S[i][i] = -1
- 
-    SAVE(S, run_dir + "/artifacts/correlation_matrix.npy")
+        mu[c] = MEAN(FIRST 100 ROWS OF X_train_scaled WHERE y_train == c)
+
+    # 3.2 MSE rata-rata kanal (MORE: sum((a-b)^2) / n_fitur), presisi penuh (MORE membulatkan 3 desimal)
+    FOR i, j IN class pairs:
+        raw_mse[i][j] = MEAN_k (mu[classes[i]][k] - mu[classes[j]][k])^2
+
+    # 3.3 Normalisasi MORE: S_ij = raw_mse_ij / max_{a != b} raw_mse_ab   (i != j)
+    max_off = MAX(raw_mse[a][b] FOR a != b)
+    IF max_off > 0:
+        S[i][j] = raw_mse[i][j] / max_off           FOR i != j     # rentang (0, 1], maksimum tepat 1
+    ELSE:                                                          # semua mean kelas identik (fallback)
+        S[i][j] = 1.0                               FOR i != j
+        RECORD fallback_all_offdiag_one = TRUE
+
+    # 3.4 Diagonal = -1 (kelas sama: ditarik mendekat)
+    S[i][i] = -1
+
+    ASSERT S simetris, diagonal -1, off-diagonal di [0, 1], tidak ada pembagian dengan nol
+    SAVE(S,       run_dir + "/artifacts/correlation_matrix.npy")
+    SAVE(raw_mse, run_dir + "/artifacts/correlation_raw_mse.npy")
+    SAVE({class_to_index, n_mean_samples, normalizer, fallback}, run_dir + "/artifacts/correlation_info.json")
     RETURN S
 ```
- 
+
 ---
- 
+
 ## 4. MODEL SETUP
  
 Sirkuit dipisah jadi **dua fungsi pembangun berbeda** — `BUILD_CIRCUIT_MORE_HD`
@@ -1938,6 +1994,60 @@ secara manual untuk setiap kondisi, dengan `run_dir` unik. Benchmark lengkap
 3–10 kelas tetap terdiri dari 48 kondisi per seed, tetapi setiap kondisi dijalankan
 dan dimonitor secara terpisah, bukan melalui batch runner otomatis.
  
+---
+
+### 4.7 BUILD_CIRCUIT_MORE_REPRO — Reproduksi MORE (Wu et al., 2023) (DIKUNCI 2026-10-04)
+
+Direproduksi gerbang demi gerbang dari `github.com/Jindi0/MORE@867d194`, `model.py::build_qcnn`.
+Implementasi: `core/circuits.py::build_more_repro`; kesetaraan dengan sirkuit Qiskit MORE (termasuk
+urutan parameter) diuji di `tests/test_engine.py::test_more_repro_matches_original_qiskit_circuit`.
+
+```
+FUNCTION BUILD_CIRCUIT_MORE_REPRO():
+    n_qubits = 8                                   # semua qubit menerima data; tidak ada qubit readout terpisah
+    # Encoding = Qiskit ZFeatureMap(8, reps=2): per qubit H, P(2*u), H, P(2*u), dengan u = 2*x
+    # (MORE menskalakan fitur ke [0, 2pi]; fitur kita di [0, pi], jadi u = 2x mereproduksi rentangnya)
+    FOR q IN 0..7: APPLY H(q); P(4*x[q])(q); H(q); P(4*x[q])(q)
+
+    # QCNN (91 parameter, urutan parameter = urutan terurut Qiskit / bobot EstimatorQNN):
+    #   c2[0..23], c3[0..11], p1[0..3], p2[0..1], p3[0], с1[0..47]   (с1 memakai huruf Kiril 'с')
+    CONV_LAYER(wires 0..7, "с1"); POOL_LAYER(sources 0,1,2,3 -> sinks 4,5,6,7, "p1")
+    CONV_LAYER(wires 4..7, "c2"); POOL_LAYER(4,5 -> 6,7, "p2")
+    CONV_LAYER(wires 6..7, "c3"); POOL_LAYER(6 -> 7, "p3")
+    #   CONV kernel (q1,q2): RX(p0) q1, RX(p1) q2, RYY(p2), RZZ(p3), RZ(p4) q1, RZ(p5) q2
+    #   POOL (source, sink): CNOT(source -> sink), RY(p) sink
+    RETURN [<X_7>, <Y_7>, <Z_7>]                   # readout qubit 7, urutan X, Y, Z
+
+INITIAL_PARAMS_MORE = U[0, 1)^91 dari RNG(DERIVE_SUBSEED(seed, "init:more_qcnn"))
+                      # sama dengan default qiskit-machine-learning (algorithm_globals.random.random)
+```
+
+Seluruh bagian lain pipeline (split, fitur, S, pairing, loss, label, budget, evaluasi) identik dengan
+A/D; tidak ada loss adjuster R. Diagnostik struktural memakai definisi umum "jumlah faktor Y ganjil"
+sehingga untuk M observable Y-odd = `[Y]`.
+
+### 4.8 Engine simulasi produksi `core.engine.BatchedStatevector` (G4-01, DIKUNCI 2026-10-04)
+
+Semua model ditulis sekali sebagai daftar gerbang; dua eksekutor membaca daftar yang sama:
+PennyLane `default.qubit` (acuan) dan engine produksi NumPy. Struktur yang dimanfaatkan:
+`|psi(x)> = U(theta) (|phi(x)> ⊗ |0..0>)` dengan `|phi(x)>` keadaan produk pada qubit data.
+
+```
+FUNCTION OBJECTIVE_EVALUATION_OUTPUTS(theta, Phi):        # Phi = amplitudo keadaan produk, di-cache per run
+    M = KOLOM U(theta) untuk |d> ⊗ |0..0>                   # dibangun SEKALI per objective evaluation
+    FOR setiap chunk 512 baris Phi (di-pad nol, bentuk tetap):
+        Psi = Phi_chunk @ M^T                              # hanya dgemm riil -> hasil per sampel tidak
+                                                           # bergantung komposisi batch (diuji)
+        rho_readout = Tr_data |Psi><Psi|                   # matriks densitas tereduksi 4x4 (A-D) / 2x2 (M)
+        outputs = [Tr(rho P) FOR P IN observable readout]  # eksak, satu pass per sampel
+    RETURN outputs
+```
+
+Verifikasi: selisih maksimum terhadap PennyLane `< 1e-12` (unit test, A/B/C/D/M) dan self-check
+tiap run pada 4 sampel train di parameter awal (`backend_self_check`, toleransi `1e-10`, teramati
+~1e-15; gagal → run `FAILED`). Untuk A/B, observable Y-odd bernilai tepat `0.0` (bukan sekadar
+< 1e-15). Satu thread BLAS/OpenMP per proses (`OMP/MKL/OPENBLAS/NUMEXPR_NUM_THREADS = 1`).
+
 ---
 
 ## 4.6 PROTOKOL PEMBENTUKAN PASANGAN CLUSTERING — G1-03/G1-08 (DIKUNCI 2026-09-27)
@@ -3128,6 +3238,26 @@ daftar terkunci untuk tiap jalur; (2) `SUM(stage wall_sec) <= total_runtime_sec`
 
 ---
 
+## 9.5 STATUS RUN DAN KEBIJAKAN ATTEMPT (G3-04, DIKUNCI 2026-10-04)
+
+```
+SETELAH CREATE_RUN_DIRECTORY_EXCLUSIVE:  WRITE logs/run_status.json {status: RUNNING, run_uid, attempt}
+SELESAI NORMAL:                          status = COMPLETED
+EXCEPTION APA PUN:                       status = FAILED + error_type + error_message + traceback (lalu re-raise)
+CRASH KERAS (status tertinggal RUNNING): pengguna menjalankan scripts/mark_run_failed.py <run_dir> --reason ...
+
+ATTEMPT BARU untuk run_uid yang sama:
+    folder baru  <nama_run>_attempt<N>   (N = attempt terakhir + 1; nomor harus berurutan)
+    DIIZINKAN hanya bila SEMUA attempt sebelumnya berstatus FAILED
+    folder attempt lama TIDAK pernah diubah
+KONSOLIDATOR: tepat satu attempt COMPLETED per run_uid; lebih dari satu -> error (duplikat run_uid+attempt)
+```
+
+Nama folder run PILOT diberi akhiran tag pilot (`_smoke`, `_timing`, `_convergence`); nama run
+CONFIRMATORY persis `AUTO_GENERATE` (primer) atau `<uid>_cls-..._<fitur>_<model>` (ablation/referensi).
+Implementasi: `core/run_status.py`, `core/config.py::run_name_for`; test:
+`tests/test_pipeline_integration.py::test_stage_timing_status_and_attempt_policy`.
+
 ## 10. JALUR B — Deterministic Validation-Selected Clustering Checkpoint
  
 ### 10.1 Posisi Jalur B terhadap Jalur A
@@ -3145,10 +3275,11 @@ mengandung objective evaluation yang, menurut aturan validation yang
 dipra-tetapkan, menghasilkan titik awal supervised yang berbeda dari final
 `result.x`.
 
-Jalur B tidak termasuk dalam hitungan **330 unique confirmatory executions**
-yang telah dibekukan (240 primary A/D + 90 targeted ablation B/C). Jika Jalur B
-nanti dieksekusi pada subset atau seluruh run, eksekusi tersebut dicatat sebagai
-secondary analysis tambahan dan tidak mengganti hasil primer Jalur A.
+Jalur B tidak termasuk dalam hitungan **450 unique confirmatory executions**
+(240 primary A/D + 90 targeted ablation B/C + 120 MORE-REPRO). **Scope dikunci 2026-10-04:**
+Jalur B dijalankan pada run A dan D dengan K∈{3,6,10}, ketiga fitur, lima seed konfirmatori
+(90 eksekusi sekunder), dicatat sebagai secondary analysis tambahan dan tidak mengganti hasil
+primer Jalur A.
 
 ### 10.2 Aturan G0-02: selector otomatis dan deterministik
 
@@ -3814,7 +3945,7 @@ BASELINE_K_VALUES       = [3, 4, 5, 6, 7, 8, 9, 10]
 BASELINE_MODELS         = ["NC", "LR"]                 # chance dihitung, bukan di-fit
 
 LR_C_GRID               = [0.01, 0.1, 1.0, 10.0, 100.0]
-LR_PENALTY              = "l2"
+LR_PENALTY              = "l2"                         # scikit-learn 1.9: diekspresikan sebagai l1_ratio=0.0
 LR_SOLVER               = "lbfgs"                      # multinomial untuk K > 2
 LR_MAX_ITER             = 5000
 LR_FIT_INTERCEPT        = TRUE
@@ -3990,7 +4121,61 @@ boleh ditarik dari baseline ini.
 
 ---
 
+## 13. TRACK REFERENSI MORE-REPRO (DIKUNCI 2026-10-04)
+
+Tujuan: membandingkan MORE-HD (A) dan MORE-HD-C (D) dengan MORE (M) **pada protokol yang sama**,
+sehingga selisih yang dilaporkan berasal dari desain sirkuit/readout, bukan dari perbedaan data,
+preprocessing, budget, atau jumlah run. Perbandingan dengan angka Tabel I paper MORE tetap
+deskriptif (SAP §10.2.6, §10.3).
+
+| Aspek | Keputusan |
+|---|---|
+| Model | `MORE-REPRO` (§4.7), 91 parameter, readout 3 observable, tanpa loss adjuster R |
+| Scope | K=3..10 × PCA/HU/ZERNIKE × seed 101/202/303/404/505 = 120 run; seed 42 pilot saja |
+| ID | `MREF001`–`MREF024` (K 3→10, lalu PCA→HU→ZERNIKE); `reference_run_uid = MREF###-S<seed>` |
+| Entry point | `main_more_reference.py --feature F --k K --seed S --run-mode CONFIRMATORY --n-parallel-declared N` |
+| Folder | `runs/more_reference/MREF###-S<seed>_cls-..._<fitur>_MORE-REPRO/` |
+| Data, pair, S, label, budget, evaluasi | identik dengan run A/D seed/K/fitur yang sama; manifest menyimpan hash split, identitas pair, dan array input serta `paired_input_check` terhadap run A |
+| Workbook | `research_data/MORE_HD_master_more_reference_120runs.xlsx` (sheet `21_MORE_Comparison`) |
+| Analisis | `analysis/run_analysis.py` → `more_comparison.csv` (A−M, D−M; SAP §10.3) |
+
+Perbedaan protokol kita terhadap kode publik MORE yang wajib disebut di paper: seluruh `C(5K,2)`
+pasangan (kode: maksimum 1.000 acak tanpa seed); 5 sampel/kelas acak ber-seed (kode: 5 pertama);
+PCA + scaler fit pada train saja tanpa penghapusan outlier (kode: fit terpisah pada test dan
+menghapus outlier ±2σ); test 200/kelas seimbang (kode: 500 sampel pertama); supervised memakai
+1.000 sampel/kelas dengan budget dari pilot; S presisi penuh (kode: dibulatkan 3 desimal);
+tanpa loss adjuster R. Lihat `docs/METHODS_DRAFT.md` §8.
+
+## 14. PETA IMPLEMENTASI (pseudocode → kode → test)
+
+| Pseudocode | Kode | Test utama |
+|---|---|---|
+| §0.3 `DERIVE_SUBSEED`, split manifest | `core/seeds.py`, `core/splits.py`, `splits/seed*.json` | `test_correlation_pairing_splits.py` |
+| §1 `CONFIG`, `VALIDATE_CONFIG`, `AUTO_GENERATE`, ID | `core/config.py`, `core/constants.py` | `test_analysis_rules.py` |
+| §1.1 `OBJECTIVE_PHASE`, `VALIDATE_OPTIMIZER_BUDGET`, COBYLA log | `core/optimizer.py` | `test_optimizer.py` |
+| §1.2 cache, set monitoring validation | `core/clustering.py`, `core/pipeline.py::select_val_monitor_set` | `test_pipeline_integration.py` |
+| §1.2.1 microbenchmark | `scripts/circuit_microbenchmark.py` | — (hasil `benchmarks/`) |
+| §2 `DATA_PIPELINE`, §2.8 Hu/Zernike/PCA | `core/mnist.py`, `core/data_pipeline.py`, `core/features.py` | `test_features.py` |
+| §3 `CORRELATION_MATRIX` | `core/correlation.py` | `test_correlation_pairing_splits.py` |
+| §4 sirkuit, inisialisasi berpasangan, §4.7, §4.8 | `core/circuits.py` | `test_engine.py` |
+| §4.3.1 cosine/normalisasi/centroid, §4.3.2 Y-odd | `core/numerics.py` | `test_numerics.py` |
+| §4.6 pairing | `core/pairing.py` | `test_correlation_pairing_splits.py` |
+| §5 `CLUSTERING_LOOP` | `core/clustering.py` | `test_pipeline_integration.py` |
+| §6 label kuantum | `core/quantum_labels.py` | `test_pipeline_integration.py` |
+| §7 `SUPERVISED_LOOP` | `core/supervised.py` | `test_pipeline_integration.py` |
+| §8 `FINAL_EVALUATION`, vault test resmi, `STRUCTURAL_DIAGNOSTICS` | `core/evaluation.py` | `test_pipeline_integration.py` |
+| §9 `MAIN`, manifest, §9.4 waktu, §9.5 status | `core/pipeline.py`, `core/timing.py`, `core/run_status.py`, `main_train.py` | `test_pipeline_integration.py` |
+| §10 Jalur B | `core/jalur_b.py`, `main_selected_clustering.py` | `test_jalur_b_baselines_workbook.py` |
+| §11 ablation | `core/pipeline.py` (track ABLATION), `main_ablation.py` | `test_pipeline_integration.py` |
+| §12 baseline klasik | `core/classical_baselines.py`, `main_classical_baseline.py` | `test_jalur_b_baselines_workbook.py` |
+| §13 MORE-REPRO | `core/circuits.py`, `main_more_reference.py` | `test_engine.py` |
+| §0.2 workbook, schema map, konsolidasi | `core/workbook.py`, `scripts/build_workbook_templates.py` | `test_jalur_b_baselines_workbook.py` |
+| SAP §6–§10 | `core/stats.py`, `analysis/run_analysis.py` | `test_stats.py`, `test_analysis_rules.py` |
+| Pilot G1-01 | `scripts/run_pilot.py`, `scripts/check_pilot_runs.py`, `scripts/analyze_pilot_budget.py`, `scripts/timing_projection.py` | `test_analysis_rules.py` |
+
 ## Hal yang Sengaja Belum Ditentukan (Perlu Keputusan Anda)
+
+**Status 2026-10-04:** seluruh butir di bawah sudah diselesaikan: implementasi Python (butir 6, 8, 9) ada di `core/` dengan unit test; konsolidasi spreadsheet (butir 5) diotomatisasi `core/workbook.py::consolidate` (idempoten, deteksi duplikat `run_uid`+`attempt`); butir 3 (berkas `clustering_params.bin` korup) ditangani `ParamLog.n_records()` yang menolak berkas dengan record terpotong sehingga Jalur B gagal keras dan sumber harus dijalankan ulang sebagai attempt baru; butir 4 (jumlah run paralel) tetap keputusan pengguna dan dicatat sebagai `n_parallel_declared`. Teks asli dipertahankan di bawah sebagai riwayat.
  
 Seluruh lima keputusan yang sebelumnya "sengaja belum ditentukan" pada draf awal dokumen ini sudah ditutup (format penyimpanan parameter, kebijakan crash recovery, `cobyla_tol`, `active_dim_threshold` awal, `n_cluster_pair_samples`). Keputusan Hu Moments dan Zernike Moments (2.8.2, 2.8.3) juga sudah dikunci pada sesi 2026-09-22, begitu juga skema train/validation/official test (G0-01, bagian 2, 5, 7, 9, 10), dan sejak sesi 2026-09-22 angka final `n_train_per_class`/`n_val_per_class`/`n_test_per_class` untuk protokol publikasi (G0-03) juga sudah dikunci (lihat poin 7 di bawah, kini berstatus selesai). Item yang masih terbuka untuk pilot saat ini:
  
