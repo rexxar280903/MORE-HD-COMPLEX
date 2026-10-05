@@ -3,11 +3,11 @@
 <!-- RESEARCH_PROGRESS_START -->
 ## Research Progress
 
-![Research Progress](https://img.shields.io/badge/Research%20Progress-35.3%25-blue)
+![Research Progress](https://img.shields.io/badge/Research%20Progress-100.0%25-blue)
 
-**Current research readiness: 35.3%**
+**Current research readiness: 100.0%**
 
-`███████░░░░░░░░░░░░░ 35.3%`
+`████████████████████ 100.0%`
 
 Progress dihitung otomatis dari **39 item Research Readiness Gate** dengan bobot:
 `CLOSED = 100%`, `READY FOR VERIFICATION = 75%`, `IN PROGRESS = 50%`, `PILOT ONLY = 25%`, dan `BLOCKED = 0%`.
@@ -39,115 +39,113 @@ Riwayat lengkap tersimpan di [`research_progress_history.json`](research_progres
 > Bagian ini dikelola otomatis oleh GitHub Actions. Nilai dapat turun bila scope/kriteria penelitian bertambah; tracker tidak memaksa progress selalu meningkat.
 <!-- RESEARCH_PROGRESS_END -->
 
-Proyek riset quantum machine learning yang memperluas skripsi sarjana (FRD-09, arsitektur **MORE-HD**) menjadi eksperimen faktorial yang lebih ketat secara metodologis: **MORE-HD-C**.
+Proyek riset quantum machine learning: **MORE-HD** (8 data qubit + 2 readout qubit, readout 15 observable Pauli) dan pengembangannya **MORE-HD-C** (RY+RZ), dibandingkan langsung dengan **MORE** (Wu dkk., 2023) pada klasifikasi MNIST multi-kelas K = 3..10. Seluruh training dijalankan ulang dari nol dengan protokol yang dikunci sebelum hasil apa pun dibuka; dokumen skripsi lama (BAB 1, FRD-09) tidak lagi menjadi acuan (lihat [Catatan skripsi](#catatan-skripsi)).
+
+## Status (2026-10-05)
+
+- **Implementasi selesai**: seluruh pseudocode kini berupa kode yang dapat dijalankan (`core/`, `main_*.py`) dengan **73 unit/integration test** yang memetakan kriteria penerimaan tiap gate (`tests/`).
+- **Pilot seed 42 selesai** (PILOT ONLY, tidak masuk hasil): smoke test, timing pilot, microbenchmark, dan pilot konvergensi 14 run. Budget COBYLA final dibekukan dari aturan plateau yang dikunci sebelum pilot: **`max_nfev_clustering = 840`, `max_nfev_supervised = 1000`** (clustering: semua run pilot plateau; supervised: run R048-S42 belum plateau tipis pada cap 1.000, sehingga budget supervised = cap dan klaim fase supervised dinyatakan pada budget evaluasi yang sama).
+- **Semua 39 item readiness gate berstatus `CLOSED` untuk Gate C** (lihat blok ringkasan di bawah). Kewajiban yang hanya bisa dipenuhi setelah run konfirmatori (tabel hasil, 240 fit baseline, kontras ablation, perbandingan MORE, sensitivitas 6↔9) dipindah ke daftar **Gate D `P-01…P-08`** di dokumen gate.
+- **Langkah berikutnya (Anda):** jalankan 450 run konfirmatori + 90 Jalur B mengikuti [`docs/RUNBOOK.md`](docs/RUNBOOK.md). Proyeksi ±32 CPU-jam single-thread (≈8–10 jam dengan 4 proses paralel) pada mesin referensi.
 
 ## Latar Belakang
 
-**MORE-HD** (*Multi-Readout Qubit Expansion for High-Dimensional Label Space*) adalah Variational Quantum Circuit yang memperluas kerangka MORE (Wu dkk., 2023) menggunakan 2 qubit readout untuk memperbesar ruang label kuantum dari 3D menjadi 15D, diterapkan pada klasifikasi multi-kelas MNIST.
+**MORE-HD** (*Multi-Readout Qubit Expansion for High-Dimensional Label Space*) memperluas kerangka MORE (Wu dkk., 2023) dari 1 qubit readout (3 observable) menjadi 2 qubit readout (15 observable Pauli non-identitas), memakai 10 qubit: **8 data qubit + 2 readout qubit, tanpa ancilla terpisah**, dan 30 parameter terlatih (RY + CNOT), lebih sedikit dari 91 parameter MORE.
 
-- 10 qubit total (8 data qubit + 2 readout qubit)
-- 30 parameter terlatih (gerbang RY + CNOT), 3.03× lebih sedikit dibanding MORE (91 parameter)
-- Unggul ~9.74 poin rata-rata pada tugas 3–7 kelas, tetapi menurun performanya pada 8 dan 10 kelas
+**Structural zeros.** Dengan gerbang RY dan CNOT saja, seluruh amplitudo state bernilai riil, sehingga enam observable dengan jumlah faktor Y ganjil (`IY, XY, YI, YX, YZ, ZY`) selalu bernilai nol. Engine kami mereproduksi ini secara eksak (0.0) untuk MORE-HD.
 
-**Temuan akar masalah:** 6 dari 15 dimensi observable MORE-HD selalu nol secara struktural, karena kombinasi gerbang RY + CNOT hanya menghasilkan state kuantum bernilai riil (real subspace dari Hilbert space). Ini mengurangi dimensionalitas efektif dan berkontribusi pada kegagalan klasifikasi di jumlah kelas tinggi — fenomena yang disebut *curse of density* (adaptasi dari istilah "crowded quantum labels" milik Wu dkk.).
+**Motivasi dan hipotesis.** Pada skripsi (protokol lama), MORE-HD meningkatkan akurasi pada K = 3–7 (rata-rata ~9.74 poin) tetapi turun tajam pada K = 8 dan 10. Hipotesis penelitian ini: keterbatasan wilayah ruang readout yang dapat dicapai sirkuit bernilai riil ikut membuat label kuantum berdesakan pada K besar (*crowded quantum labels*, mekanisme yang diidentifikasi Wu dkk.; "curse of density" adalah adaptasi istilah kami). Angka skripsi tidak dipakai sebagai hasil: seluruh perbandingan diulang dari nol dengan protokol baru, dan pertanyaan penelitian lengkap ada di [`docs/METHODS_DRAFT.md`](docs/METHODS_DRAFT.md) §1.
 
 ## Kontribusi MORE-HD-C
 
-MORE-HD-C mengatasi keterbatasan struktural tersebut dengan **modifikasi V1**: menambahkan gerbang RZ setelah RY pada layer variational (RY+RZ per qubit, bukan RY saja). RZ menghilangkan *real-state restriction* sehingga keenam observable Y-odd yang tadinya nol secara struktural **dapat** aktif; aktivasi tersebut tetap harus dibuktikan secara empiris dan tidak dijamin hanya oleh keberadaan RZ.
+MORE-HD-C menambahkan gerbang RZ setelah setiap RY pada layer variational (60 parameter terlatih, masih < 91 parameter MORE). RZ menghilangkan *real-state restriction* sehingga keenam observable Y-odd **dapat** aktif; aktivasi itu diukur secara empiris (`yodd_norm_fraction`) dan tidak dengan sendirinya membuktikan peningkatan akurasi. Encoding, blok entangling CNOT, jumlah qubit, readout, dan urutan 15 observable identik dengan MORE-HD.
 
-- 60 parameter terlatih (2× MORE-HD), masih < 91 parameter MORE.
-- Encoding, entangling block (CNOT), jumlah qubit, readout, dan urutan pengukuran 15 observable identik dengan MORE-HD.
-- Perbandingan utama MORE-HD (30 parameter) versus MORE-HD-C (60 parameter) **tidak cukup untuk mengatribusikan perubahan performa hanya kepada fase kompleks**, karena jumlah parameter terlatih berubah bersamaan dengan ansatz. Karena itu, eksperimen utama dilengkapi targeted ablation G1-05/G1-07 untuk memisahkan efek parameter budget dan akses ke state kompleks.
+## Desain eksperimen (dikunci)
 
-## Desain Eksperimen: Faktorial Utama 2 × 3 × 8
+| Track | Model | Kondisi | Seed konfirmatori | Run | Peran |
+|---|---|---|---:|---:|---|
+| Primer | A = MORE-HD, D = MORE-HD-C | K=3..10 × PCA/HU/ZERNIKE | 101, 202, 303, 404, 505 | 240 | estimand primer D − A |
+| Ablation | B = MORE-HD-60P (6 layer RY, 60 param), C = MORE-HD-C-FixedRZ (30 RY + 30 RZ beku) | K∈{3,6,10} × 3 fitur | 5 seed | 90 | memisahkan efek jumlah parameter vs akses state kompleks |
+| **Referensi MORE (baru)** | M = MORE-REPRO (QCNN MORE 91 param, readout X/Y/Z, tanpa loss adjuster R) | K=3..10 × 3 fitur | 5 seed | 120 | perbandingan langsung dengan MORE pada protokol identik |
+| Jalur B (sekunder) | A, D dari checkpoint clustering terpilih deterministik | K∈{3,6,10} × 3 fitur | 5 seed | 90 | analisis sensitivitas |
+| Baseline klasik | chance 1/K, Nearest Centroid, Logistic Regression | 120 cell | 5 seed | 240 fit | referensi konteks |
 
-Eksperimen utama membandingkan:
+Total **450 eksekusi konfirmatori unik** (240 + 90 + 120) ditambah 90 Jalur B. Seed 42 hanya untuk pilot. Split train/validation/official test = 1000/100/200 per kelas, berpasangan lintas model dan fitur, nested lintas K (`splits/seed*.json`, di-commit). Semua fitur menghasilkan tepat 8 kanal (hanya Hu memakai satu kanal padding 0.0; Zernike memberi 8 koefisien asli).
 
-| Faktor | Level |
-|---|---|
-| **A — Arsitektur** | MORE-HD (RY saja) vs MORE-HD-C (RY+RZ) |
-| **B — Metode fitur** | PCA, Hu Moment Invariants, Zernike Moments |
-| **C — Jumlah kelas** | K = 3 sampai K = 10 (kumulatif: `[0..K-1]`) |
+## Perbandingan dengan MORE (Wu dkk., 2023)
 
+1. **Dalam protokol yang sama (MORE-REPRO).** Sirkuit MORE direproduksi gerbang demi gerbang dari kode publik (`github.com/Jindi0/MORE@867d194`, `model.py::build_qcnn`) — kesetaraannya dengan sirkuit Qiskit MORE diuji (< 1e-12) — lalu dilatih dengan data, split, fitur, pasangan clustering, matriks korelasi, aturan label, budget COBYLA, dan official test yang identik dengan MORE-HD/MORE-HD-C. Selisih A−M dan D−M (berpasangan per seed) dilaporkan sesuai SAP §10.3.
+2. **Angka yang dilaporkan paper MORE.** Kolom MORE\R Tabel I (acuan utama) dan MORE+R (konteks) hanya deskriptif, karena protokolnya berbeda. Perbedaan protokol terhadap kode publik MORE dicatat di [`docs/METHODS_DRAFT.md`](docs/METHODS_DRAFT.md) §8.
+3. Agar setara dengan MORE, pipeline mengikuti MORE pada: 5 sampel clustering/kelas dan seluruh `C(5K,2)` pasangan, loss clustering `−S_ij·d_cos`, matriks korelasi `calc_class_rela` (`MSE/max`, diagonal −1), label kuantum normalisasi→median→normalisasi, loss supervised jarak cosine ke label, prediksi label terdekat, COBYLA `rhobeg=1.0`.
+
+## Pipeline dua fase
+
+1. **Clustering (unsupervised):** 5 sampel TRAIN per kelas dipilih acak ber-seed, seluruh pasangan unik `i<j` dipakai tanpa balancing; COBYLA meminimalkan `mean(−S_ij · d_cos(v_i, v_j))`; validation hanya dimonitor pasif.
+2. **Label kuantum:** centroid MORE (normalisasi → median per komponen → normalisasi) dari 5 sampel clustering per kelas pada `result.x`.
+3. **Supervised:** COBYLA meminimalkan rata-rata jarak cosine output setiap sampel train (1000/kelas) ke label kelasnya.
+4. **Evaluasi akhir:** official test dibuka sekali, di tahap `final_evaluation` saja (dijaga `OfficialTestVault`).
+
+Budget sama untuk semua model (total `nfev`), tahap simplex awal COBYLA ditandai `phase`, dan simulasi statevector analitik complex128 tanpa shot noise (engine produksi terverifikasi vs PennyLane `default.qubit`).
+
+## Struktur repositori
+
+```text
+core/                      implementasi (data, fitur, sirkuit + engine, loop, evaluasi, workbook, statistik)
+main_train.py              Jalur A primer (MORE-HD, MORE-HD-C)
+main_ablation.py           ablation B/C
+main_more_reference.py     track MORE-REPRO
+main_selected_clustering.py  Jalur B
+main_classical_baseline.py baseline klasik
+analysis/run_analysis.py   analisis SAP (agregasi, kontras, MORE, McNemar, 6↔9, baseline)
+scripts/                   pilot, proyeksi, microbenchmark, rencana run, template workbook, util
+tests/                     unit + integration test per gate
+splits/                    split manifest seed 42/101/202/303/404/505
+research_data/             template workbook (primer, ablation, MORE reference), bukti pilot
+docs/                      METHODS_DRAFT.md (draf metode paper), RUNBOOK.md
 ```
-8 skenario kelas × 2 arsitektur × 3 metode fitur = 48 kondisi per seed
-48 kondisi × 5 confirmatory seeds (101, 202, 303, 404, 505) = 240 confirmatory runs
-Seed 42 = PILOT ONLY dan tidak masuk agregasi hasil final
+
+## Cara menjalankan (ringkas)
+
+Stack terkunci (`requirements.txt`): Python 3.11, NumPy 2.4.6 (engine statevector produksi), SciPy 1.17.1 (COBYLA), scikit-learn 1.9.1 (PCA, baseline klasik), PennyLane 0.45.1 (acuan verifikasi engine), openpyxl (workbook). OpenCV, mahotas, dan Qiskit hanya dipakai test sebagai acuan (`requirements-test.txt`).
+
+```bash
+pip install -r requirements-test.txt
+python scripts/download_mnist.py
+python -m pytest tests -q
+python scripts/print_run_plan.py --pending --n-parallel 4   # daftar perintah run konfirmatori
 ```
 
-Semua metode fitur dikunci menghasilkan tepat 8 channel (sama dengan 8 data qubit) agar arsitektur sirkuit, topologi entanglement, dan prosedur evaluasi tidak berubah — sehingga faktor `feature_method` murni menguji efek representasi fitur terhadap pipeline clustering + classification.
+Detail lengkap (attempt ulang, Jalur B, baseline, konsolidasi, analisis): [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
 
-### Targeted Ablation G1-05/G1-07
+## Dokumen kendali
 
-Untuk memisahkan efek jumlah parameter dari efek akses ke state kompleks, ablation hanya dijalankan pada `K={3,6,10}`, seluruh feature method, dan lima confirmatory seed yang sama. Model A dan D direuse dari hasil eksperimen utama sehingga tidak dieksekusi dua kali; hanya model B dan C yang menambah run baru.
+- [`MORE_HD_RESEARCH_READINESS_GATES (1).md`](MORE_HD_RESEARCH_READINESS_GATES%20(1).md) — status gate, log keputusan, kewajiban Gate D.
+- [`MORE_HD_STATISTICAL_ANALYSIS_PLAN.md`](MORE_HD_STATISTICAL_ANALYSIS_PLAN.md) — SAP v2.0 (dibekukan sebelum hasil).
+- [`Pseudocode_2x3_manual_runs.md`](Pseudocode_2x3_manual_runs.md) — spesifikasi teknis + peta implementasi (Bagian 14).
+- [`docs/METHODS_DRAFT.md`](docs/METHODS_DRAFT.md) — teks metode, perbandingan MORE, keterbatasan untuk paper.
 
-| Kode | Model | State | Parameter terlatih | Peran |
-|---|---|---|---:|---|
-| A | MORE-HD | real | 30 | baseline utama; reuse dari 240 run |
-| B | MORE-HD-60P | real | 60 | parameter-budget / real-capacity control |
-| C | MORE-HD-C-FixedRZ | kompleks dapat diakses | 30 RY; 30 RZ fixed non-zero | complex-state control pada trainable budget 30 |
-| D | MORE-HD-C | kompleks dapat diakses | 60 (30 RY + 30 RZ) | model utama; reuse dari 240 run |
-
-```
-3 K × 3 feature × 2 model tambahan (B,C) = 18 kondisi ablation per seed
-18 × 5 confirmatory seeds = 90 additional ablation runs
-240 primary + 90 ablation = 330 unique confirmatory executions
-```
-
-A/D dan B/C memakai split serta pair manifest yang sama pada cell yang berpasangan. Primary A/D juga memakai structured paired initialization sehingga reuse A/D tetap valid untuk ablation. **Source of truth teknis ablation** sekarang berada langsung di `Pseudocode_2x3_manual_runs.md` Bagian 11.
-
-### Pipeline Dua Fase
-
-1. **Clustering (unsupervised)** — mengikuti konsep pairing MORE: tepat 5 sampel TRAIN per kelas dipilih secara deterministik tanpa replacement, lalu seluruh unordered unique pairs (`i < j`) digunakan sekali tanpa balancing/reweighting. Pair set dibekukan sebelum COBYLA dan disimpan melalui `pair_manifest.json` + `pair_stats.json`. COBYLA meminimalkan `train_loss` berbasis cosine distance berbobot matriks korelasi antar-kelas; monitoring memakai validation secara pasif dan official test tidak diakses selama optimasi.
-2. **Supervised** — fine-tuning terhadap label kuantum hasil fase clustering. Label kuantum dihitung seperti MORE asli: output tiap sampel dinormalisasi, diambil median per komponen, lalu dinormalisasi lagi, dari 5 sampel clustering per kelas. Optimasi menggunakan train; monitoring selama pengembangan menggunakan validation. Official test hanya dipanggil sekali melalui `FINAL_EVALUATION` setelah seluruh keputusan run dibekukan.
-
-Tersedia dua jalur eksekusi:
-- **Jalur A (otomatis)** — memakai `result.x` sebagai **final point resmi COBYLA**; `best_observed_point` dicatat terpisah dan tidak diasumsikan sama dengan `result.x`.
-- **Jalur B (deterministic secondary path)** — dijalankan setelah run Jalur A selesai dan menggunakan artefak clustering run sumber. Checkpoint dipilih otomatis dengan aturan lexicographic train/validation yang dibekukan (`pseudo_accuracy_val` → `min_separation_val` → `mean_true_distance_val` → `train_loss` → `eval_id`), sementara `active_dimensions` hanya diagnostik. Budget supervised diwarisi dari Jalur A dan official test baru digunakan pada `FINAL_EVALUATION`. Jalur B tidak mengganti hasil primer `result.x` dan tidak termasuk hitungan 330 primary+ablation executions.
-
-### Pembanding Klasik dan Referensi MORE (G1-10)
-
-Sebagai referensi konteks (bukan estimand konfirmatori), setiap `(seed, feature_method, K)` juga dievaluasi dengan **chance `1/K`**, **Nearest Centroid**, dan **Logistic Regression multinomial** (`C` dipilih pada validation). Baseline dijalankan oleh program terpisah `main_classical_baseline.py` yang membaca array `X_*_scaled.npy` hasil `DATA_PIPELINE` run primer, sehingga inputnya identik dengan input sirkuit (120 cell × 2 model = 240 fit). Loss adjuster R milik MORE **tidak** diimplementasikan; perbandingan dengan literatur memakai kolom **MORE\R** Tabel I Wu dkk. (2023), hanya accuracy, deskriptif, dengan catatan perbedaan protokol. Spesifikasi: `Pseudocode_2x3_manual_runs.md` Bagian 12 dan `MORE_HD_STATISTICAL_ANALYSIS_PLAN.md` §10.2.
-
-## Tools & Stack
-
-- **PennyLane** — konstruksi dan simulasi sirkuit kuantum
-- **SciPy (COBYLA)** — optimasi clustering dan supervised
-- **MNIST** — dataset utama
-- **PCA / Hu Moment Invariants / Zernike Moments** — tiga metode reduksi fitur yang dibandingkan
-- **scikit-learn** — PCA serta baseline klasik Nearest Centroid dan Logistic Regression (G1-10)
-- Log crash-safe: JSONL untuk metrik, binary append-only fixed-record untuk parameter (menghindari risiko korupsi `.npz`)
-
-## Status Proyek
-
-Proyek berada pada tahap **penguncian desain metodologis** sebelum implementasi kode dan eksperimen final dijalankan. Seluruh keputusan desain dikontrol lewat dokumen *Research Readiness Gates*. Matriks utama memiliki 48 kondisi per seed dan 240 confirmatory runs pada lima seed yang sudah ditetapkan. Targeted ablation G1-05/G1-07 menambah 90 run baru pada K={3,6,10}, sehingga total rencana menjadi **330 unique confirmatory executions**. Seed 42 tetap hanya untuk pilot. Eksperimen konfirmatori baru boleh dimulai setelah Gate G0 dan G1 berstatus `CLOSED` dan item teknis yang memengaruhi hasil telah diverifikasi.
+## Ringkasan kesiapan
 
 <!-- READINESS_SUMMARY_START -->
-### Ringkasan Kesiapan (Readiness Gate) — per 2026-10-01
+### Ringkasan Kesiapan (Readiness Gate) — per 2026-10-05
 
 | Gate | Cakupan | Item | Closed | Ready for Verification | In Progress | Pilot Only | Blocked | Kesiapan* |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| G0 | Validitas data & evaluasi | 4 | 2 | 0 | 2 | 0 | 0 | **75.0%** |
-| G1 | Optimasi & desain eksperimen | 11 | 0 | 1 | 8 | 1 | 1 | **45.5%** |
-| G2 | Preprocessing & definisi numerik | 7 | 0 | 0 | 7 | 0 | 0 | **50.0%** |
-| G3 | Artefak & spreadsheet | 7 | 0 | 1 | 2 | 0 | 4 | **25.0%** |
-| G4 | Reproducibility & verifikasi sirkuit | 4 | 0 | 0 | 0 | 0 | 4 | **0.0%** |
-| D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 6 | 0 | 0 | 1 | 0 | 5 | **8.3%** |
-| **Total** |  | **39** | **2** | **2** | **20** | **1** | **14** | **35.3%** |
+| G0 | Validitas data & evaluasi | 4 | 4 | 0 | 0 | 0 | 0 | **100.0%** |
+| G1 | Optimasi & desain eksperimen | 11 | 11 | 0 | 0 | 0 | 0 | **100.0%** |
+| G2 | Preprocessing & definisi numerik | 7 | 7 | 0 | 0 | 0 | 0 | **100.0%** |
+| G3 | Artefak & spreadsheet | 7 | 7 | 0 | 0 | 0 | 0 | **100.0%** |
+| G4 | Reproducibility & verifikasi sirkuit | 4 | 4 | 0 | 0 | 0 | 0 | **100.0%** |
+| D | Ketidakkonsistenan dokumen (BAB 1, FRD-09, dll.) | 6 | 6 | 0 | 0 | 0 | 0 | **100.0%** |
+| **Total** |  | **39** | **39** | **0** | **0** | **0** | **0** | **100.0%** |
 
 \* Kesiapan dihitung sebagai rata-rata bobot per item: `CLOSED=100%`, `READY FOR VERIFICATION=75%`, `IN PROGRESS=50%`, `PILOT ONLY=25%`, dan `BLOCKED=0%`.
 <!-- READINESS_SUMMARY_END -->
 
-**Yang sudah dikunci (2026-09-22):** desain ekstraksi Hu Moments (input grayscale, formula signed-log, padding channel ke-8 = 0.0) dan Zernike Moments (8 pasangan `(n,m)` revisi, pemetaan unit disk, magnitude invarian rotasi), serta kebijakan clipping seragam (tidak ada clipping untuk PCA/Hu/Zernike). Ketiganya masih `IN PROGRESS` karena implementasi kode nyata + unit test belum dikerjakan.
+## Catatan skripsi
 
-**Prasyarat sebelum eksperimen konfirmatori final boleh dijalankan (Gate C):**
-- Seluruh item G0 dan G1 harus memenuhi kriteria Gate C; status aktual mengikuti blok readiness otomatis di atas.
-- Item teknis G2–G4 yang memengaruhi hasil berstatus `CLOSED`.
-- Protokol, daftar seed, split data, budget optimizer, primary analysis plan, dan targeted ablation plan telah dibekukan.
-- Workbook master utama, workbook ablation, dan konsolidator hasil telah diuji sebelum dipakai untuk hasil final.
-
-Smoke test dengan 70 evaluasi COBYLA (sama untuk semua arsitektur; 10 tidak valid karena SciPy menaikkan diam-diam budget di bawah `n_params + 2`) dan seed 42 diperbolehkan sebagai `PILOT ONLY`, tetapi hasilnya **tidak boleh** diperlakukan sebagai hasil konfirmatori publikasi.
+Atas arahan pemilik penelitian (2026-10-04), dokumen skripsi lama — `BAB 1.docx` dan FRD-09 — **tidak lagi menjadi sumber kebenaran** karena seluruh training diulang dari nol dengan protokol baru. Berkas `BAB 1.docx` dipertahankan hanya sebagai arsip. Klaim metode yang berlaku ada di [`docs/METHODS_DRAFT.md`](docs/METHODS_DRAFT.md), termasuk daftar penyimpangan terhadap protokol skripsi (§12). Hasil MORE-HD pada penelitian ini tidak identik protokolnya dengan skripsi.
 
 ## Referensi
 
-Wu et al. (2023), McClean et al. (2018), Cerezo et al. (2021), Holmes et al. (2022), Schuld et al. (2021).
+Wu, J., Hu, T., & Li, Q. (2023). *MORE: Measurement and Correlation Based Variational Quantum Circuit for Multi-classification*. arXiv:2307.11875; kode: github.com/Jindi0/MORE. McClean et al. (2018), Cerezo et al. (2021), Holmes et al. (2022), Schuld et al. (2021), Hu (1962), Teague (1980).

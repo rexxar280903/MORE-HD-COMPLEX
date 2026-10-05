@@ -1,0 +1,343 @@
+{
+  "tag": "convergence",
+  "n_runs": 14,
+  "all_criteria_ok": true,
+  "runs": [
+    {
+      "run_uid": "ABL013-S42",
+      "architecture": "MORE-HD-60P",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 5.828670879282072e-16,
+      "accuracy": 0.629
+    },
+    {
+      "run_uid": "ABL017-S42",
+      "architecture": "MORE-HD-60P",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 8.326672684688674e-16,
+      "accuracy": 0.4305
+    },
+    {
+      "run_uid": "R044-S42",
+      "architecture": "MORE-HD-C",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 7.771561172376096e-16,
+      "accuracy": 0.4955
+    },
+    {
+      "run_uid": "R043-S42",
+      "architecture": "MORE-HD",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 9.992007221626409e-16,
+      "accuracy": 0.4075
+    },
+    {
+      "run_uid": "R048-S42",
+      "architecture": "MORE-HD-C",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 7.771561172376096e-16,
+      "accuracy": 0.3355
+    },
+    {
+      "run_uid": "R047-S42",
+      "architecture": "MORE-HD",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 1.4432899320127035e-15,
+      "accuracy": 0.2685
+    },
+    {
+      "run_uid": "R002-S42",
+      "architecture": "MORE-HD-C",
+      "K": 3,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 8.881784197001252e-16,
+      "accuracy": 0.6516666666666666
+    },
+    {
+      "run_uid": "R001-S42",
+      "architecture": "MORE-HD",
+      "K": 3,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 8.326672684688674e-16,
+      "accuracy": 0.68
+    },
+    {
+      "run_uid": "R006-S42",
+      "architecture": "MORE-HD-C",
+      "K": 3,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 61,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 7.840950111415168e-16,
+      "accuracy": 0.795
+    },
+    {
+      "run_uid": "R005-S42",
+      "architecture": "MORE-HD",
+      "K": 3,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 31,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 7.216449660063518e-16,
+      "accuracy": 0.65
+    },
+    {
+      "run_uid": "MREF001-S42",
+      "architecture": "MORE-REPRO",
+      "K": 3,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 4.440892098500626e-16,
+      "accuracy": 0.6033333333333334
+    },
+    {
+      "run_uid": "MREF003-S42",
+      "architecture": "MORE-REPRO",
+      "K": 3,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 5.689893001203927e-16,
+      "accuracy": 0.5433333333333333
+    },
+    {
+      "run_uid": "MREF022-S42",
+      "architecture": "MORE-REPRO",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 5.689893001203927e-16,
+      "accuracy": 0.15
+    },
+    {
+      "run_uid": "MREF024-S42",
+      "architecture": "MORE-REPRO",
+      "K": 10,
+      "clustering": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "supervised": {
+        "nfev": 1000,
+        "first_optimization_eval_id": 92,
+        "len_log_eq_nfev": true,
+        "phase_switch_at_n_params_plus_1": true,
+        "final_point_eval_id_set": true,
+        "budget_respected": true
+      },
+      "status": "COMPLETED",
+      "backend_max_abs_diff": 3.885780586188048e-16,
+      "accuracy": 0.202
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# local data and run outputs (artifacts are kept outside git; see README)
+data/
+runs/
+benchmarks/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.tmp
+*.tmp.xlsx

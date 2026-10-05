@@ -1,0 +1,9 @@
+# Locked environment (G4-01, 2026-10-04). Python 3.11.
+# Runtime
+numpy==2.4.6
+scipy==1.17.1
+scikit-learn==1.9.1
+pennylane==0.45.1
+joblib==1.6.0
+openpyxl==3.1.5
+threadpoolctl==3.7.0
