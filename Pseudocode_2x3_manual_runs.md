@@ -4154,7 +4154,7 @@ tanpa loss adjuster R. Lihat `docs/METHODS_DRAFT.md` §8.
 | §1 `CONFIG`, `VALIDATE_CONFIG`, `AUTO_GENERATE`, ID | `core/config.py`, `core/constants.py` | `test_analysis_rules.py` |
 | §1.1 `OBJECTIVE_PHASE`, `VALIDATE_OPTIMIZER_BUDGET`, COBYLA log | `core/optimizer.py` | `test_optimizer.py` |
 | §1.2 cache, set monitoring validation | `core/clustering.py`, `core/pipeline.py::select_val_monitor_set` | `test_pipeline_integration.py` |
-| §1.2.1 microbenchmark | `scripts/circuit_microbenchmark.py` | — (hasil `benchmarks/`) |
+| §1.2.1 microbenchmark | `scripts/circuit_microbenchmark.py` | — (hasil pilot `research_data/pilot/benchmarks/`; mesin konfirmatori `research_data/confirmatory_machine/benchmarks/`) |
 | §2 `DATA_PIPELINE`, §2.8 Hu/Zernike/PCA | `core/mnist.py`, `core/data_pipeline.py`, `core/features.py` | `test_features.py` |
 | §3 `CORRELATION_MATRIX` | `core/correlation.py` | `test_correlation_pairing_splits.py` |
 | §4 sirkuit, inisialisasi berpasangan, §4.7, §4.8 | `core/circuits.py` | `test_engine.py` |
@@ -4169,9 +4169,10 @@ tanpa loss adjuster R. Lihat `docs/METHODS_DRAFT.md` §8.
 | §11 ablation | `core/pipeline.py` (track ABLATION), `main_ablation.py` | `test_pipeline_integration.py` |
 | §12 baseline klasik | `core/classical_baselines.py`, `main_classical_baseline.py` | `test_jalur_b_baselines_workbook.py` |
 | §13 MORE-REPRO | `core/circuits.py`, `main_more_reference.py` | `test_engine.py` |
-| §0.2 workbook, schema map, konsolidasi | `core/workbook.py`, `scripts/build_workbook_templates.py` | `test_jalur_b_baselines_workbook.py` |
+| §0.2 workbook, schema map, konsolidasi | `core/workbook.py`, `scripts/build_workbook_templates.py`, `scripts/consolidate_runs.py` | `test_jalur_b_baselines_workbook.py` |
 | SAP §6–§10 | `core/stats.py`, `analysis/run_analysis.py` | `test_stats.py`, `test_analysis_rules.py` |
-| Pilot G1-01 | `scripts/run_pilot.py`, `scripts/check_pilot_runs.py`, `scripts/analyze_pilot_budget.py`, `scripts/timing_projection.py` | `test_analysis_rules.py` |
+| Pilot G1-01 | `scripts/run_pilot.py`, `scripts/check_pilot_runs.py`, `scripts/analyze_pilot_budget.py`, `scripts/timing_projection.py`, `scripts/verify_pilot_bundle.py` | `test_analysis_rules.py` |
+| Rencana dan status run | `scripts/print_run_plan.py`, `scripts/mark_run_failed.py` (`core/run_status.py::mark_failed`, menolak run `COMPLETED`) | kebijakan attempt: `test_pipeline_integration.py` |
 
 ## Hal yang Sengaja Belum Ditentukan (Perlu Keputusan Anda)
 

@@ -35,12 +35,17 @@ Setiap entry point mengunci `OMP/MKL/OPENBLAS/NUMEXPR_NUM_THREADS=1` sebelum Num
 ## 2. Verifikasi mesin (sekali, sebelum run konfirmatori)
 
 ```bash
-python scripts/run_pilot.py smoke   --parallel 4   # seed 42, PILOT ONLY
-python scripts/check_pilot_runs.py --tag smoke     # harus "ALL SMOKE CRITERIA OK"
+M=research_data/confirmatory_machine
+python scripts/run_pilot.py smoke   --parallel 4                      # seed 42, PILOT ONLY
+python scripts/check_pilot_runs.py --tag smoke --out $M/smoke_check.json   # harus "ALL SMOKE CRITERIA OK"
 python scripts/run_pilot.py timing  --parallel 1
-python scripts/timing_projection.py                # proyeksi beban kerja di mesin ini
-python scripts/circuit_microbenchmark.py           # biaya per eksekusi A/B/C/D/M (sheet 18)
+python scripts/timing_projection.py --out-dir $M                      # proyeksi beban kerja di mesin ini
+python scripts/circuit_microbenchmark.py --out-dir $M/benchmarks      # biaya per eksekusi A/B/C/D/M (sheet 18)
 ```
+
+Simpan dan commit folder `research_data/confirmatory_machine/`: microbenchmark di mesin inilah
+satu-satunya sumber klaim biaya komputasi di paper (SAP §4.5). Jangan menimpa
+`research_data/pilot/` — isinya bukti keputusan budget dan `FULL_VAL` dari mesin referensi.
 
 Budget final **tidak** ditentukan ulang di mesin Anda: `FINAL_MAX_NFEV_CLUSTERING` dan
 `FINAL_MAX_NFEV_SUPERVISED` sudah dibekukan di `core/constants.py` dari pilot konvergensi
@@ -97,22 +102,16 @@ python main_classical_baseline.py --run-mode CONFIRMATORY
 ## 6. Konsolidasi dan analisis
 
 ```bash
-python - <<'EOF'
-from pathlib import Path
-from core import constants as C
-from core.workbook import consolidate, discover_runs
-for track, tpl, out in [
-    ("PRIMARY", C.MASTER_SPREADSHEET_PATH, "research_data/consolidated/primary_240runs.xlsx"),
-    ("ABLATION", C.ABLATION_SPREADSHEET_PATH, "research_data/consolidated/ablation_90runs.xlsx"),
-    ("MORE_REFERENCE", C.MORE_REFERENCE_SPREADSHEET_PATH, "research_data/consolidated/more_reference_120runs.xlsx"),
-]:
-    print(consolidate(tpl, discover_runs("runs", track, "CONFIRMATORY"), out, track))
-EOF
-python analysis/run_analysis.py --run-mode CONFIRMATORY     # tabel SAP di research_data/analysis/
+python scripts/consolidate_runs.py --run-mode CONFIRMATORY   # research_data/consolidated/*.xlsx
+python analysis/run_analysis.py --run-mode CONFIRMATORY      # tabel SAP di research_data/analysis/
 ```
 
-Konsolidasi selalu dibangun ulang dari template + artefak (idempoten) dan menolak duplikat
-`run_uid`+`attempt`.
+`consolidate_runs.py` membangun ulang ketiga workbook (primer, ablation, MORE reference) dari
+template + artefak (idempoten) dan menolak duplikat `run_uid`+`attempt`. Workbook primer juga
+diisi sheet `15_Classical_Baselines` (dari `runs/baselines/baseline_results.csv`),
+`17_JalurB_Selection` (folder Jalur B berstatus `COMPLETED`), dan `18_Circuit_Benchmark`
+(`research_data/confirmatory_machine/benchmarks/circuit_microbenchmark_block*.json` dari langkah 2).
+Untuk data pilot: `--run-mode PILOT --pilot-tag convergence`.
 
 ## 7. Kewajiban pelaporan setelah eksekusi (Gate D)
 

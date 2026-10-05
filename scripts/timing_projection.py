@@ -42,6 +42,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--project-root", default=str(ROOT))
     p.add_argument("--cap", type=int, default=C.PILOT_MAX_NFEV_CAP)
+    p.add_argument("--out-dir", default=None,
+                   help="default: research_data/pilot (reference evidence); use another folder on a new machine")
     a = p.parse_args()
     root = Path(a.project_root)
     pts = defaultdict(dict)        # (arch, loop) -> {K: mean eval time}
@@ -104,7 +106,7 @@ def main():
         "full_val_infeasible": bool(cpu_hours > LIMIT_CPU_HOURS or share > LIMIT_VAL_SHARE),
         "machine_note": "single-thread projection on the machine that ran the timing pilot; rerun on the confirmatory machine",
     }
-    out = root / "research_data" / "pilot"
+    out = Path(a.out_dir) if a.out_dir else root / "research_data" / "pilot"
     out.mkdir(parents=True, exist_ok=True)
     save_json_atomic(verdict, out / "timing_projection.json")
     print(json.dumps({k: v for k, v in verdict.items() if k != "fits_sec"}, indent=2))

@@ -89,7 +89,7 @@ Kriteria Gate C ("sebelum eksperimen final") tidak dapat memuat hasil eksperimen
 
 | ID | Asal | Kewajiban | Bukti yang diharapkan |
 |---|---|---|---|
-| P-01 | G1-01, G3-05, G4-01 | Jalankan 450 eksekusi konfirmatori (240 A/D, 90 B/C, 120 MORE-REPRO) dengan budget `840/1000`, satu attempt `COMPLETED` per identitas; ulangi microbenchmark di mesin konfirmatori. | Status `COMPLETED` di semua `logs/run_status.json`; `scripts/print_run_plan.py` = 450/450; `benchmarks/` mesin konfirmatori. |
+| P-01 | G1-01, G3-05, G4-01 | Jalankan 450 eksekusi konfirmatori (240 A/D, 90 B/C, 120 MORE-REPRO) dengan budget `840/1000`, satu attempt `COMPLETED` per identitas; ulangi microbenchmark di mesin konfirmatori. | Status `COMPLETED` di semua `logs/run_status.json`; `scripts/print_run_plan.py` = 450/450; `research_data/confirmatory_machine/` (smoke check, proyeksi waktu, microbenchmark mesin konfirmatori). |
 | P-02 | Gate D, G2-04, G2-05, G4-01 | Laporan kualitas data: tidak ada NaN/Inf, history terpotong, atau duplikat; daftar `degenerate_quantum_label`; Y-odd A/B pada tingkat noise; `backend_max_abs_diff ≤ 1e-10`; `paired_input_check` dan hash split/pair identik per cell. | Laporan dari workbook terkonsolidasi + manifest. |
 | P-03 | G1-04 | Tabel primer D − A (SAP §6–§9) dan teks hasil sesuai batas klaim. | `research_data/analysis/paired_primary_D_minus_A.csv`, `seed_aggregation.csv`, `mcnemar_primary.csv`. |
 | P-04 | G1-05 | 90 run ablation + kontras A-B, A-C, B-D, C-D (Holm) + diagnostik Y-odd; klaim fase kompleks hanya bila konsisten (Pseudocode §11.11.12). | `ablation_contrasts.csv`, sheet `20_Ablation_Contrasts`. |
