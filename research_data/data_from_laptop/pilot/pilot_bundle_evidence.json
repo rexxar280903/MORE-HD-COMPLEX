@@ -1,0 +1,69 @@
+{
+  "jalur_b": [
+    {
+      "run_name": "cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42_convergence_jalurB_auto_eval0197",
+      "selected_eval_id": 197,
+      "n_eligible_eval_ids": 969,
+      "accuracy": 0.92
+    },
+    {
+      "run_name": "cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42_convergence_jalurB_auto_eval0051",
+      "selected_eval_id": 51,
+      "n_eligible_eval_ids": 969,
+      "accuracy": 0.4495
+    },
+    {
+      "run_name": "cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42_convergence_jalurB_auto_eval0098",
+      "selected_eval_id": 98,
+      "n_eligible_eval_ids": 939,
+      "accuracy": 0.945
+    },
+    {
+      "run_name": "cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42_convergence_jalurB_auto_eval0106",
+      "selected_eval_id": 106,
+      "n_eligible_eval_ids": 939,
+      "accuracy": 0.4565
+    }
+  ],
+  "baselines": "8 baseline fits written to runs/baselines_pilot; 0 cells skipped",
+  "consolidation": {
+    "PRIMARY": {
+      "n_runs": 8,
+      "run_uids": [
+        "R001-S42",
+        "R002-S42",
+        "R005-S42",
+        "R006-S42",
+        "R043-S42",
+        "R044-S42",
+        "R047-S42",
+        "R048-S42"
+      ],
+      "idempotent_same_count": true
+    },
+    "ABLATION": {
+      "n_runs": 2,
+      "run_uids": [
+        "ABL013-S42",
+        "ABL017-S42"
+      ],
+      "idempotent_same_count": true
+    },
+    "MORE_REFERENCE": {
+      "n_runs": 4,
+      "run_uids": [
+        "MREF001-S42",
+        "MREF003-S42",
+        "MREF022-S42",
+        "MREF024-S42"
+      ],
+      "idempotent_same_count": true
+    }
+  },
+  "ablation_representative_cell": [
+    "ABL001-S42",
+    "ABL002-S42"
+  ],
+  "analysis": "14 runs analysed (PILOT); tables in research_data/analysis_pilot\n  seed_aggregation: 14 rows\n  paired_primary_D_minus_A: 24 rows\n  ablation_contrasts: 16 rows\n  more_comparison: 32 rows\n  mcnemar_primary: 4 rows\n  g1_11_six_nine: 12 rows\n  baseline_comparison: 24 rows",
+  "analysis_smoke_cell": "5 runs analysed (PILOT); tables in research_data/analysis_pilot/smoke_cell\n  seed_aggregation: 5 rows\n  paired_primary_D_minus_A: 6 rows\n  ablation_contrasts: 16 rows\n  more_comparison: 8 rows\n  mcnemar_primary: 1 rows\n  g1_11_six_nine: 4 rows\n  baseline_comparison: 6 rows"
+}

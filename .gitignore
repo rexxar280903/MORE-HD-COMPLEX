@@ -7,3 +7,6 @@ __pycache__/
 .pytest_cache/
 *.tmp
 *.tmp.xlsx
+
+# large consolidated workbooks from the laptop run (kept locally only)
+research_data/data_from_laptop/consolidated/

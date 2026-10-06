@@ -1,0 +1,5 @@
+model_code,architecture,feature_method,seed,accuracy,accuracy_merged_6_9,six_nine_confusions,six_nine_confusion_rate,share_of_errors_6_9
+NC,NC,PCA,42,0.756,0.756,0,0.0,0.0
+LR,LR,PCA,42,0.797,0.797,0,0.0,0.0
+NC,NC,ZERNIKE,42,0.5475,0.5545,14,0.035,0.015469613259668509
+LR,LR,ZERNIKE,42,0.6455,0.653,15,0.0375,0.021156558533145273

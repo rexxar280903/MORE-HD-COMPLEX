@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hasil Penelitian MORE-HD-C</title><style>
+:root{color-scheme:light;--bg:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;
+--border:rgba(11,11,11,.10);--c-a:#2a78d6;--c-d:#eb6834;--c-m:#1baf7a;--c-b:#eda100;--c-c:#4a3aa7;--pos-rgb:42,120,214;--neg-rgb:227,73,72;--accent:#2a78d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink-2:#c3c2b7;
+--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--c-a:#3987e5;--c-d:#d95926;--c-m:#199e70;--c-b:#c98500;--c-c:#9085e9;
+--pos-rgb:57,135,229;--neg-rgb:230,103,103;--accent:#3987e5}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink-2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;
+--border:rgba(255,255,255,.10);--c-a:#3987e5;--c-d:#d95926;--c-m:#199e70;--c-b:#c98500;--c-c:#9085e9;--pos-rgb:57,135,229;--neg-rgb:230,103,103;--accent:#3987e5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1120px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 6px}h2{font-size:21px;margin:48px 0 8px;padding-top:8px;border-top:1px solid var(--border)}
+h3{font-size:16px;margin:24px 0 6px}p,li{color:var(--ink);max-width:78ch}.sub{color:var(--ink-2);margin:0 0 20px}
+small{color:var(--ink-2)}code{font-size:13px;background:var(--surface);border:1px solid var(--border);padding:0 4px;border-radius:4px}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;margin:16px 0 8px}nav a{color:var(--accent);text-decoration:none}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}.tile .v{font-size:24px;font-weight:600}
+.tile .l{font-size:13px;color:var(--ink-2)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0}
+.key li{margin:6px 0}.verdict{border-left:3px solid var(--accent);padding-left:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.panel{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 8px 4px}
+.panel figcaption{font-size:13px;font-weight:600;padding:0 6px}
+svg{width:100%;height:auto;display:block;overflow:visible}
+.grid line,.panel line.grid{stroke:var(--grid);stroke-width:1}.panel line.axis{stroke:var(--axis)}.panel line.zero{stroke:var(--ink-2);stroke-width:1}
+.tick{font-size:10px;fill:var(--muted);font-variant-numeric:tabular-nums}.axlab{font-size:10px;fill:var(--muted)}
+.dl{font-size:11px;fill:var(--ink);font-weight:600}.dl.muted{fill:var(--ink-2);font-weight:400}.barlab{font-size:9px;fill:var(--ink-2)}
+.ring{stroke:var(--surface);stroke-width:2}.hit{fill:transparent;cursor:crosshair}.hit:hover+*{opacity:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2);margin:8px 0}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend i.dash{background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 7px)!important;color:var(--ink-2)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--grid);white-space:nowrap}th{color:var(--ink-2);font-weight:600;vertical-align:bottom}
+tbody tr:last-child td{border-bottom:0}.heat{display:inline-block;padding:2px 6px;border-radius:4px}
+details{margin:12px 0}summary{cursor:pointer;color:var(--accent)}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.45;padding:6px 9px;border-radius:6px;
+white-space:pre;opacity:0;transition:opacity .08s;z-index:9;max-width:320px}
+.note{font-size:13px;color:var(--ink-2)}
+</style></head>
+<body>
+<main>
+<h1>Hasil Penelitian MORE-HD-C</h1>
+<p class="sub">Exploratory data analysis (EDA) dari 450 run konfirmatori (seed 101–505) dan 240 fit baseline klasik pada MNIST kumulatif K = 3..10.
+Semua angka diambil dari tabel SAP di <code>research_data/analysis/</code>. Arahkan kursor ke titik atau batang untuk melihat detailnya.</p>
+
+<div class="tiles">
+<div class="tile"><div class="v">450</div><div class="l">run konfirmatori, semua COMPLETED</div></div>
+<div class="tile"><div class="v">5</div><div class="l">model kuantum (A, B, C, D, M)</div></div>
+<div class="tile"><div class="v">3 × 8</div><div class="l">fitur × jumlah kelas K</div></div>
+<div class="tile"><div class="v">5 seed</div><div class="l">berpasangan per kondisi</div></div>
+<div class="tile"><div class="v">20/24</div><div class="l">sel dengan D &gt; A (akurasi)</div></div>
+</div>
+
+<nav><a href="#ringkas">Ringkasan</a><a href="#cara">Cara membaca</a><a href="#umum">Gambaran umum</a><a href="#q1">D vs A</a>
+<a href="#q2">Ablation</a><a href="#q3">vs MORE</a><a href="#q4">Fitur &amp; baseline</a><a href="#sep">Separasi label</a>
+<a href="#y">Observable Y-odd</a><a href="#69">Digit 6↔9</a><a href="#rt">Komputasi</a><a href="#kesimpulan">Kesimpulan</a><a href="#lampiran">Lampiran</a></nav>
+
+<section id="ringkas" class="card">
+<h3 style="margin-top:0">Temuan utama</h3>
+<ol class="key">
+<li><b>MORE-HD-C (D) umumnya lebih akurat daripada MORE-HD (A).</b> Akurasi D lebih tinggi di 20 dari 24 sel (fitur × K), dengan rata-rata
+selisih +5.9%. Interval kepercayaan 95% berada sepenuhnya di atas nol pada 4 sel dan di bawah nol pada 1 sel.
+Uji McNemar per seed menunjukkan D lebih baik secara signifikan di 59 dari 120 perbandingan, sedangkan A lebih baik di 20.</li>
+<li><b>Ablation menunjukkan bahwa keuntungan itu lebih banyak berasal dari kapasitas (jumlah parameter dan kedalaman) daripada dari akses state kompleks.</b>
+Model riil dengan 60 parameter (B) mengungguli D di 9 dari 9 sel. Sementara itu, menambahkan RZ beku saja (C − A) atau membuat RZ trainable (D − C)
+hanya memberi perubahan kecil yang tidak konsisten.</li>
+<li><b>Dalam protokol yang identik, A dan D jauh mengungguli reproduksi MORE (M) pada fitur PCA dan Zernike.</b> D − M positif di 20 dari 24 sel.
+Pada fitur Hu, ketiganya hampir setara.</li>
+<li><b>Fitur PCA paling informatif</b> untuk hampir semua model, sedangkan Hu paling lemah. Semua model kuantum masih jauh di bawah baseline klasik
+(Logistic Regression), misalnya pada PCA K=10: A 31.8%, D 42.2%, B 58.8%, LR 78.6%.</li>
+<li><b>Akurasi dan separasi label turun tajam seiring bertambahnya K</b> pada semua model. Ini sesuai dengan mekanisme <i>crowded quantum labels</i>.</li>
+<li><b>RZ benar-benar mengaktifkan observable Y-odd.</b> Pada A dan B nilainya tepat 0 (structural zero), sedangkan pada C dan D sekitar 30–60% norma readout.
+Namun aktivasi ini tidak otomatis berarti akurasi naik (lihat poin 2).</li>
+</ol>
+</section>
+
+<h2 id="cara">Cara membaca laporan ini</h2>
+<div class="tw"><table class=""><thead><tr><th>Kode</th><th>Model</th><th>Lapisan variasional</th><th>Param trainable</th><th>Peran</th></tr></thead><tbody><tr><td><i class="sw" style="background:var(--c-a)"></i>A</td><td>MORE-HD</td><td>3 × (RY + CNOT)</td><td>30</td><td>baseline utama (state riil)</td></tr><tr><td><i class="sw" style="background:var(--c-d)"></i>D</td><td>MORE-HD-C</td><td>3 × (RY → RZ + CNOT)</td><td>60</td><td>model yang diusulkan (state kompleks)</td></tr><tr><td><i class="sw" style="background:var(--c-b)"></i>B</td><td>MORE-HD-60P</td><td>6 × (RY + CNOT)</td><td>60</td><td>ablation: kapasitas riil setara D</td></tr><tr><td><i class="sw" style="background:var(--c-c)"></i>C</td><td>MORE-HD-C-FixedRZ</td><td>3 × (RY + RZ beku + CNOT)</td><td>30 (+30 beku)</td><td>ablation: akses kompleks tanpa tambahan parameter</td></tr><tr><td><i class="sw" style="background:var(--c-m)"></i>M</td><td>MORE-REPRO</td><td>QCNN MORE (Wu dkk., 2023)</td><td>91</td><td>reproduksi MORE dalam protokol yang sama</td></tr></tbody></table></div>
+<ul>
+<li><b>Δ (delta)</b> selalu berarti “model kedua dikurangi model pertama”, misalnya D − A. Nilai positif berarti model kedua lebih baik. Angka akurasi ditulis dalam proporsi (0,10 = 10 poin persen).</li>
+<li><b>Hanya ada 5 seed per kondisi.</b> Uji sign-flip eksak dua sisi dengan 5 pasangan memiliki p terkecil yang mungkin = 2/32 = <b>0,0625</b>, sehingga
+<b>tidak ada satu sel pun yang secara matematis bisa mencapai p &lt; 0,05</b>. Nilai terkecil yang muncul di data memang 0.0625. Karena itu, bukti dibaca dari
+konsistensi arah di banyak sel, CI 95%, effect size (Hedges g), dan uji McNemar tingkat sampel. Jangan menafsirkannya dari satu p-value.</li>
+<li>Tanda <b>●</b> pada tabel berarti CI 95% tidak memuat nol. Warna biru berarti Δ positif dan merah berarti Δ negatif. Semakin pekat warnanya, semakin besar selisihnya.</li>
+<li>Tren lintas K bersifat spesifik untuk urutan kelas kumulatif [0..K−1]. Perubahan di suatu K bisa disebabkan oleh digit yang baru ditambahkan, bukan oleh jumlah kelasnya.</li>
+</ul>
+
+<h2 id="umum">1 · Gambaran umum: akurasi terhadap jumlah kelas</h2>
+<p>Akurasi official test (rata-rata 5 seed) untuk model primer A dan D serta reproduksi MORE (M), dibandingkan dengan Logistic Regression dan tebakan acak (1/K).</p>
+<div class="legend"><span><i style="background:var(--c-a)"></i>A · MORE-HD (30 param, riil)</span><span><i style="background:var(--c-d)"></i>D · MORE-HD-C (60 param, kompleks)</span><span><i style="background:var(--c-m)"></i>M · MORE-REPRO (91 param)</span><span><i style="background:var(--ink-2)" class=dash></i>LR · Logistic Regression (klasik)</span><span><i style="background:var(--muted)" class=dash></i>1/K · tebakan acak</span></div>
+<div class="grid"><figure class="panel"><figcaption>PCA</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="PCA"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0%</text><line class="grid" x1="44" x2="284" y1="159.6" y2="159.6"/><text class="tick" x="38" y="163.1" text-anchor="end">20%</text><line class="grid" x1="44" x2="284" y1="123.2" y2="123.2"/><text class="tick" x="38" y="126.7" text-anchor="end">40%</text><line class="grid" x1="44" x2="284" y1="86.8" y2="86.8"/><text class="tick" x="38" y="90.3" text-anchor="end">60%</text><line class="grid" x1="44" x2="284" y1="50.4" y2="50.4"/><text class="tick" x="38" y="53.9" text-anchor="end">80%</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">100%</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M44.0,18.1 L77.1,24.2 L110.3,26.1 L143.4,37.6 L176.6,42.4 L209.7,43.6 L242.9,45.7 L276.0,52.9" fill="none" style="stroke:var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 3"/><circle class="hit" cx="44.0" cy="18.1" r="8" data-tip="Logistic Regression · PCA · K=3
+akurasi 97.7%"/><circle class="hit" cx="77.1" cy="24.2" r="8" data-tip="Logistic Regression · PCA · K=4
+akurasi 94.4%"/><circle class="hit" cx="110.3" cy="26.1" r="8" data-tip="Logistic Regression · PCA · K=5
+akurasi 93.4%"/><circle class="hit" cx="143.4" cy="37.6" r="8" data-tip="Logistic Regression · PCA · K=6
+akurasi 87.0%"/><circle class="hit" cx="176.6" cy="42.4" r="8" data-tip="Logistic Regression · PCA · K=7
+akurasi 84.4%"/><circle class="hit" cx="209.7" cy="43.6" r="8" data-tip="Logistic Regression · PCA · K=8
+akurasi 83.7%"/><circle class="hit" cx="242.9" cy="45.7" r="8" data-tip="Logistic Regression · PCA · K=9
+akurasi 82.6%"/><circle class="hit" cx="276.0" cy="52.9" r="8" data-tip="Logistic Regression · PCA · K=10
+akurasi 78.6%"/><path d="M44.0,135.3 L77.1,150.5 L110.3,159.6 L143.4,165.7 L176.6,170.0 L209.7,173.2 L242.9,175.8 L276.0,177.8" fill="none" style="stroke:var(--muted)" stroke-width="1.5" stroke-dasharray="2 3"/><circle class="hit" cx="44.0" cy="135.3" r="8" data-tip="Tebakan acak (chance) K=3: 33.3%"/><circle class="hit" cx="77.1" cy="150.5" r="8" data-tip="Tebakan acak (chance) K=4: 25.0%"/><circle class="hit" cx="110.3" cy="159.6" r="8" data-tip="Tebakan acak (chance) K=5: 20.0%"/><circle class="hit" cx="143.4" cy="165.7" r="8" data-tip="Tebakan acak (chance) K=6: 16.7%"/><circle class="hit" cx="176.6" cy="170.0" r="8" data-tip="Tebakan acak (chance) K=7: 14.3%"/><circle class="hit" cx="209.7" cy="173.2" r="8" data-tip="Tebakan acak (chance) K=8: 12.5%"/><circle class="hit" cx="242.9" cy="175.8" r="8" data-tip="Tebakan acak (chance) K=9: 11.1%"/><circle class="hit" cx="276.0" cy="177.8" r="8" data-tip="Tebakan acak (chance) K=10: 10.0%"/><path d="M44.0,49.0 L77.1,92.5 L110.3,74.6 L143.4,100.3 L176.6,90.5 L209.7,100.3 L242.9,133.7 L276.0,138.1" fill="none" style="stroke:var(--c-a)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="49.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="44.0" cy="49.0" r="10" data-tip="A = MORE-HD · PCA · K=3
+akurasi 80.8% ± 14.1%
+macro-F1 77.9%"/><circle cx="77.1" cy="92.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="77.1" cy="92.5" r="10" data-tip="A = MORE-HD · PCA · K=4
+akurasi 56.9% ± 11.4%
+macro-F1 52.7%"/><circle cx="110.3" cy="74.6" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="110.3" cy="74.6" r="10" data-tip="A = MORE-HD · PCA · K=5
+akurasi 66.7% ± 5.9%
+macro-F1 65.9%"/><circle cx="143.4" cy="100.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="143.4" cy="100.3" r="10" data-tip="A = MORE-HD · PCA · K=6
+akurasi 52.6% ± 7.9%
+macro-F1 50.8%"/><circle cx="176.6" cy="90.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="176.6" cy="90.5" r="10" data-tip="A = MORE-HD · PCA · K=7
+akurasi 58.0% ± 12.1%
+macro-F1 55.8%"/><circle cx="209.7" cy="100.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="209.7" cy="100.3" r="10" data-tip="A = MORE-HD · PCA · K=8
+akurasi 52.6% ± 9.5%
+macro-F1 51.4%"/><circle cx="242.9" cy="133.7" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="242.9" cy="133.7" r="10" data-tip="A = MORE-HD · PCA · K=9
+akurasi 34.2% ± 8.8%
+macro-F1 32.0%"/><circle cx="276.0" cy="138.1" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="276.0" cy="138.1" r="10" data-tip="A = MORE-HD · PCA · K=10
+akurasi 31.8% ± 6.7%
+macro-F1 30.7%"/><path d="M44.0,32.6 L77.1,49.7 L110.3,56.2 L143.4,87.0 L176.6,95.0 L209.7,92.7 L242.9,102.0 L276.0,119.3" fill="none" style="stroke:var(--c-d)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="32.6" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="44.0" cy="32.6" r="10" data-tip="D = MORE-HD-C · PCA · K=3
+akurasi 89.8% ± 10.0%
+macro-F1 89.2%"/><circle cx="77.1" cy="49.7" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="77.1" cy="49.7" r="10" data-tip="D = MORE-HD-C · PCA · K=4
+akurasi 80.4% ± 5.3%
+macro-F1 80.1%"/><circle cx="110.3" cy="56.2" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="110.3" cy="56.2" r="10" data-tip="D = MORE-HD-C · PCA · K=5
+akurasi 76.8% ± 7.7%
+macro-F1 74.9%"/><circle cx="143.4" cy="87.0" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="143.4" cy="87.0" r="10" data-tip="D = MORE-HD-C · PCA · K=6
+akurasi 59.9% ± 5.8%
+macro-F1 59.1%"/><circle cx="176.6" cy="95.0" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="176.6" cy="95.0" r="10" data-tip="D = MORE-HD-C · PCA · K=7
+akurasi 55.5% ± 11.0%
+macro-F1 54.4%"/><circle cx="209.7" cy="92.7" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="209.7" cy="92.7" r="10" data-tip="D = MORE-HD-C · PCA · K=8
+akurasi 56.8% ± 15.7%
+macro-F1 55.3%"/><circle cx="242.9" cy="102.0" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="242.9" cy="102.0" r="10" data-tip="D = MORE-HD-C · PCA · K=9
+akurasi 51.6% ± 8.6%
+macro-F1 51.3%"/><circle cx="276.0" cy="119.3" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="276.0" cy="119.3" r="10" data-tip="D = MORE-HD-C · PCA · K=10
+akurasi 42.2% ± 5.0%
+macro-F1 41.4%"/><path d="M44.0,94.3 L77.1,112.6 L110.3,128.2 L143.4,138.7 L176.6,149.6 L209.7,157.2 L242.9,158.8 L276.0,161.0" fill="none" style="stroke:var(--c-m)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="94.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="44.0" cy="94.3" r="10" data-tip="M = MORE-REPRO · PCA · K=3
+akurasi 55.9% ± 9.5%
+macro-F1 55.1%"/><circle cx="77.1" cy="112.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="77.1" cy="112.6" r="10" data-tip="M = MORE-REPRO · PCA · K=4
+akurasi 45.8% ± 2.2%
+macro-F1 43.0%"/><circle cx="110.3" cy="128.2" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="110.3" cy="128.2" r="10" data-tip="M = MORE-REPRO · PCA · K=5
+akurasi 37.3% ± 2.3%
+macro-F1 34.3%"/><circle cx="143.4" cy="138.7" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="143.4" cy="138.7" r="10" data-tip="M = MORE-REPRO · PCA · K=6
+akurasi 31.5% ± 2.0%
+macro-F1 28.3%"/><circle cx="176.6" cy="149.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="176.6" cy="149.6" r="10" data-tip="M = MORE-REPRO · PCA · K=7
+akurasi 25.5% ± 3.8%
+macro-F1 24.3%"/><circle cx="209.7" cy="157.2" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="209.7" cy="157.2" r="10" data-tip="M = MORE-REPRO · PCA · K=8
+akurasi 21.3% ± 3.9%
+macro-F1 21.0%"/><circle cx="242.9" cy="158.8" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="242.9" cy="158.8" r="10" data-tip="M = MORE-REPRO · PCA · K=9
+akurasi 20.4% ± 3.0%
+macro-F1 18.7%"/><circle cx="276.0" cy="161.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="276.0" cy="161.0" r="10" data-tip="M = MORE-REPRO · PCA · K=10
+akurasi 19.2% ± 2.2%
+macro-F1 17.6%"/><text class="dl muted" x="286.0" y="56.4">LR</text><text class="dl" x="286.0" y="122.8">D</text><text class="dl" x="286.0" y="141.6">A</text><text class="dl" x="286.0" y="164.5">M</text><text class="dl muted" x="286.0" y="181.3">1/K</text></svg></figure><figure class="panel"><figcaption>Hu moments</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Hu moments"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0%</text><line class="grid" x1="44" x2="284" y1="159.6" y2="159.6"/><text class="tick" x="38" y="163.1" text-anchor="end">20%</text><line class="grid" x1="44" x2="284" y1="123.2" y2="123.2"/><text class="tick" x="38" y="126.7" text-anchor="end">40%</text><line class="grid" x1="44" x2="284" y1="86.8" y2="86.8"/><text class="tick" x="38" y="90.3" text-anchor="end">60%</text><line class="grid" x1="44" x2="284" y1="50.4" y2="50.4"/><text class="tick" x="38" y="53.9" text-anchor="end">80%</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">100%</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M44.0,28.6 L77.1,45.0 L110.3,63.4 L143.4,81.7 L176.6,79.9 L209.7,81.7 L242.9,88.3 L276.0,96.0" fill="none" style="stroke:var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 3"/><circle class="hit" cx="44.0" cy="28.6" r="8" data-tip="Logistic Regression · Hu moments · K=3
+akurasi 92.0%"/><circle class="hit" cx="77.1" cy="45.0" r="8" data-tip="Logistic Regression · Hu moments · K=4
+akurasi 83.0%"/><circle class="hit" cx="110.3" cy="63.4" r="8" data-tip="Logistic Regression · Hu moments · K=5
+akurasi 72.9%"/><circle class="hit" cx="143.4" cy="81.7" r="8" data-tip="Logistic Regression · Hu moments · K=6
+akurasi 62.8%"/><circle class="hit" cx="176.6" cy="79.9" r="8" data-tip="Logistic Regression · Hu moments · K=7
+akurasi 63.8%"/><circle class="hit" cx="209.7" cy="81.7" r="8" data-tip="Logistic Regression · Hu moments · K=8
+akurasi 62.8%"/><circle class="hit" cx="242.9" cy="88.3" r="8" data-tip="Logistic Regression · Hu moments · K=9
+akurasi 59.2%"/><circle class="hit" cx="276.0" cy="96.0" r="8" data-tip="Logistic Regression · Hu moments · K=10
+akurasi 54.9%"/><path d="M44.0,135.3 L77.1,150.5 L110.3,159.6 L143.4,165.7 L176.6,170.0 L209.7,173.2 L242.9,175.8 L276.0,177.8" fill="none" style="stroke:var(--muted)" stroke-width="1.5" stroke-dasharray="2 3"/><circle class="hit" cx="44.0" cy="135.3" r="8" data-tip="Tebakan acak (chance) K=3: 33.3%"/><circle class="hit" cx="77.1" cy="150.5" r="8" data-tip="Tebakan acak (chance) K=4: 25.0%"/><circle class="hit" cx="110.3" cy="159.6" r="8" data-tip="Tebakan acak (chance) K=5: 20.0%"/><circle class="hit" cx="143.4" cy="165.7" r="8" data-tip="Tebakan acak (chance) K=6: 16.7%"/><circle class="hit" cx="176.6" cy="170.0" r="8" data-tip="Tebakan acak (chance) K=7: 14.3%"/><circle class="hit" cx="209.7" cy="173.2" r="8" data-tip="Tebakan acak (chance) K=8: 12.5%"/><circle class="hit" cx="242.9" cy="175.8" r="8" data-tip="Tebakan acak (chance) K=9: 11.1%"/><circle class="hit" cx="276.0" cy="177.8" r="8" data-tip="Tebakan acak (chance) K=10: 10.0%"/><path d="M44.0,81.6 L77.1,114.3 L110.3,133.8 L143.4,147.3 L176.6,152.3 L209.7,153.5 L242.9,158.5 L276.0,158.1" fill="none" style="stroke:var(--c-a)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="81.6" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="44.0" cy="81.6" r="10" data-tip="A = MORE-HD · Hu moments · K=3
+akurasi 62.8% ± 12.5%
+macro-F1 60.4%"/><circle cx="77.1" cy="114.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="77.1" cy="114.3" r="10" data-tip="A = MORE-HD · Hu moments · K=4
+akurasi 44.9% ± 7.5%
+macro-F1 39.5%"/><circle cx="110.3" cy="133.8" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="110.3" cy="133.8" r="10" data-tip="A = MORE-HD · Hu moments · K=5
+akurasi 34.2% ± 7.4%
+macro-F1 31.5%"/><circle cx="143.4" cy="147.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="143.4" cy="147.3" r="10" data-tip="A = MORE-HD · Hu moments · K=6
+akurasi 26.8% ± 3.5%
+macro-F1 24.1%"/><circle cx="176.6" cy="152.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="176.6" cy="152.3" r="10" data-tip="A = MORE-HD · Hu moments · K=7
+akurasi 24.0% ± 4.2%
+macro-F1 20.8%"/><circle cx="209.7" cy="153.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="209.7" cy="153.5" r="10" data-tip="A = MORE-HD · Hu moments · K=8
+akurasi 23.4% ± 5.1%
+macro-F1 20.1%"/><circle cx="242.9" cy="158.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="242.9" cy="158.5" r="10" data-tip="A = MORE-HD · Hu moments · K=9
+akurasi 20.6% ± 1.6%
+macro-F1 16.7%"/><circle cx="276.0" cy="158.1" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="276.0" cy="158.1" r="10" data-tip="A = MORE-HD · Hu moments · K=10
+akurasi 20.8% ± 2.8%
+macro-F1 17.4%"/><path d="M44.0,82.9 L77.1,96.6 L110.3,125.6 L143.4,138.3 L176.6,134.6 L209.7,149.6 L242.9,148.5 L276.0,162.5" fill="none" style="stroke:var(--c-d)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="82.9" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="44.0" cy="82.9" r="10" data-tip="D = MORE-HD-C · Hu moments · K=3
+akurasi 62.2% ± 3.5%
+macro-F1 59.8%"/><circle cx="77.1" cy="96.6" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="77.1" cy="96.6" r="10" data-tip="D = MORE-HD-C · Hu moments · K=4
+akurasi 54.6% ± 10.2%
+macro-F1 52.6%"/><circle cx="110.3" cy="125.6" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="110.3" cy="125.6" r="10" data-tip="D = MORE-HD-C · Hu moments · K=5
+akurasi 38.7% ± 10.6%
+macro-F1 36.3%"/><circle cx="143.4" cy="138.3" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="143.4" cy="138.3" r="10" data-tip="D = MORE-HD-C · Hu moments · K=6
+akurasi 31.7% ± 8.9%
+macro-F1 28.8%"/><circle cx="176.6" cy="134.6" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="176.6" cy="134.6" r="10" data-tip="D = MORE-HD-C · Hu moments · K=7
+akurasi 33.7% ± 6.0%
+macro-F1 30.5%"/><circle cx="209.7" cy="149.6" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="209.7" cy="149.6" r="10" data-tip="D = MORE-HD-C · Hu moments · K=8
+akurasi 25.5% ± 7.7%
+macro-F1 23.2%"/><circle cx="242.9" cy="148.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="242.9" cy="148.5" r="10" data-tip="D = MORE-HD-C · Hu moments · K=9
+akurasi 26.1% ± 4.8%
+macro-F1 23.3%"/><circle cx="276.0" cy="162.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="276.0" cy="162.5" r="10" data-tip="D = MORE-HD-C · Hu moments · K=10
+akurasi 18.4% ± 1.0%
+macro-F1 15.8%"/><path d="M44.0,76.4 L77.1,104.6 L110.3,119.3 L143.4,139.0 L176.6,142.0 L209.7,148.4 L242.9,157.5 L276.0,160.6" fill="none" style="stroke:var(--c-m)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="76.4" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="44.0" cy="76.4" r="10" data-tip="M = MORE-REPRO · Hu moments · K=3
+akurasi 65.7% ± 6.7%
+macro-F1 65.7%"/><circle cx="77.1" cy="104.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="77.1" cy="104.6" r="10" data-tip="M = MORE-REPRO · Hu moments · K=4
+akurasi 50.2% ± 3.9%
+macro-F1 50.3%"/><circle cx="110.3" cy="119.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="110.3" cy="119.3" r="10" data-tip="M = MORE-REPRO · Hu moments · K=5
+akurasi 42.1% ± 2.7%
+macro-F1 42.3%"/><circle cx="143.4" cy="139.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="143.4" cy="139.0" r="10" data-tip="M = MORE-REPRO · Hu moments · K=6
+akurasi 31.3% ± 3.8%
+macro-F1 30.8%"/><circle cx="176.6" cy="142.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="176.6" cy="142.0" r="10" data-tip="M = MORE-REPRO · Hu moments · K=7
+akurasi 29.6% ± 3.0%
+macro-F1 28.5%"/><circle cx="209.7" cy="148.4" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="209.7" cy="148.4" r="10" data-tip="M = MORE-REPRO · Hu moments · K=8
+akurasi 26.2% ± 4.0%
+macro-F1 25.3%"/><circle cx="242.9" cy="157.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="242.9" cy="157.5" r="10" data-tip="M = MORE-REPRO · Hu moments · K=9
+akurasi 21.2% ± 4.9%
+macro-F1 19.4%"/><circle cx="276.0" cy="160.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="276.0" cy="160.6" r="10" data-tip="M = MORE-REPRO · Hu moments · K=10
+akurasi 19.5% ± 2.5%
+macro-F1 17.4%"/><text class="dl muted" x="286.0" y="99.5">LR</text><text class="dl" x="286.0" y="161.6">A</text><text class="dl" x="286.0" y="172.6">M</text><text class="dl" x="286.0" y="183.6">D</text><text class="dl muted" x="286.0" y="194.6">1/K</text></svg></figure><figure class="panel"><figcaption>Zernike</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Zernike"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0%</text><line class="grid" x1="44" x2="284" y1="159.6" y2="159.6"/><text class="tick" x="38" y="163.1" text-anchor="end">20%</text><line class="grid" x1="44" x2="284" y1="123.2" y2="123.2"/><text class="tick" x="38" y="126.7" text-anchor="end">40%</text><line class="grid" x1="44" x2="284" y1="86.8" y2="86.8"/><text class="tick" x="38" y="90.3" text-anchor="end">60%</text><line class="grid" x1="44" x2="284" y1="50.4" y2="50.4"/><text class="tick" x="38" y="53.9" text-anchor="end">80%</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">100%</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M44.0,25.0 L77.1,46.0 L110.3,47.7 L143.4,64.4 L176.6,68.3 L209.7,68.2 L242.9,72.2 L276.0,76.6" fill="none" style="stroke:var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 3"/><circle class="hit" cx="44.0" cy="25.0" r="8" data-tip="Logistic Regression · Zernike · K=3
+akurasi 94.0%"/><circle class="hit" cx="77.1" cy="46.0" r="8" data-tip="Logistic Regression · Zernike · K=4
+akurasi 82.4%"/><circle class="hit" cx="110.3" cy="47.7" r="8" data-tip="Logistic Regression · Zernike · K=5
+akurasi 81.5%"/><circle class="hit" cx="143.4" cy="64.4" r="8" data-tip="Logistic Regression · Zernike · K=6
+akurasi 72.3%"/><circle class="hit" cx="176.6" cy="68.3" r="8" data-tip="Logistic Regression · Zernike · K=7
+akurasi 70.2%"/><circle class="hit" cx="209.7" cy="68.2" r="8" data-tip="Logistic Regression · Zernike · K=8
+akurasi 70.2%"/><circle class="hit" cx="242.9" cy="72.2" r="8" data-tip="Logistic Regression · Zernike · K=9
+akurasi 68.0%"/><circle class="hit" cx="276.0" cy="76.6" r="8" data-tip="Logistic Regression · Zernike · K=10
+akurasi 65.6%"/><path d="M44.0,135.3 L77.1,150.5 L110.3,159.6 L143.4,165.7 L176.6,170.0 L209.7,173.2 L242.9,175.8 L276.0,177.8" fill="none" style="stroke:var(--muted)" stroke-width="1.5" stroke-dasharray="2 3"/><circle class="hit" cx="44.0" cy="135.3" r="8" data-tip="Tebakan acak (chance) K=3: 33.3%"/><circle class="hit" cx="77.1" cy="150.5" r="8" data-tip="Tebakan acak (chance) K=4: 25.0%"/><circle class="hit" cx="110.3" cy="159.6" r="8" data-tip="Tebakan acak (chance) K=5: 20.0%"/><circle class="hit" cx="143.4" cy="165.7" r="8" data-tip="Tebakan acak (chance) K=6: 16.7%"/><circle class="hit" cx="176.6" cy="170.0" r="8" data-tip="Tebakan acak (chance) K=7: 14.3%"/><circle class="hit" cx="209.7" cy="173.2" r="8" data-tip="Tebakan acak (chance) K=8: 12.5%"/><circle class="hit" cx="242.9" cy="175.8" r="8" data-tip="Tebakan acak (chance) K=9: 11.1%"/><circle class="hit" cx="276.0" cy="177.8" r="8" data-tip="Tebakan acak (chance) K=10: 10.0%"/><path d="M44.0,52.4 L77.1,96.7 L110.3,106.0 L143.4,111.3 L176.6,128.0 L209.7,138.4 L242.9,140.3 L276.0,142.5" fill="none" style="stroke:var(--c-a)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="52.4" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="44.0" cy="52.4" r="10" data-tip="A = MORE-HD · Zernike · K=3
+akurasi 78.9% ± 4.3%
+macro-F1 78.3%"/><circle cx="77.1" cy="96.7" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="77.1" cy="96.7" r="10" data-tip="A = MORE-HD · Zernike · K=4
+akurasi 54.5% ± 7.6%
+macro-F1 51.8%"/><circle cx="110.3" cy="106.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="110.3" cy="106.0" r="10" data-tip="A = MORE-HD · Zernike · K=5
+akurasi 49.5% ± 9.4%
+macro-F1 45.4%"/><circle cx="143.4" cy="111.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="143.4" cy="111.3" r="10" data-tip="A = MORE-HD · Zernike · K=6
+akurasi 46.5% ± 4.2%
+macro-F1 45.4%"/><circle cx="176.6" cy="128.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="176.6" cy="128.0" r="10" data-tip="A = MORE-HD · Zernike · K=7
+akurasi 37.4% ± 5.2%
+macro-F1 35.3%"/><circle cx="209.7" cy="138.4" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="209.7" cy="138.4" r="10" data-tip="A = MORE-HD · Zernike · K=8
+akurasi 31.7% ± 6.1%
+macro-F1 29.3%"/><circle cx="242.9" cy="140.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="242.9" cy="140.3" r="10" data-tip="A = MORE-HD · Zernike · K=9
+akurasi 30.6% ± 8.8%
+macro-F1 28.7%"/><circle cx="276.0" cy="142.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="276.0" cy="142.5" r="10" data-tip="A = MORE-HD · Zernike · K=10
+akurasi 29.4% ± 3.3%
+macro-F1 26.8%"/><path d="M44.0,70.3 L77.1,88.2 L110.3,90.4 L143.4,111.0 L176.6,123.2 L209.7,131.5 L242.9,123.5 L276.0,125.8" fill="none" style="stroke:var(--c-d)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="70.3" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="44.0" cy="70.3" r="10" data-tip="D = MORE-HD-C · Zernike · K=3
+akurasi 69.1% ± 6.2%
+macro-F1 67.5%"/><circle cx="77.1" cy="88.2" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="77.1" cy="88.2" r="10" data-tip="D = MORE-HD-C · Zernike · K=4
+akurasi 59.2% ± 8.9%
+macro-F1 58.3%"/><circle cx="110.3" cy="90.4" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="110.3" cy="90.4" r="10" data-tip="D = MORE-HD-C · Zernike · K=5
+akurasi 58.0% ± 6.8%
+macro-F1 55.6%"/><circle cx="143.4" cy="111.0" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="143.4" cy="111.0" r="10" data-tip="D = MORE-HD-C · Zernike · K=6
+akurasi 46.7% ± 9.6%
+macro-F1 45.9%"/><circle cx="176.6" cy="123.2" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="176.6" cy="123.2" r="10" data-tip="D = MORE-HD-C · Zernike · K=7
+akurasi 40.0% ± 4.8%
+macro-F1 38.7%"/><circle cx="209.7" cy="131.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="209.7" cy="131.5" r="10" data-tip="D = MORE-HD-C · Zernike · K=8
+akurasi 35.4% ± 4.7%
+macro-F1 32.9%"/><circle cx="242.9" cy="123.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="242.9" cy="123.5" r="10" data-tip="D = MORE-HD-C · Zernike · K=9
+akurasi 39.9% ± 4.4%
+macro-F1 38.3%"/><circle cx="276.0" cy="125.8" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="276.0" cy="125.8" r="10" data-tip="D = MORE-HD-C · Zernike · K=10
+akurasi 38.6% ± 5.6%
+macro-F1 37.7%"/><path d="M44.0,92.5 L77.1,115.9 L110.3,126.4 L143.4,144.5 L176.6,153.4 L209.7,156.4 L242.9,163.2 L276.0,165.8" fill="none" style="stroke:var(--c-m)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="92.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="44.0" cy="92.5" r="10" data-tip="M = MORE-REPRO · Zernike · K=3
+akurasi 56.9% ± 6.2%
+macro-F1 56.5%"/><circle cx="77.1" cy="115.9" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="77.1" cy="115.9" r="10" data-tip="M = MORE-REPRO · Zernike · K=4
+akurasi 44.0% ± 3.5%
+macro-F1 42.2%"/><circle cx="110.3" cy="126.4" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="110.3" cy="126.4" r="10" data-tip="M = MORE-REPRO · Zernike · K=5
+akurasi 38.2% ± 5.5%
+macro-F1 37.7%"/><circle cx="143.4" cy="144.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="143.4" cy="144.5" r="10" data-tip="M = MORE-REPRO · Zernike · K=6
+akurasi 28.3% ± 4.9%
+macro-F1 27.4%"/><circle cx="176.6" cy="153.4" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="176.6" cy="153.4" r="10" data-tip="M = MORE-REPRO · Zernike · K=7
+akurasi 23.4% ± 4.0%
+macro-F1 21.7%"/><circle cx="209.7" cy="156.4" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="209.7" cy="156.4" r="10" data-tip="M = MORE-REPRO · Zernike · K=8
+akurasi 21.8% ± 4.3%
+macro-F1 20.3%"/><circle cx="242.9" cy="163.2" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="242.9" cy="163.2" r="10" data-tip="M = MORE-REPRO · Zernike · K=9
+akurasi 18.0% ± 3.9%
+macro-F1 16.7%"/><circle cx="276.0" cy="165.8" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="276.0" cy="165.8" r="10" data-tip="M = MORE-REPRO · Zernike · K=10
+akurasi 16.6% ± 3.2%
+macro-F1 15.0%"/><text class="dl muted" x="286.0" y="80.1">LR</text><text class="dl" x="286.0" y="129.3">D</text><text class="dl" x="286.0" y="146.0">A</text><text class="dl" x="286.0" y="169.3">M</text><text class="dl muted" x="286.0" y="181.3">1/K</text></svg></figure></div>
+<p>Pola yang terlihat: (1) semua model menurun seiring K naik; (2) pada PCA dan Zernike, garis D umumnya berada di atas A, dan keduanya di atas M;
+(3) jarak ke LR tetap besar di semua K. Model kuantum masih di atas tebakan acak di semua kondisi, tetapi pada fitur Hu dengan K besar selisihnya tipis
+(contoh Hu K=10: D 18.4% vs acak 10%).</p>
+
+<h2 id="q1">2 · Pertanyaan 1: apakah RZ (MORE-HD-C) meningkatkan kinerja dibanding MORE-HD?</h2>
+<p>Selisih akurasi berpasangan D − A per seed, ditampilkan sebagai rata-rata dengan CI 95%.</p>
+<div class="grid"><figure class="panel"><figcaption>PCA</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="PCA"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">−0.40</text><line class="grid" x1="44" x2="284" y1="155.6" y2="155.6"/><text class="tick" x="38" y="159.1" text-anchor="end">−0.20</text><line class="zero" x1="44" x2="284" y1="115.1" y2="115.1"/><text class="tick" x="38" y="118.6" text-anchor="end">0.00</text><line class="grid" x1="44" x2="284" y1="74.7" y2="74.7"/><text class="tick" x="38" y="78.2" text-anchor="end">+0.20</text><line class="grid" x1="44" x2="284" y1="34.2" y2="34.2"/><text class="tick" x="38" y="37.7" text-anchor="end">+0.40</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><line x1="44.0" x2="44.0" y1="136.9" y2="56.8" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="44.0" cy="96.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="37.0" y="52.8" width="14" height="88.2" data-tip="D − A · PCA · K=3
+Δ rata-rata +0.090
+CI95% [−0.108, +0.289]
+Hedges g 0.45 · p sign-flip 0.5000"/><line x1="77.1" x2="77.1" y1="102.3" y2="32.9" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="77.1" cy="67.6" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="70.1" y="28.9" width="14" height="77.4" data-tip="D − A · PCA · K=4
+Δ rata-rata +0.235
+CI95% [+0.063, +0.407]
+Hedges g 1.36 · p sign-flip 0.0625"/><line x1="110.3" x2="110.3" y1="117.5" y2="71.7" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="110.3" cy="94.6" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="103.3" y="67.7" width="14" height="53.8" data-tip="D − A · PCA · K=5
+Δ rata-rata +0.101
+CI95% [−0.012, +0.215]
+Hedges g 0.89 · p sign-flip 0.1250"/><line x1="143.4" x2="143.4" y1="131.9" y2="68.6" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="143.4" cy="100.3" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="136.4" y="64.6" width="14" height="71.3" data-tip="D − A · PCA · K=6
+Δ rata-rata +0.073
+CI95% [−0.083, +0.230]
+Hedges g 0.47 · p sign-flip 0.2500"/><line x1="176.6" x2="176.6" y1="153.6" y2="86.5" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="176.6" cy="120.1" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="169.6" y="82.5" width="14" height="75.2" data-tip="D − A · PCA · K=7
+Δ rata-rata −0.024
+CI95% [−0.191, +0.142]
+Hedges g −0.15 · p sign-flip 0.5625"/><line x1="209.7" x2="209.7" y1="160.4" y2="52.9" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="209.7" cy="106.6" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="202.7" y="48.9" width="14" height="115.6" data-tip="D − A · PCA · K=8
+Δ rata-rata +0.042
+CI95% [−0.224, +0.308]
+Hedges g 0.16 · p sign-flip 0.6250"/><line x1="242.9" x2="242.9" y1="111.9" y2="47.9" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="242.9" cy="79.9" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="235.9" y="43.9" width="14" height="72.0" data-tip="D − A · PCA · K=9
+Δ rata-rata +0.174
+CI95% [+0.016, +0.332]
+Hedges g 1.09 · p sign-flip 0.1250"/><line x1="276.0" x2="276.0" y1="106.4" y2="82.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="276.0" cy="94.2" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="269.0" y="78.0" width="14" height="32.5" data-tip="D − A · PCA · K=10
+Δ rata-rata +0.103
+CI95% [+0.043, +0.164]
+Hedges g 1.70 · p sign-flip 0.0625"/></svg></figure><figure class="panel"><figcaption>Hu moments</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Hu moments"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">−0.40</text><line class="grid" x1="44" x2="284" y1="155.6" y2="155.6"/><text class="tick" x="38" y="159.1" text-anchor="end">−0.20</text><line class="zero" x1="44" x2="284" y1="115.1" y2="115.1"/><text class="tick" x="38" y="118.6" text-anchor="end">0.00</text><line class="grid" x1="44" x2="284" y1="74.7" y2="74.7"/><text class="tick" x="38" y="78.2" text-anchor="end">+0.20</text><line class="grid" x1="44" x2="284" y1="34.2" y2="34.2"/><text class="tick" x="38" y="37.7" text-anchor="end">+0.40</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><line x1="44.0" x2="44.0" y1="143.7" y2="89.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="44.0" cy="116.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="37.0" y="85.2" width="14" height="62.6" data-tip="D − A · Hu moments · K=3
+Δ rata-rata −0.007
+CI95% [−0.142, +0.128]
+Hedges g −0.05 · p sign-flip 0.8125"/><line x1="77.1" x2="77.1" y1="130.1" y2="60.7" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="77.1" cy="95.4" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="70.1" y="56.7" width="14" height="77.4" data-tip="D − A · Hu moments · K=4
+Δ rata-rata +0.097
+CI95% [−0.074, +0.269]
+Hedges g 0.56 · p sign-flip 0.3125"/><line x1="110.3" x2="110.3" y1="135.2" y2="76.7" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="110.3" cy="105.9" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="103.3" y="72.7" width="14" height="66.5" data-tip="D − A · Hu moments · K=5
+Δ rata-rata +0.045
+CI95% [−0.099, +0.190]
+Hedges g 0.31 · p sign-flip 0.3750"/><line x1="143.4" x2="143.4" y1="125.4" y2="84.8" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="143.4" cy="105.1" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="136.4" y="80.8" width="14" height="48.6" data-tip="D − A · Hu moments · K=6
+Δ rata-rata +0.050
+CI95% [−0.051, +0.150]
+Hedges g 0.49 · p sign-flip 0.3125"/><line x1="176.6" x2="176.6" y1="119.9" y2="70.9" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="176.6" cy="95.4" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="169.6" y="66.9" width="14" height="57.0" data-tip="D − A · Hu moments · K=7
+Δ rata-rata +0.098
+CI95% [−0.023, +0.219]
+Hedges g 0.80 · p sign-flip 0.1250"/><line x1="209.7" x2="209.7" y1="130.2" y2="91.5" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="209.7" cy="110.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="202.7" y="87.5" width="14" height="46.7" data-tip="D − A · Hu moments · K=8
+Δ rata-rata +0.021
+CI95% [−0.075, +0.117]
+Hedges g 0.22 · p sign-flip 0.5625"/><line x1="242.9" x2="242.9" y1="119.5" y2="88.6" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="242.9" cy="104.1" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="235.9" y="84.6" width="14" height="38.9" data-tip="D − A · Hu moments · K=9
+Δ rata-rata +0.055
+CI95% [−0.022, +0.131]
+Hedges g 0.71 · p sign-flip 0.1250"/><line x1="276.0" x2="276.0" y1="127.8" y2="112.3" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="276.0" cy="120.1" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="269.0" y="108.3" width="14" height="23.5" data-tip="D − A · Hu moments · K=10
+Δ rata-rata −0.025
+CI95% [−0.063, +0.014]
+Hedges g −0.63 · p sign-flip 0.1875"/></svg></figure><figure class="panel"><figcaption>Zernike</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Zernike"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">−0.40</text><line class="grid" x1="44" x2="284" y1="155.6" y2="155.6"/><text class="tick" x="38" y="159.1" text-anchor="end">−0.20</text><line class="zero" x1="44" x2="284" y1="115.1" y2="115.1"/><text class="tick" x="38" y="118.6" text-anchor="end">0.00</text><line class="grid" x1="44" x2="284" y1="74.7" y2="74.7"/><text class="tick" x="38" y="78.2" text-anchor="end">+0.20</text><line class="grid" x1="44" x2="284" y1="34.2" y2="34.2"/><text class="tick" x="38" y="37.7" text-anchor="end">+0.40</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><line x1="44.0" x2="44.0" y1="152.6" y2="117.4" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="44.0" cy="135.0" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="37.0" y="113.4" width="14" height="43.1" data-tip="D − A · Zernike · K=3
+Δ rata-rata −0.098
+CI95% [−0.185, −0.011]
+Hedges g −1.12 · p sign-flip 0.1250"/><line x1="77.1" x2="77.1" y1="138.0" y2="73.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="77.1" cy="105.6" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="70.1" y="69.2" width="14" height="72.8" data-tip="D − A · Zernike · K=4
+Δ rata-rata +0.047
+CI95% [−0.113, +0.207]
+Hedges g 0.29 · p sign-flip 0.4375"/><line x1="110.3" x2="110.3" y1="127.5" y2="68.1" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="110.3" cy="97.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="103.3" y="64.1" width="14" height="67.3" data-tip="D − A · Zernike · K=5
+Δ rata-rata +0.086
+CI95% [−0.061, +0.232]
+Hedges g 0.58 · p sign-flip 0.1875"/><line x1="143.4" x2="143.4" y1="129.1" y2="100.5" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="143.4" cy="114.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="136.4" y="96.5" width="14" height="36.6" data-tip="D − A · Zernike · K=6
+Δ rata-rata +0.002
+CI95% [−0.069, +0.072]
+Hedges g 0.02 · p sign-flip 0.9375"/><line x1="176.6" x2="176.6" y1="119.3" y2="100.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="176.6" cy="109.7" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="169.6" y="96.2" width="14" height="27.1" data-tip="D − A · Zernike · K=7
+Δ rata-rata +0.027
+CI95% [−0.021, +0.074]
+Hedges g 0.56 · p sign-flip 0.2500"/><line x1="209.7" x2="209.7" y1="124.4" y2="90.6" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="209.7" cy="107.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="202.7" y="86.6" width="14" height="41.8" data-tip="D − A · Zernike · K=8
+Δ rata-rata +0.038
+CI95% [−0.046, +0.121]
+Hedges g 0.45 · p sign-flip 0.3750"/><line x1="242.9" x2="242.9" y1="119.4" y2="73.3" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="242.9" cy="96.3" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="235.9" y="69.3" width="14" height="54.0" data-tip="D − A · Zernike · K=9
+Δ rata-rata +0.093
+CI95% [−0.021, +0.207]
+Hedges g 0.81 · p sign-flip 0.1875"/><line x1="276.0" x2="276.0" y1="112.0" y2="81.1" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="276.0" cy="96.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="269.0" y="77.1" width="14" height="38.9" data-tip="D − A · Zernike · K=10
+Δ rata-rata +0.092
+CI95% [+0.015, +0.168]
+Hedges g 1.19 · p sign-flip 0.0625"/></svg></figure></div>
+<h3>Peta selisih akurasi D − A</h3>
+<div class="tw"><table class="heat-t"><thead><tr><th>Fitur</th><th>K=3</th><th>K=4</th><th>K=5</th><th>K=6</th><th>K=7</th><th>K=8</th><th>K=9</th><th>K=10</th></tr></thead><tbody><tr><td><b>PCA</b></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.20)" title="CI95% [−0.108, +0.289]">+0.090</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.52)" title="CI95% [+0.063, +0.407]">+0.235 ●</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.22)" title="CI95% [−0.012, +0.215]">+0.101</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.16)" title="CI95% [−0.083, +0.230]">+0.073</span></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.05)" title="CI95% [−0.191, +0.142]">−0.024</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.09)" title="CI95% [−0.224, +0.308]">+0.042</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.38)" title="CI95% [+0.016, +0.332]">+0.174 ●</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.23)" title="CI95% [+0.043, +0.164]">+0.103 ●</span></td></tr><tr><td><b>Hu moments</b></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.01)" title="CI95% [−0.142, +0.128]">−0.007</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.21)" title="CI95% [−0.074, +0.269]">+0.097</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.10)" title="CI95% [−0.099, +0.190]">+0.045</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.11)" title="CI95% [−0.051, +0.150]">+0.050</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.21)" title="CI95% [−0.023, +0.219]">+0.098</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.05)" title="CI95% [−0.075, +0.117]">+0.021</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.12)" title="CI95% [−0.022, +0.131]">+0.055</span></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.05)" title="CI95% [−0.063, +0.014]">−0.025</span></td></tr><tr><td><b>Zernike</b></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.22)" title="CI95% [−0.185, −0.011]">−0.098 ●</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.10)" title="CI95% [−0.113, +0.207]">+0.047</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.19)" title="CI95% [−0.061, +0.232]">+0.086</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.00)" title="CI95% [−0.069, +0.072]">+0.002</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.06)" title="CI95% [−0.021, +0.074]">+0.027</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.08)" title="CI95% [−0.046, +0.121]">+0.038</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.20)" title="CI95% [−0.021, +0.207]">+0.093</span></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.20)" title="CI95% [+0.015, +0.168]">+0.092 ●</span></td></tr></tbody></table></div>
+<p>Arah efek konsisten positif: 20 dari 24 sel bernilai positif. Efek paling kuat dan konsisten ada pada PCA (K=4, 9, 10) dan Zernike K=10.
+Satu-satunya sel dengan bukti negatif adalah <b>Zernike K=3</b> (D − A = −0.098).
+Pada fitur Hu, efeknya kecil dan CI-nya selalu memuat nol.</p>
+<h3>Uji McNemar per seed (tingkat sampel, koreksi Holm dalam seed)</h3>
+<div class="tw"><table class=""><thead><tr><th>Fitur</th><th>D lebih baik (signifikan)</th><th>A lebih baik (signifikan)</th><th>Tidak signifikan</th></tr></thead><tbody><tr><td>PCA</td><td>25</td><td>6</td><td>9</td></tr><tr><td>Hu moments</td><td>17</td><td>6</td><td>17</td></tr><tr><td>Zernike</td><td>17</td><td>8</td><td>15</td></tr></tbody></table></div>
+<p>Dari 120 perbandingan seed × fitur × K, D unggul signifikan pada 59, dan A unggul signifikan pada 20. Ini mendukung arah efek di atas.
+Karena McNemar adalah analisis sekunder, gunakan hasil ini sebagai pendukung, bukan sebagai bukti utama.</p>
+<p>Untuk separasi label (<code>min_separation_ratio</code>), D − A positif di 19 dari 24 sel. CI-nya di atas nol hanya pada 3 sel
+(PCA K=4–6), jadi efek RZ terhadap separasi label paling jelas pada PCA dengan K kecil.</p>
+
+<h2 id="q2">3 · Pertanyaan 2: apakah peningkatan berasal dari state kompleks atau dari jumlah parameter?</h2>
+<p>Ablation pada K ∈ {3, 6, 10} memisahkan dua faktor: B menambah parameter tanpa akses kompleks, C menambah akses kompleks tanpa parameter trainable.</p>
+<div class="legend"><span><i style="background:var(--c-a)"></i>A · MORE-HD</span><span><i style="background:var(--c-b)"></i>B · MORE-HD-60P</span><span><i style="background:var(--c-c)"></i>C · MORE-HD-C-FixedRZ</span><span><i style="background:var(--c-d)"></i>D · MORE-HD-C</span></div>
+<div class="grid"><figure class="panel"><figcaption>PCA</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="PCA"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0%</text><line class="grid" x1="44" x2="284" y1="159.6" y2="159.6"/><text class="tick" x="38" y="163.1" text-anchor="end">20%</text><line class="grid" x1="44" x2="284" y1="123.2" y2="123.2"/><text class="tick" x="38" y="126.7" text-anchor="end">40%</text><line class="grid" x1="44" x2="284" y1="86.8" y2="86.8"/><text class="tick" x="38" y="90.3" text-anchor="end">60%</text><line class="grid" x1="44" x2="284" y1="50.4" y2="50.4"/><text class="tick" x="38" y="53.9" text-anchor="end">80%</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">100%</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M52.0,196.0 V52.0 Q52.0,49.0 55.0,49.0 H62.8 Q65.8,49.0 65.8,52.0 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="51.0" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · PCA · K=3
+akurasi 80.8% ± 14.1% (SD 5 seed)"/><text class="barlab" x="58.9" y="45.0" text-anchor="middle">A</text><path d="M67.8,196.0 V25.2 Q67.8,22.2 70.8,22.2 H78.7 Q81.7,22.2 81.7,25.2 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="66.8" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · PCA · K=3
+akurasi 95.5% ± 1.6% (SD 5 seed)"/><text class="barlab" x="74.8" y="18.2" text-anchor="middle">B</text><path d="M83.7,196.0 V36.3 Q83.7,33.3 86.7,33.3 H94.5 Q97.5,33.3 97.5,36.3 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="82.7" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · PCA · K=3
+akurasi 89.4% ± 7.1% (SD 5 seed)"/><text class="barlab" x="90.6" y="29.3" text-anchor="middle">C</text><path d="M99.5,196.0 V35.6 Q99.5,32.6 102.5,32.6 H110.3 Q113.3,32.6 113.3,35.6 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="98.5" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · PCA · K=3
+akurasi 89.8% ± 10.0% (SD 5 seed)"/><text class="barlab" x="106.4" y="28.6" text-anchor="middle">D</text><path d="M129.3,196.0 V103.3 Q129.3,100.3 132.3,100.3 H140.2 Q143.2,100.3 143.2,103.3 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="128.3" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · PCA · K=6
+akurasi 52.6% ± 7.9% (SD 5 seed)"/><text class="barlab" x="136.2" y="96.3" text-anchor="middle">A</text><path d="M145.2,196.0 V70.1 Q145.2,67.1 148.2,67.1 H156.0 Q159.0,67.1 159.0,70.1 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="144.2" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · PCA · K=6
+akurasi 70.8% ± 3.9% (SD 5 seed)"/><text class="barlab" x="152.1" y="63.1" text-anchor="middle">B</text><path d="M161.0,196.0 V90.8 Q161.0,87.8 164.0,87.8 H171.8 Q174.8,87.8 174.8,90.8 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="160.0" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · PCA · K=6
+akurasi 59.5% ± 9.3% (SD 5 seed)"/><text class="barlab" x="167.9" y="83.8" text-anchor="middle">C</text><path d="M176.8,196.0 V90.0 Q176.8,87.0 179.8,87.0 H187.7 Q190.7,87.0 190.7,90.0 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="175.8" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · PCA · K=6
+akurasi 59.9% ± 5.8% (SD 5 seed)"/><text class="barlab" x="183.8" y="83.0" text-anchor="middle">D</text><path d="M206.7,196.0 V141.1 Q206.7,138.1 209.7,138.1 H217.5 Q220.5,138.1 220.5,141.1 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="205.7" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · PCA · K=10
+akurasi 31.8% ± 6.7% (SD 5 seed)"/><text class="barlab" x="213.6" y="134.1" text-anchor="middle">A</text><path d="M222.5,196.0 V92.1 Q222.5,89.1 225.5,89.1 H233.3 Q236.3,89.1 236.3,92.1 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="221.5" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · PCA · K=10
+akurasi 58.8% ± 2.8% (SD 5 seed)"/><text class="barlab" x="229.4" y="85.1" text-anchor="middle">B</text><path d="M238.3,196.0 V129.1 Q238.3,126.1 241.3,126.1 H249.2 Q252.2,126.1 252.2,129.1 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="237.3" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · PCA · K=10
+akurasi 38.4% ± 6.0% (SD 5 seed)"/><text class="barlab" x="245.2" y="122.1" text-anchor="middle">C</text><path d="M254.2,196.0 V122.3 Q254.2,119.3 257.2,119.3 H265.0 Q268.0,119.3 268.0,122.3 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="253.2" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · PCA · K=10
+akurasi 42.2% ± 5.0% (SD 5 seed)"/><text class="barlab" x="261.1" y="115.3" text-anchor="middle">D</text><text class="tick" x="82.7" y="210" text-anchor="middle">K=3</text><text class="tick" x="160.0" y="210" text-anchor="middle">K=6</text><text class="tick" x="237.3" y="210" text-anchor="middle">K=10</text></svg></figure><figure class="panel"><figcaption>Hu moments</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="HU"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0%</text><line class="grid" x1="44" x2="284" y1="159.6" y2="159.6"/><text class="tick" x="38" y="163.1" text-anchor="end">20%</text><line class="grid" x1="44" x2="284" y1="123.2" y2="123.2"/><text class="tick" x="38" y="126.7" text-anchor="end">40%</text><line class="grid" x1="44" x2="284" y1="86.8" y2="86.8"/><text class="tick" x="38" y="90.3" text-anchor="end">60%</text><line class="grid" x1="44" x2="284" y1="50.4" y2="50.4"/><text class="tick" x="38" y="53.9" text-anchor="end">80%</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">100%</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M52.0,196.0 V84.6 Q52.0,81.6 55.0,81.6 H62.8 Q65.8,81.6 65.8,84.6 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="51.0" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · Hu moments · K=3
+akurasi 62.8% ± 12.5% (SD 5 seed)"/><text class="barlab" x="58.9" y="77.6" text-anchor="middle">A</text><path d="M67.8,196.0 V68.8 Q67.8,65.8 70.8,65.8 H78.7 Q81.7,65.8 81.7,68.8 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="66.8" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · Hu moments · K=3
+akurasi 71.5% ± 7.0% (SD 5 seed)"/><text class="barlab" x="74.8" y="61.8" text-anchor="middle">B</text><path d="M83.7,196.0 V82.2 Q83.7,79.2 86.7,79.2 H94.5 Q97.5,79.2 97.5,82.2 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="82.7" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · Hu moments · K=3
+akurasi 64.2% ± 6.0% (SD 5 seed)"/><text class="barlab" x="90.6" y="75.2" text-anchor="middle">C</text><path d="M99.5,196.0 V85.9 Q99.5,82.9 102.5,82.9 H110.3 Q113.3,82.9 113.3,85.9 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="98.5" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · Hu moments · K=3
+akurasi 62.2% ± 3.5% (SD 5 seed)"/><text class="barlab" x="106.4" y="78.9" text-anchor="middle">D</text><path d="M129.3,196.0 V150.3 Q129.3,147.3 132.3,147.3 H140.2 Q143.2,147.3 143.2,150.3 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="128.3" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · Hu moments · K=6
+akurasi 26.8% ± 3.5% (SD 5 seed)"/><text class="barlab" x="136.2" y="143.3" text-anchor="middle">A</text><path d="M145.2,196.0 V131.1 Q145.2,128.1 148.2,128.1 H156.0 Q159.0,128.1 159.0,131.1 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="144.2" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · Hu moments · K=6
+akurasi 37.3% ± 2.2% (SD 5 seed)"/><text class="barlab" x="152.1" y="124.1" text-anchor="middle">B</text><path d="M161.0,196.0 V140.5 Q161.0,137.5 164.0,137.5 H171.8 Q174.8,137.5 174.8,140.5 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="160.0" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · Hu moments · K=6
+akurasi 32.1% ± 3.4% (SD 5 seed)"/><text class="barlab" x="167.9" y="133.5" text-anchor="middle">C</text><path d="M176.8,196.0 V141.3 Q176.8,138.3 179.8,138.3 H187.7 Q190.7,138.3 190.7,141.3 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="175.8" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · Hu moments · K=6
+akurasi 31.7% ± 8.9% (SD 5 seed)"/><text class="barlab" x="183.8" y="134.3" text-anchor="middle">D</text><path d="M206.7,196.0 V161.1 Q206.7,158.1 209.7,158.1 H217.5 Q220.5,158.1 220.5,161.1 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="205.7" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · Hu moments · K=10
+akurasi 20.8% ± 2.8% (SD 5 seed)"/><text class="barlab" x="213.6" y="154.1" text-anchor="middle">A</text><path d="M222.5,196.0 V149.8 Q222.5,146.8 225.5,146.8 H233.3 Q236.3,146.8 236.3,149.8 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="221.5" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · Hu moments · K=10
+akurasi 27.1% ± 3.9% (SD 5 seed)"/><text class="barlab" x="229.4" y="142.8" text-anchor="middle">B</text><path d="M238.3,196.0 V159.5 Q238.3,156.5 241.3,156.5 H249.2 Q252.2,156.5 252.2,159.5 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="237.3" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · Hu moments · K=10
+akurasi 21.7% ± 5.5% (SD 5 seed)"/><text class="barlab" x="245.2" y="152.5" text-anchor="middle">C</text><path d="M254.2,196.0 V165.5 Q254.2,162.5 257.2,162.5 H265.0 Q268.0,162.5 268.0,165.5 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="253.2" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · Hu moments · K=10
+akurasi 18.4% ± 1.0% (SD 5 seed)"/><text class="barlab" x="261.1" y="158.5" text-anchor="middle">D</text><text class="tick" x="82.7" y="210" text-anchor="middle">K=3</text><text class="tick" x="160.0" y="210" text-anchor="middle">K=6</text><text class="tick" x="237.3" y="210" text-anchor="middle">K=10</text></svg></figure><figure class="panel"><figcaption>Zernike</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="ZERNIKE"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0%</text><line class="grid" x1="44" x2="284" y1="159.6" y2="159.6"/><text class="tick" x="38" y="163.1" text-anchor="end">20%</text><line class="grid" x1="44" x2="284" y1="123.2" y2="123.2"/><text class="tick" x="38" y="126.7" text-anchor="end">40%</text><line class="grid" x1="44" x2="284" y1="86.8" y2="86.8"/><text class="tick" x="38" y="90.3" text-anchor="end">60%</text><line class="grid" x1="44" x2="284" y1="50.4" y2="50.4"/><text class="tick" x="38" y="53.9" text-anchor="end">80%</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">100%</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M52.0,196.0 V55.4 Q52.0,52.4 55.0,52.4 H62.8 Q65.8,52.4 65.8,55.4 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="51.0" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · Zernike · K=3
+akurasi 78.9% ± 4.3% (SD 5 seed)"/><text class="barlab" x="58.9" y="48.4" text-anchor="middle">A</text><path d="M67.8,196.0 V59.3 Q67.8,56.3 70.8,56.3 H78.7 Q81.7,56.3 81.7,59.3 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="66.8" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · Zernike · K=3
+akurasi 76.7% ± 6.5% (SD 5 seed)"/><text class="barlab" x="74.8" y="52.3" text-anchor="middle">B</text><path d="M83.7,196.0 V61.8 Q83.7,58.8 86.7,58.8 H94.5 Q97.5,58.8 97.5,61.8 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="82.7" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · Zernike · K=3
+akurasi 75.4% ± 6.7% (SD 5 seed)"/><text class="barlab" x="90.6" y="54.8" text-anchor="middle">C</text><path d="M99.5,196.0 V73.3 Q99.5,70.3 102.5,70.3 H110.3 Q113.3,70.3 113.3,73.3 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="98.5" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · Zernike · K=3
+akurasi 69.1% ± 6.2% (SD 5 seed)"/><text class="barlab" x="106.4" y="66.3" text-anchor="middle">D</text><path d="M129.3,196.0 V114.3 Q129.3,111.3 132.3,111.3 H140.2 Q143.2,111.3 143.2,114.3 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="128.3" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · Zernike · K=6
+akurasi 46.5% ± 4.2% (SD 5 seed)"/><text class="barlab" x="136.2" y="107.3" text-anchor="middle">A</text><path d="M145.2,196.0 V101.6 Q145.2,98.6 148.2,98.6 H156.0 Q159.0,98.6 159.0,101.6 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="144.2" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · Zernike · K=6
+akurasi 53.5% ± 7.0% (SD 5 seed)"/><text class="barlab" x="152.1" y="94.6" text-anchor="middle">B</text><path d="M161.0,196.0 V121.2 Q161.0,118.2 164.0,118.2 H171.8 Q174.8,118.2 174.8,121.2 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="160.0" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · Zernike · K=6
+akurasi 42.7% ± 4.5% (SD 5 seed)"/><text class="barlab" x="167.9" y="114.2" text-anchor="middle">C</text><path d="M176.8,196.0 V114.0 Q176.8,111.0 179.8,111.0 H187.7 Q190.7,111.0 190.7,114.0 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="175.8" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · Zernike · K=6
+akurasi 46.7% ± 9.6% (SD 5 seed)"/><text class="barlab" x="183.8" y="107.0" text-anchor="middle">D</text><path d="M206.7,196.0 V145.5 Q206.7,142.5 209.7,142.5 H217.5 Q220.5,142.5 220.5,145.5 V196.0 Z" style="fill:var(--c-a)"/><rect class="hit" x="205.7" y="14" width="15.8" height="182.0" data-tip="A = MORE-HD · Zernike · K=10
+akurasi 29.4% ± 3.3% (SD 5 seed)"/><text class="barlab" x="213.6" y="138.5" text-anchor="middle">A</text><path d="M222.5,196.0 V121.6 Q222.5,118.6 225.5,118.6 H233.3 Q236.3,118.6 236.3,121.6 V196.0 Z" style="fill:var(--c-b)"/><rect class="hit" x="221.5" y="14" width="15.8" height="182.0" data-tip="B = MORE-HD-60P · Zernike · K=10
+akurasi 42.5% ± 4.2% (SD 5 seed)"/><text class="barlab" x="229.4" y="114.6" text-anchor="middle">B</text><path d="M238.3,196.0 V137.3 Q238.3,134.3 241.3,134.3 H249.2 Q252.2,134.3 252.2,137.3 V196.0 Z" style="fill:var(--c-c)"/><rect class="hit" x="237.3" y="14" width="15.8" height="182.0" data-tip="C = MORE-HD-C-FixedRZ · Zernike · K=10
+akurasi 33.9% ± 4.6% (SD 5 seed)"/><text class="barlab" x="245.2" y="130.3" text-anchor="middle">C</text><path d="M254.2,196.0 V128.8 Q254.2,125.8 257.2,125.8 H265.0 Q268.0,125.8 268.0,128.8 V196.0 Z" style="fill:var(--c-d)"/><rect class="hit" x="253.2" y="14" width="15.8" height="182.0" data-tip="D = MORE-HD-C · Zernike · K=10
+akurasi 38.6% ± 5.6% (SD 5 seed)"/><text class="barlab" x="261.1" y="121.8" text-anchor="middle">D</text><text class="tick" x="82.7" y="210" text-anchor="middle">K=3</text><text class="tick" x="160.0" y="210" text-anchor="middle">K=6</text><text class="tick" x="237.3" y="210" text-anchor="middle">K=10</text></svg></figure></div>
+<div class="tw"><table class="heat-t"><thead><tr><th>Fitur</th><th>K</th><th>B − A<br><small>+parameter riil</small></th><th>C − A<br><small>+akses kompleks (RZ beku)</small></th><th>D − C<br><small>RZ jadi trainable</small></th><th>D − B<br><small>kompleks vs riil, 60 param</small></th></tr></thead><tbody><tr><td>PCA</td><td>3</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.32)" title="CI95% [−0.046, +0.340]">+0.147</span><small> p<sub>Holm</sub>=0.75</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.19)" title="CI95% [−0.120, +0.292]">+0.086</span><small> p<sub>Holm</sub>=0.75</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.01)" title="CI95% [−0.066, +0.074]">+0.004</span><small> p<sub>Holm</sub>=0.81</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.13)" title="CI95% [−0.180, +0.066]">−0.057</span><small> p<sub>Holm</sub>=0.50</small></td></tr><tr><td>PCA</td><td>6</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.40)" title="CI95% [+0.051, +0.313]">+0.182 ●</span><small> p<sub>Holm</sub>=0.25</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.15)" title="CI95% [−0.093, +0.230]">+0.069</span><small> p<sub>Holm</sub>=0.62</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.01)" title="CI95% [−0.162, +0.171]">+0.005</span><small> p<sub>Holm</sub>=0.94</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.24)" title="CI95% [−0.202, −0.015]">−0.109 ●</span><small> p<sub>Holm</sub>=0.25</small></td></tr><tr><td>PCA</td><td>10</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.55)" title="CI95% [+0.160, +0.379]">+0.269 ●</span><small> p<sub>Holm</sub>=0.25</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.14)" title="CI95% [−0.055, +0.187]">+0.066</span><small> p<sub>Holm</sub>=0.50</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.08)" title="CI95% [−0.038, +0.113]">+0.037</span><small> p<sub>Holm</sub>=0.50</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.37)" title="CI95% [−0.262, −0.070]">−0.166 ●</span><small> p<sub>Holm</sub>=0.25</small></td></tr><tr><td>Hu moments</td><td>3</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.19)" title="CI95% [−0.121, +0.295]">+0.087</span><small> p<sub>Holm</sub>=0.94</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.03)" title="CI95% [−0.173, +0.201]">+0.014</span><small> p<sub>Holm</sub>=1.00</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.04)" title="CI95% [−0.124, +0.083]">−0.020</span><small> p<sub>Holm</sub>=1.00</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.21)" title="CI95% [−0.222, +0.035]">−0.094</span><small> p<sub>Holm</sub>=0.50</small></td></tr><tr><td>Hu moments</td><td>6</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.23)" title="CI95% [+0.051, +0.159]">+0.105 ●</span><small> p<sub>Holm</sub>=0.25</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.12)" title="CI95% [+0.023, +0.085]">+0.054 ●</span><small> p<sub>Holm</sub>=0.25</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.01)" title="CI95% [−0.094, +0.085]">−0.004</span><small> p<sub>Holm</sub>=0.81</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.12)" title="CI95% [−0.148, +0.037]">−0.056</span><small> p<sub>Holm</sub>=0.38</small></td></tr><tr><td>Hu moments</td><td>10</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.14)" title="CI95% [+0.007, +0.117]">+0.062 ●</span><small> p<sub>Holm</sub>=0.38</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.02)" title="CI95% [−0.067, +0.084]">+0.009</span><small> p<sub>Holm</sub>=0.88</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.07)" title="CI95% [−0.104, +0.038]">−0.033</span><small> p<sub>Holm</sub>=0.50</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.19)" title="CI95% [−0.126, −0.047]">−0.087 ●</span><small> p<sub>Holm</sub>=0.25</small></td></tr><tr><td>Zernike</td><td>3</td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.05)" title="CI95% [−0.082, +0.039]">−0.022</span><small> p<sub>Holm</sub>=0.94</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.08)" title="CI95% [−0.125, +0.055]">−0.035</span><small> p<sub>Holm</sub>=0.94</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.14)" title="CI95% [−0.210, +0.084]">−0.063</span><small> p<sub>Holm</sub>=0.94</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.17)" title="CI95% [−0.175, +0.022]">−0.077</span><small> p<sub>Holm</sub>=0.50</small></td></tr><tr><td>Zernike</td><td>6</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.15)" title="CI95% [−0.003, +0.143]">+0.070</span><small> p<sub>Holm</sub>=0.25</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.08)" title="CI95% [−0.085, +0.009]">−0.038</span><small> p<sub>Holm</sub>=0.38</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.09)" title="CI95% [−0.040, +0.119]">+0.039</span><small> p<sub>Holm</sub>=0.38</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.15)" title="CI95% [−0.152, +0.016]">−0.068</span><small> p<sub>Holm</sub>=0.38</small></td></tr><tr><td>Zernike</td><td>10</td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.29)" title="CI95% [+0.069, +0.193]">+0.131 ●</span><small> p<sub>Holm</sub>=0.25</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.10)" title="CI95% [−0.026, +0.116]">+0.045</span><small> p<sub>Holm</sub>=0.38</small></td><td><span class="heat" style="background:rgba(var(--pos-rgb),0.10)" title="CI95% [−0.065, +0.159]">+0.047</span><small> p<sub>Holm</sub>=0.38</small></td><td><span class="heat" style="background:rgba(var(--neg-rgb),0.09)" title="CI95% [−0.073, −0.005]">−0.039 ●</span><small> p<sub>Holm</sub>=0.25</small></td></tr></tbody></table></div>
+<div class="card verdict">
+<p style="margin-top:0"><b>Interpretasi.</b> Kontras terbesar dan paling konsisten adalah <b>B − A</b>: positif di 8 dari 9 sel, CI di atas nol pada 5 sel.
+Sebaliknya, <b>D − B</b> negatif di 9 dari 9 sel (CI di bawah nol pada 4 sel). Artinya, dengan jumlah parameter trainable yang sama (60),
+sirkuit riil yang lebih dalam (B) justru lebih akurat daripada sirkuit kompleks (D).</p>
+<p><b>C − A</b> (akses kompleks tanpa tambahan parameter) positif di 7 dari 9 sel tetapi kecil, dengan CI di atas nol hanya pada 1 sel.
+<b>D − C</b> (membuat RZ trainable) hampir nol dengan arah campuran.</p>
+<p style="margin-bottom:0">Kesimpulannya, data ablation <b>tidak mendukung</b> klaim bahwa peningkatan D atas A terutama disebabkan oleh akses state kompleks.
+Kapasitas atau kedalaman sirkuit tampak menjadi faktor yang lebih besar. Ada catatan penting: B memiliki 6 blok entangling, sedangkan D hanya 3, sehingga
+B − D adalah perbandingan dengan parameter setara tetapi <i>tidak</i> dengan kedalaman setara. Setelah koreksi Holm, p terkecil hanya 0.25
+(keterbatasan 5 seed), jadi ini adalah pola yang konsisten, bukan bukti uji formal.</p>
+</div>
+
+<h2 id="q3">4 · Pertanyaan 3: perbandingan dengan MORE (Wu dkk., 2023)</h2>
+<p>M adalah sirkuit MORE yang direproduksi gerbang demi gerbang dan dilatih dengan data, split, budget, dan aturan label yang sama persis. Selisih A − M dan D − M bersifat berpasangan per seed.</p>
+<div class="legend"><span><i style="background:var(--c-a)"></i>A − M</span><span><i style="background:var(--c-d)"></i>D − M</span></div>
+<div class="grid"><figure class="panel"><figcaption>PCA</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="PCA"><line class="grid" x1="44" x2="284" y1="175.8" y2="175.8"/><text class="tick" x="38" y="179.3" text-anchor="end">−0.20</text><line class="zero" x1="44" x2="284" y1="135.3" y2="135.3"/><text class="tick" x="38" y="138.8" text-anchor="end">0.00</text><line class="grid" x1="44" x2="284" y1="94.9" y2="94.9"/><text class="tick" x="38" y="98.4" text-anchor="end">+0.20</text><line class="grid" x1="44" x2="284" y1="54.4" y2="54.4"/><text class="tick" x="38" y="57.9" text-anchor="end">+0.40</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">+0.60</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><line x1="39.5" x2="39.5" y1="120.1" y2="50.0" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="39.5" cy="85.0" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="32.5" y="46.0" width="14" height="78.1" data-tip="A − M · PCA · K=3
+Δ rata-rata +0.249
+CI95% [+0.075, +0.422]
+Hedges g 1.42 · p sign-flip 0.0625"/><line x1="72.6" x2="72.6" y1="143.0" y2="82.8" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="72.6" cy="112.9" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="65.6" y="78.8" width="14" height="68.2" data-tip="A − M · PCA · K=4
+Δ rata-rata +0.111
+CI95% [−0.038, +0.260]
+Hedges g 0.74 · p sign-flip 0.1250"/><line x1="105.8" x2="105.8" y1="91.3" y2="60.5" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="105.8" cy="75.9" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="98.8" y="56.5" width="14" height="38.9" data-tip="A − M · PCA · K=5
+Δ rata-rata +0.294
+CI95% [+0.218, +0.370]
+Hedges g 3.83 · p sign-flip 0.0625"/><line x1="138.9" x2="138.9" y1="111.0" y2="74.3" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="138.9" cy="92.6" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="131.9" y="70.3" width="14" height="44.7" data-tip="A − M · PCA · K=6
+Δ rata-rata +0.211
+CI95% [+0.120, +0.302]
+Hedges g 2.31 · p sign-flip 0.0625"/><line x1="172.1" x2="172.1" y1="102.9" y2="36.5" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="172.1" cy="69.7" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="165.1" y="32.5" width="14" height="74.5" data-tip="A − M · PCA · K=7
+Δ rata-rata +0.325
+CI95% [+0.160, +0.489]
+Hedges g 1.96 · p sign-flip 0.0625"/><line x1="205.2" x2="205.2" y1="103.9" y2="40.3" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="205.2" cy="72.1" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="198.2" y="36.3" width="14" height="71.6" data-tip="A − M · PCA · K=8
+Δ rata-rata +0.313
+CI95% [+0.155, +0.470]
+Hedges g 1.97 · p sign-flip 0.0625"/><line x1="238.4" x2="238.4" y1="130.9" y2="83.8" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="238.4" cy="107.4" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="231.4" y="79.8" width="14" height="55.1" data-tip="A − M · PCA · K=9
+Δ rata-rata +0.138
+CI95% [+0.022, +0.255]
+Hedges g 1.18 · p sign-flip 0.0625"/><line x1="271.5" x2="271.5" y1="127.0" y2="92.6" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="271.5" cy="109.8" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="264.5" y="88.6" width="14" height="42.4" data-tip="A − M · PCA · K=10
+Δ rata-rata +0.126
+CI95% [+0.041, +0.211]
+Hedges g 1.47 · p sign-flip 0.0625"/><line x1="48.5" x2="48.5" y1="106.1" y2="27.5" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="48.5" cy="66.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="41.5" y="23.5" width="14" height="86.6" data-tip="D − M · PCA · K=3
+Δ rata-rata +0.339
+CI95% [+0.145, +0.533]
+Hedges g 1.73 · p sign-flip 0.0625"/><line x1="81.6" x2="81.6" y1="79.8" y2="51.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="81.6" cy="65.4" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="74.6" y="47.0" width="14" height="36.7" data-tip="D − M · PCA · K=4
+Δ rata-rata +0.346
+CI95% [+0.275, +0.417]
+Hedges g 4.83 · p sign-flip 0.0625"/><line x1="114.8" x2="114.8" y1="76.8" y2="34.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="114.8" cy="55.4" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="107.8" y="30.0" width="14" height="50.8" data-tip="D − M · PCA · K=5
+Δ rata-rata +0.395
+CI95% [+0.289, +0.501]
+Hedges g 3.71 · p sign-flip 0.0625"/><line x1="147.9" x2="147.9" y1="92.8" y2="62.8" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="147.9" cy="77.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="140.9" y="58.8" width="14" height="37.9" data-tip="D − M · PCA · K=6
+Δ rata-rata +0.284
+CI95% [+0.211, +0.358]
+Hedges g 3.82 · p sign-flip 0.0625"/><line x1="181.1" x2="181.1" y1="102.8" y2="46.5" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="181.1" cy="74.6" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="174.1" y="42.5" width="14" height="64.4" data-tip="D − M · PCA · K=7
+Δ rata-rata +0.300
+CI95% [+0.161, +0.440]
+Hedges g 2.14 · p sign-flip 0.0625"/><line x1="214.2" x2="214.2" y1="106.3" y2="21.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="214.2" cy="63.6" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="207.2" y="17.0" width="14" height="93.3" data-tip="D − M · PCA · K=8
+Δ rata-rata +0.354
+CI95% [+0.144, +0.565]
+Hedges g 1.67 · p sign-flip 0.0625"/><line x1="247.4" x2="247.4" y1="89.2" y2="55.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="247.4" cy="72.2" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="240.4" y="51.2" width="14" height="42.0" data-tip="D − M · PCA · K=9
+Δ rata-rata +0.312
+CI95% [+0.228, +0.396]
+Hedges g 3.69 · p sign-flip 0.0625"/><line x1="280.5" x2="280.5" y1="104.9" y2="73.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="280.5" cy="88.9" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="273.5" y="69.0" width="14" height="39.9" data-tip="D − M · PCA · K=10
+Δ rata-rata +0.229
+CI95% [+0.150, +0.308]
+Hedges g 2.88 · p sign-flip 0.0625"/></svg></figure><figure class="panel"><figcaption>Hu moments</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Hu moments"><line class="grid" x1="44" x2="284" y1="175.8" y2="175.8"/><text class="tick" x="38" y="179.3" text-anchor="end">−0.20</text><line class="zero" x1="44" x2="284" y1="135.3" y2="135.3"/><text class="tick" x="38" y="138.8" text-anchor="end">0.00</text><line class="grid" x1="44" x2="284" y1="94.9" y2="94.9"/><text class="tick" x="38" y="98.4" text-anchor="end">+0.20</text><line class="grid" x1="44" x2="284" y1="54.4" y2="54.4"/><text class="tick" x="38" y="57.9" text-anchor="end">+0.40</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">+0.60</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><line x1="39.5" x2="39.5" y1="160.3" y2="122.1" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="39.5" cy="141.2" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="32.5" y="118.1" width="14" height="46.2" data-tip="A − M · Hu moments · K=3
+Δ rata-rata −0.029
+CI95% [−0.124, +0.066]
+Hedges g −0.30 · p sign-flip 0.6250"/><line x1="72.6" x2="72.6" y1="172.6" y2="119.6" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="72.6" cy="146.1" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="65.6" y="115.6" width="14" height="60.9" data-tip="A − M · Hu moments · K=4
+Δ rata-rata −0.053
+CI95% [−0.184, +0.078]
+Hedges g −0.40 · p sign-flip 0.5000"/><line x1="105.8" x2="105.8" y1="168.0" y2="134.9" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="105.8" cy="151.4" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="98.8" y="130.9" width="14" height="41.1" data-tip="A − M · Hu moments · K=5
+Δ rata-rata −0.080
+CI95% [−0.161, +0.002]
+Hedges g −0.97 · p sign-flip 0.1250"/><line x1="138.9" x2="138.9" y1="159.2" y2="129.8" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="138.9" cy="144.5" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="131.9" y="125.8" width="14" height="37.5" data-tip="A − M · Hu moments · K=6
+Δ rata-rata −0.045
+CI95% [−0.118, +0.028]
+Hedges g −0.62 · p sign-flip 0.1250"/><line x1="172.1" x2="172.1" y1="153.9" y2="139.6" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="172.1" cy="146.8" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="165.1" y="135.6" width="14" height="22.3" data-tip="A − M · Hu moments · K=7
+Δ rata-rata −0.057
+CI95% [−0.092, −0.021]
+Hedges g −1.59 · p sign-flip 0.0625"/><line x1="205.2" x2="205.2" y1="156.7" y2="125.3" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="205.2" cy="141.0" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="198.2" y="121.3" width="14" height="39.4" data-tip="A − M · Hu moments · K=8
+Δ rata-rata −0.028
+CI95% [−0.105, +0.050]
+Hedges g −0.36 · p sign-flip 0.4375"/><line x1="238.4" x2="238.4" y1="150.9" y2="122.0" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="238.4" cy="136.5" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="231.4" y="118.0" width="14" height="36.8" data-tip="A − M · Hu moments · K=9
+Δ rata-rata −0.006
+CI95% [−0.077, +0.066]
+Hedges g −0.08 · p sign-flip 0.9375"/><line x1="271.5" x2="271.5" y1="140.6" y2="124.5" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="271.5" cy="132.5" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="264.5" y="120.5" width="14" height="24.1" data-tip="A − M · Hu moments · K=10
+Δ rata-rata +0.014
+CI95% [−0.026, +0.054]
+Hedges g 0.35 · p sign-flip 0.4375"/><line x1="48.5" x2="48.5" y1="159.7" y2="125.4" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="48.5" cy="142.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="41.5" y="121.4" width="14" height="42.3" data-tip="D − M · Hu moments · K=3
+Δ rata-rata −0.036
+CI95% [−0.120, +0.049]
+Hedges g −0.42 · p sign-flip 0.4375"/><line x1="81.6" x2="81.6" y1="144.5" y2="108.3" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="81.6" cy="126.4" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="74.6" y="104.3" width="14" height="44.1" data-tip="D − M · Hu moments · K=4
+Δ rata-rata +0.044
+CI95% [−0.045, +0.134]
+Hedges g 0.49 · p sign-flip 0.2500"/><line x1="114.8" x2="114.8" y1="171.8" y2="112.7" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="114.8" cy="142.2" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="107.8" y="108.7" width="14" height="67.1" data-tip="D − M · Hu moments · K=5
+Δ rata-rata −0.034
+CI95% [−0.180, +0.112]
+Hedges g −0.23 · p sign-flip 0.7500"/><line x1="147.9" x2="147.9" y1="159.3" y2="109.7" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="147.9" cy="134.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="140.9" y="105.7" width="14" height="57.6" data-tip="D − M · Hu moments · K=6
+Δ rata-rata +0.004
+CI95% [−0.119, +0.127]
+Hedges g 0.03 · p sign-flip 0.8750"/><line x1="181.1" x2="181.1" y1="146.8" y2="107.3" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="181.1" cy="127.0" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="174.1" y="103.3" width="14" height="47.5" data-tip="D − M · Hu moments · K=7
+Δ rata-rata +0.041
+CI95% [−0.057, +0.139]
+Hedges g 0.42 · p sign-flip 0.3750"/><line x1="214.2" x2="214.2" y1="163.5" y2="109.8" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="214.2" cy="136.7" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="207.2" y="105.8" width="14" height="61.7" data-tip="D − M · Hu moments · K=8
+Δ rata-rata −0.007
+CI95% [−0.139, +0.126]
+Hedges g −0.05 · p sign-flip 1.0000"/><line x1="247.4" x2="247.4" y1="139.8" y2="111.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="247.4" cy="125.4" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="240.4" y="107.0" width="14" height="36.7" data-tip="D − M · Hu moments · K=9
+Δ rata-rata +0.049
+CI95% [−0.022, +0.120]
+Hedges g 0.69 · p sign-flip 0.1250"/><line x1="280.5" x2="280.5" y1="142.1" y2="132.9" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="280.5" cy="137.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="273.5" y="128.9" width="14" height="17.3" data-tip="D − M · Hu moments · K=10
+Δ rata-rata −0.011
+CI95% [−0.034, +0.012]
+Hedges g −0.46 · p sign-flip 0.2500"/></svg></figure><figure class="panel"><figcaption>Zernike</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Zernike"><line class="grid" x1="44" x2="284" y1="175.8" y2="175.8"/><text class="tick" x="38" y="179.3" text-anchor="end">−0.20</text><line class="zero" x1="44" x2="284" y1="135.3" y2="135.3"/><text class="tick" x="38" y="138.8" text-anchor="end">0.00</text><line class="grid" x1="44" x2="284" y1="94.9" y2="94.9"/><text class="tick" x="38" y="98.4" text-anchor="end">+0.20</text><line class="grid" x1="44" x2="284" y1="54.4" y2="54.4"/><text class="tick" x="38" y="57.9" text-anchor="end">+0.40</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">+0.60</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><line x1="39.5" x2="39.5" y1="102.7" y2="78.8" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="39.5" cy="90.8" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="32.5" y="74.8" width="14" height="31.9" data-tip="A − M · Zernike · K=3
+Δ rata-rata +0.220
+CI95% [+0.161, +0.280]
+Hedges g 3.70 · p sign-flip 0.0625"/><line x1="72.6" x2="72.6" y1="131.9" y2="96.1" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="72.6" cy="114.0" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="65.6" y="92.1" width="14" height="43.8" data-tip="A − M · Zernike · K=4
+Δ rata-rata +0.105
+CI95% [+0.017, +0.194]
+Hedges g 1.18 · p sign-flip 0.0625"/><line x1="105.8" x2="105.8" y1="149.7" y2="75.5" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="105.8" cy="112.6" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="98.8" y="71.5" width="14" height="82.2" data-tip="A − M · Zernike · K=5
+Δ rata-rata +0.112
+CI95% [−0.071, +0.296]
+Hedges g 0.61 · p sign-flip 0.1875"/><line x1="138.9" x2="138.9" y1="110.9" y2="86.1" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="138.9" cy="98.5" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="131.9" y="82.1" width="14" height="32.8" data-tip="A − M · Zernike · K=6
+Δ rata-rata +0.182
+CI95% [+0.121, +0.244]
+Hedges g 2.95 · p sign-flip 0.0625"/><line x1="172.1" x2="172.1" y1="118.0" y2="96.4" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="172.1" cy="107.2" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="165.1" y="92.4" width="14" height="29.6" data-tip="A − M · Zernike · K=7
+Δ rata-rata +0.139
+CI95% [+0.086, +0.193]
+Hedges g 2.59 · p sign-flip 0.0625"/><line x1="205.2" x2="205.2" y1="138.8" y2="91.8" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="205.2" cy="115.3" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="198.2" y="87.8" width="14" height="55.0" data-tip="A − M · Zernike · K=8
+Δ rata-rata +0.099
+CI95% [−0.017, +0.215]
+Hedges g 0.85 · p sign-flip 0.1875"/><line x1="238.4" x2="238.4" y1="135.9" y2="84.1" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="238.4" cy="110.0" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="231.4" y="80.1" width="14" height="59.8" data-tip="A − M · Zernike · K=9
+Δ rata-rata +0.125
+CI95% [−0.003, +0.254]
+Hedges g 0.97 · p sign-flip 0.1250"/><line x1="271.5" x2="271.5" y1="116.4" y2="102.4" style="stroke:var(--c-a)" stroke-width="2" stroke-linecap="round"/><circle cx="271.5" cy="109.4" r="4.5" style="fill:var(--c-a)" class="ring"/><rect class="hit" x="264.5" y="98.4" width="14" height="22.0" data-tip="A − M · Zernike · K=10
+Δ rata-rata +0.128
+CI95% [+0.093, +0.163]
+Hedges g 3.67 · p sign-flip 0.0625"/><line x1="48.5" x2="48.5" y1="119.2" y2="102.1" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="48.5" cy="110.7" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="41.5" y="98.1" width="14" height="25.0" data-tip="D − M · Zernike · K=3
+Δ rata-rata +0.122
+CI95% [+0.080, +0.164]
+Hedges g 2.88 · p sign-flip 0.0625"/><line x1="81.6" x2="81.6" y1="126.6" y2="82.4" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="81.6" cy="104.5" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="74.6" y="78.4" width="14" height="52.1" data-tip="D − M · Zernike · K=4
+Δ rata-rata +0.152
+CI95% [+0.043, +0.262]
+Hedges g 1.39 · p sign-flip 0.0625"/><line x1="114.8" x2="114.8" y1="115.3" y2="75.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="114.8" cy="95.3" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="107.8" y="71.2" width="14" height="48.1" data-tip="D − M · Zernike · K=5
+Δ rata-rata +0.198
+CI95% [+0.099, +0.297]
+Hedges g 1.98 · p sign-flip 0.0625"/><line x1="147.9" x2="147.9" y1="117.9" y2="78.4" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="147.9" cy="98.1" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="140.9" y="74.4" width="14" height="47.5" data-tip="D − M · Zernike · K=6
+Δ rata-rata +0.184
+CI95% [+0.086, +0.282]
+Hedges g 1.87 · p sign-flip 0.0625"/><line x1="181.1" x2="181.1" y1="117.3" y2="86.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="181.1" cy="101.8" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="174.1" y="82.2" width="14" height="39.1" data-tip="D − M · Zernike · K=7
+Δ rata-rata +0.166
+CI95% [+0.089, +0.243]
+Hedges g 2.14 · p sign-flip 0.0625"/><line x1="214.2" x2="214.2" y1="124.0" y2="91.3" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="214.2" cy="107.7" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="207.2" y="87.3" width="14" height="40.6" data-tip="D − M · Zernike · K=8
+Δ rata-rata +0.137
+CI95% [+0.056, +0.218]
+Hedges g 1.68 · p sign-flip 0.0625"/><line x1="247.4" x2="247.4" y1="111.2" y2="71.2" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="247.4" cy="91.2" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="240.4" y="67.2" width="14" height="48.0" data-tip="D − M · Zernike · K=9
+Δ rata-rata +0.218
+CI95% [+0.119, +0.317]
+Hedges g 2.19 · p sign-flip 0.0625"/><line x1="280.5" x2="280.5" y1="105.8" y2="76.0" style="stroke:var(--c-d)" stroke-width="2" stroke-linecap="round"/><circle cx="280.5" cy="90.9" r="4.5" style="fill:var(--c-d)" class="ring"/><rect class="hit" x="273.5" y="72.0" width="14" height="37.8" data-tip="D − M · Zernike · K=10
+Δ rata-rata +0.220
+CI95% [+0.146, +0.294]
+Hedges g 2.97 · p sign-flip 0.0625"/></svg></figure></div>
+<p>Pada <b>PCA dan Zernike</b>, A dan D mengungguli M di semua K, dan CI-nya sebagian besar di atas nol. D − M berkisar antara +0,12 dan +0,40.
+Pada <b>Hu</b>, ketiganya hampir setara: D − M positif di 4 dari 8 sel dan tidak ada CI yang menjauhi nol.</p>
+<h3>Konteks: angka yang dilaporkan paper MORE (deskriptif, protokol berbeda)</h3>
+<div class="tw"><table class=""><thead><tr><th>K</th><th>MORE\R (paper, Tabel I)</th><th>MORE+R (paper)</th><th>M (reproduksi, PCA)</th><th>A (PCA)</th><th>D (PCA)</th><th>LR (PCA)</th></tr></thead><tbody><tr><td>3</td><td>84.13%</td><td>88.70%</td><td>55.9%</td><td>80.8%</td><td>89.8%</td><td>97.7%</td></tr><tr><td>4</td><td>63.45%</td><td>70.10%</td><td>45.8%</td><td>56.9%</td><td>80.4%</td><td>94.4%</td></tr><tr><td>5</td><td>53.50%</td><td>63.30%</td><td>37.3%</td><td>66.7%</td><td>76.8%</td><td>93.4%</td></tr><tr><td>6</td><td>40.48%</td><td>50.20%</td><td>31.5%</td><td>52.6%</td><td>59.9%</td><td>87.0%</td></tr><tr><td>7</td><td>29.06%</td><td>37.20%</td><td>25.5%</td><td>58.0%</td><td>55.5%</td><td>84.4%</td></tr><tr><td>8</td><td>44.80%</td><td>48.60%</td><td>21.3%</td><td>52.6%</td><td>56.8%</td><td>83.7%</td></tr><tr><td>9</td><td>29.40%</td><td>33.00%</td><td>20.4%</td><td>34.2%</td><td>51.6%</td><td>82.6%</td></tr><tr><td>10</td><td>22.60%</td><td>27.80%</td><td>19.2%</td><td>31.8%</td><td>42.2%</td><td>78.6%</td></tr></tbody></table></div>
+<p class="note">Reproduksi M dalam protokol kita jauh di bawah angka Tabel I paper MORE. Penyebabnya adalah perbedaan protokol yang terdokumentasi di
+<code>docs/METHODS_DRAFT.md</code> §8: PCA/scaler di-fit hanya pada data train, tidak ada penghapusan outlier, test seimbang 200/kelas, tidak memakai loss adjuster R,
+dan budget COBYLA yang sama untuk semua model. Karena itu, angka paper hanya boleh dipakai sebagai konteks, bukan sebagai pembanding statistik.</p>
+
+<h2 id="q4">5 · Pertanyaan 4: pengaruh representasi fitur dan posisi terhadap baseline klasik</h2>
+<h3>Akurasi rata-rata lintas K per fitur (huruf tebal = fitur terbaik per model)</h3>
+<div class="tw"><table class=""><thead><tr><th>Model</th><th>PCA</th><th>Hu</th><th>Zernike</th></tr></thead><tbody><tr><td><i class="sw" style="background:var(--c-a)"></i>A · MORE-HD</td><td><b>54.2%</b></td><td>32.2%</td><td>44.8%</td></tr><tr><td><i class="sw" style="background:var(--c-b)"></i>B · MORE-HD-60P <small>(K 3/6/10)</small></td><td><b>75.0%</b></td><td>45.3%</td><td>57.6%</td></tr><tr><td><i class="sw" style="background:var(--c-c)"></i>C · MORE-HD-C-FixedRZ <small>(K 3/6/10)</small></td><td><b>62.4%</b></td><td>39.3%</td><td>50.7%</td></tr><tr><td><i class="sw" style="background:var(--c-d)"></i>D · MORE-HD-C</td><td><b>64.1%</b></td><td>36.4%</td><td>48.4%</td></tr><tr><td><i class="sw" style="background:var(--c-m)"></i>M · MORE-REPRO</td><td>32.1%</td><td><b>35.7%</b></td><td>30.9%</td></tr><tr><td>LR · Logistic Regression <small>(klasik)</small></td><td><b>87.7%</b></td><td>68.9%</td><td>75.5%</td></tr><tr><td>NC · Nearest Centroid <small>(klasik)</small></td><td><b>83.1%</b></td><td>48.8%</td><td>70.4%</td></tr></tbody></table></div>
+<p>PCA adalah representasi terbaik untuk A, B, C, D, dan juga untuk baseline klasik. Satu-satunya pengecualian adalah reproduksi MORE (M), yang justru paling baik dengan Hu.
+Hu adalah fitur paling lemah untuk model MORE-HD: tujuh invarian Hu ditambah satu kanal padding nol memberi informasi lebih sedikit, dan sifatnya yang invarian terhadap rotasi membuat 6 dan 9 sulit dibedakan (lihat bagian 6↔9).</p>
+<h3>Model kuantum terbaik vs baseline klasik</h3>
+<div class="tw"><table class=""><thead><tr><th>Fitur</th><th>K</th><th>Model kuantum terbaik</th><th>NC</th><th>LR</th><th>Selisih terbaik − LR</th></tr></thead><tbody><tr><td>PCA</td><td>3</td><td>B (95.5%)</td><td>93.8%</td><td>97.7%</td><td>−2.2%</td></tr><tr><td>PCA</td><td>6</td><td>B (70.8%)</td><td>80.8%</td><td>87.0%</td><td>−16.2%</td></tr><tr><td>PCA</td><td>10</td><td>B (58.8%)</td><td>73.0%</td><td>78.6%</td><td>−19.8%</td></tr><tr><td>Hu moments</td><td>3</td><td>B (71.5%)</td><td>73.0%</td><td>92.0%</td><td>−20.4%</td></tr><tr><td>Hu moments</td><td>6</td><td>B (37.3%)</td><td>45.7%</td><td>62.8%</td><td>−25.5%</td></tr><tr><td>Hu moments</td><td>10</td><td>B (27.1%)</td><td>34.4%</td><td>54.9%</td><td>−27.9%</td></tr><tr><td>Zernike</td><td>3</td><td>A (78.9%)</td><td>91.1%</td><td>94.0%</td><td>−15.1%</td></tr><tr><td>Zernike</td><td>6</td><td>B (53.5%)</td><td>67.8%</td><td>72.3%</td><td>−18.8%</td></tr><tr><td>Zernike</td><td>10</td><td>B (42.5%)</td><td>58.1%</td><td>65.6%</td><td>−23.1%</td></tr></tbody></table></div>
+<p>Pada K=10, model kuantum terbaik tertinggal dari Logistic Regression sebesar 19.8% (PCA), 27.9% (Hu), dan 23.1% (Zernike).
+Baseline klasik di sini berfungsi sebagai titik referensi, bukan pesaing. Meski begitu, laporan atau paper sebaiknya menyatakan secara jujur bahwa model kuantum dengan budget ini belum menyaingi model linear sederhana.</p>
+
+<h2 id="sep">6 · Separasi label kuantum (<code>min_separation_ratio</code>)</h2>
+<p>Jarak cosine minimum antar label kuantum dibagi dengan batas simplex <code>1 + 1/(K−1)</code>. Nilai yang lebih tinggi berarti label lebih terpisah.
+Batas simplex hanyalah acuan normalisasi, bukan optimum yang bisa dicapai.</p>
+<div class="legend"><span><i style="background:var(--c-a)"></i>A · MORE-HD</span><span><i style="background:var(--c-d)"></i>D · MORE-HD-C</span><span><i style="background:var(--c-m)"></i>M · MORE-REPRO</span></div>
+<div class="grid"><figure class="panel"><figcaption>PCA</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="PCA"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0.0</text><line class="grid" x1="44" x2="284" y1="135.3" y2="135.3"/><text class="tick" x="38" y="138.8" text-anchor="end">0.2</text><line class="grid" x1="44" x2="284" y1="74.7" y2="74.7"/><text class="tick" x="38" y="78.2" text-anchor="end">0.4</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">0.6</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M44.0,115.2 L77.1,181.1 L110.3,182.7 L143.4,192.4 L176.6,152.7 L209.7,170.6 L242.9,181.5 L276.0,187.5" fill="none" style="stroke:var(--c-a)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="115.2" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="44.0" cy="115.2" r="10" data-tip="A · PCA · K=3
+min_separation_ratio 0.266 ± 0.356"/><circle cx="77.1" cy="181.1" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="77.1" cy="181.1" r="10" data-tip="A · PCA · K=4
+min_separation_ratio 0.049 ± 0.057"/><circle cx="110.3" cy="182.7" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="110.3" cy="182.7" r="10" data-tip="A · PCA · K=5
+min_separation_ratio 0.044 ± 0.067"/><circle cx="143.4" cy="192.4" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="143.4" cy="192.4" r="10" data-tip="A · PCA · K=6
+min_separation_ratio 0.012 ± 0.014"/><circle cx="176.6" cy="152.7" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="176.6" cy="152.7" r="10" data-tip="A · PCA · K=7
+min_separation_ratio 0.143 ± 0.140"/><circle cx="209.7" cy="170.6" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="209.7" cy="170.6" r="10" data-tip="A · PCA · K=8
+min_separation_ratio 0.084 ± 0.061"/><circle cx="242.9" cy="181.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="242.9" cy="181.5" r="10" data-tip="A · PCA · K=9
+min_separation_ratio 0.048 ± 0.045"/><circle cx="276.0" cy="187.5" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="276.0" cy="187.5" r="10" data-tip="A · PCA · K=10
+min_separation_ratio 0.028 ± 0.044"/><path d="M44.0,26.9 L77.1,72.4 L110.3,109.1 L143.4,153.3 L176.6,183.4 L209.7,150.4 L242.9,142.2 L276.0,179.4" fill="none" style="stroke:var(--c-d)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="26.9" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="44.0" cy="26.9" r="10" data-tip="D · PCA · K=3
+min_separation_ratio 0.557 ± 0.333"/><circle cx="77.1" cy="72.4" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="77.1" cy="72.4" r="10" data-tip="D · PCA · K=4
+min_separation_ratio 0.408 ± 0.233"/><circle cx="110.3" cy="109.1" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="110.3" cy="109.1" r="10" data-tip="D · PCA · K=5
+min_separation_ratio 0.287 ± 0.163"/><circle cx="143.4" cy="153.3" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="143.4" cy="153.3" r="10" data-tip="D · PCA · K=6
+min_separation_ratio 0.141 ± 0.041"/><circle cx="176.6" cy="183.4" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="176.6" cy="183.4" r="10" data-tip="D · PCA · K=7
+min_separation_ratio 0.041 ± 0.050"/><circle cx="209.7" cy="150.4" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="209.7" cy="150.4" r="10" data-tip="D · PCA · K=8
+min_separation_ratio 0.150 ± 0.109"/><circle cx="242.9" cy="142.2" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="242.9" cy="142.2" r="10" data-tip="D · PCA · K=9
+min_separation_ratio 0.178 ± 0.147"/><circle cx="276.0" cy="179.4" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="276.0" cy="179.4" r="10" data-tip="D · PCA · K=10
+min_separation_ratio 0.055 ± 0.066"/><path d="M44.0,84.3 L77.1,112.0 L110.3,161.2 L143.4,140.6 L176.6,175.8 L209.7,183.8 L242.9,184.8 L276.0,188.2" fill="none" style="stroke:var(--c-m)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="84.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="44.0" cy="84.3" r="10" data-tip="M · PCA · K=3
+min_separation_ratio 0.368 ± 0.286"/><circle cx="77.1" cy="112.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="77.1" cy="112.0" r="10" data-tip="M · PCA · K=4
+min_separation_ratio 0.277 ± 0.283"/><circle cx="110.3" cy="161.2" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="110.3" cy="161.2" r="10" data-tip="M · PCA · K=5
+min_separation_ratio 0.115 ± 0.099"/><circle cx="143.4" cy="140.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="143.4" cy="140.6" r="10" data-tip="M · PCA · K=6
+min_separation_ratio 0.183 ± 0.084"/><circle cx="176.6" cy="175.8" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="176.6" cy="175.8" r="10" data-tip="M · PCA · K=7
+min_separation_ratio 0.066 ± 0.124"/><circle cx="209.7" cy="183.8" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="209.7" cy="183.8" r="10" data-tip="M · PCA · K=8
+min_separation_ratio 0.040 ± 0.020"/><circle cx="242.9" cy="184.8" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="242.9" cy="184.8" r="10" data-tip="M · PCA · K=9
+min_separation_ratio 0.037 ± 0.016"/><circle cx="276.0" cy="188.2" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="276.0" cy="188.2" r="10" data-tip="M · PCA · K=10
+min_separation_ratio 0.026 ± 0.025"/><text class="dl" x="286.0" y="177.5">D</text><text class="dl" x="286.0" y="188.5">A</text><text class="dl" x="286.0" y="199.5">M</text></svg></figure><figure class="panel"><figcaption>Hu moments</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Hu moments"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0.0</text><line class="grid" x1="44" x2="284" y1="135.3" y2="135.3"/><text class="tick" x="38" y="138.8" text-anchor="end">0.2</text><line class="grid" x1="44" x2="284" y1="74.7" y2="74.7"/><text class="tick" x="38" y="78.2" text-anchor="end">0.4</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">0.6</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M44.0,168.8 L77.1,132.9 L110.3,191.1 L143.4,182.7 L176.6,182.1 L209.7,193.1 L242.9,188.6 L276.0,185.9" fill="none" style="stroke:var(--c-a)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="168.8" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="44.0" cy="168.8" r="10" data-tip="A · Hu moments · K=3
+min_separation_ratio 0.090 ± 0.169"/><circle cx="77.1" cy="132.9" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="77.1" cy="132.9" r="10" data-tip="A · Hu moments · K=4
+min_separation_ratio 0.208 ± 0.310"/><circle cx="110.3" cy="191.1" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="110.3" cy="191.1" r="10" data-tip="A · Hu moments · K=5
+min_separation_ratio 0.016 ± 0.021"/><circle cx="143.4" cy="182.7" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="143.4" cy="182.7" r="10" data-tip="A · Hu moments · K=6
+min_separation_ratio 0.044 ± 0.042"/><circle cx="176.6" cy="182.1" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="176.6" cy="182.1" r="10" data-tip="A · Hu moments · K=7
+min_separation_ratio 0.046 ± 0.060"/><circle cx="209.7" cy="193.1" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="209.7" cy="193.1" r="10" data-tip="A · Hu moments · K=8
+min_separation_ratio 0.010 ± 0.010"/><circle cx="242.9" cy="188.6" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="242.9" cy="188.6" r="10" data-tip="A · Hu moments · K=9
+min_separation_ratio 0.024 ± 0.029"/><circle cx="276.0" cy="185.9" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="276.0" cy="185.9" r="10" data-tip="A · Hu moments · K=10
+min_separation_ratio 0.033 ± 0.041"/><path d="M44.0,185.9 L77.1,150.9 L110.3,185.5 L143.4,156.7 L176.6,181.9 L209.7,180.6 L242.9,186.8 L276.0,187.5" fill="none" style="stroke:var(--c-d)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="185.9" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="44.0" cy="185.9" r="10" data-tip="D · Hu moments · K=3
+min_separation_ratio 0.033 ± 0.065"/><circle cx="77.1" cy="150.9" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="77.1" cy="150.9" r="10" data-tip="D · Hu moments · K=4
+min_separation_ratio 0.149 ± 0.082"/><circle cx="110.3" cy="185.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="110.3" cy="185.5" r="10" data-tip="D · Hu moments · K=5
+min_separation_ratio 0.035 ± 0.040"/><circle cx="143.4" cy="156.7" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="143.4" cy="156.7" r="10" data-tip="D · Hu moments · K=6
+min_separation_ratio 0.129 ± 0.212"/><circle cx="176.6" cy="181.9" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="176.6" cy="181.9" r="10" data-tip="D · Hu moments · K=7
+min_separation_ratio 0.046 ± 0.037"/><circle cx="209.7" cy="180.6" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="209.7" cy="180.6" r="10" data-tip="D · Hu moments · K=8
+min_separation_ratio 0.051 ± 0.040"/><circle cx="242.9" cy="186.8" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="242.9" cy="186.8" r="10" data-tip="D · Hu moments · K=9
+min_separation_ratio 0.030 ± 0.023"/><circle cx="276.0" cy="187.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="276.0" cy="187.5" r="10" data-tip="D · Hu moments · K=10
+min_separation_ratio 0.028 ± 0.036"/><path d="M44.0,108.0 L77.1,175.9 L110.3,172.8 L143.4,192.0 L176.6,189.3 L209.7,193.9 L242.9,193.5 L276.0,195.0" fill="none" style="stroke:var(--c-m)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="108.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="44.0" cy="108.0" r="10" data-tip="M · Hu moments · K=3
+min_separation_ratio 0.290 ± 0.305"/><circle cx="77.1" cy="175.9" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="77.1" cy="175.9" r="10" data-tip="M · Hu moments · K=4
+min_separation_ratio 0.066 ± 0.081"/><circle cx="110.3" cy="172.8" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="110.3" cy="172.8" r="10" data-tip="M · Hu moments · K=5
+min_separation_ratio 0.076 ± 0.083"/><circle cx="143.4" cy="192.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="143.4" cy="192.0" r="10" data-tip="M · Hu moments · K=6
+min_separation_ratio 0.013 ± 0.009"/><circle cx="176.6" cy="189.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="176.6" cy="189.3" r="10" data-tip="M · Hu moments · K=7
+min_separation_ratio 0.022 ± 0.020"/><circle cx="209.7" cy="193.9" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="209.7" cy="193.9" r="10" data-tip="M · Hu moments · K=8
+min_separation_ratio 0.007 ± 0.005"/><circle cx="242.9" cy="193.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="242.9" cy="193.5" r="10" data-tip="M · Hu moments · K=9
+min_separation_ratio 0.008 ± 0.008"/><circle cx="276.0" cy="195.0" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="276.0" cy="195.0" r="10" data-tip="M · Hu moments · K=10
+min_separation_ratio 0.003 ± 0.001"/><text class="dl" x="286.0" y="177.5">A</text><text class="dl" x="286.0" y="188.5">D</text><text class="dl" x="286.0" y="199.5">M</text></svg></figure><figure class="panel"><figcaption>Zernike</figcaption><svg viewBox="0 0 340 230" role="img" aria-label="Zernike"><line class="grid" x1="44" x2="284" y1="196.0" y2="196.0"/><text class="tick" x="38" y="199.5" text-anchor="end">0.0</text><line class="grid" x1="44" x2="284" y1="135.3" y2="135.3"/><text class="tick" x="38" y="138.8" text-anchor="end">0.2</text><line class="grid" x1="44" x2="284" y1="74.7" y2="74.7"/><text class="tick" x="38" y="78.2" text-anchor="end">0.4</text><line class="grid" x1="44" x2="284" y1="14.0" y2="14.0"/><text class="tick" x="38" y="17.5" text-anchor="end">0.6</text><line class="axis" x1="44" x2="284" y1="196" y2="196"/><text class="tick" x="44.0" y="210" text-anchor="middle">3</text><text class="tick" x="77.1" y="210" text-anchor="middle">4</text><text class="tick" x="110.3" y="210" text-anchor="middle">5</text><text class="tick" x="143.4" y="210" text-anchor="middle">6</text><text class="tick" x="176.6" y="210" text-anchor="middle">7</text><text class="tick" x="209.7" y="210" text-anchor="middle">8</text><text class="tick" x="242.9" y="210" text-anchor="middle">9</text><text class="tick" x="276.0" y="210" text-anchor="middle">10</text><text class="axlab" x="160.0" y="226" text-anchor="middle">K (jumlah kelas)</text><path d="M44.0,189.8 L77.1,187.0 L110.3,193.0 L143.4,191.3 L176.6,191.0 L209.7,194.0 L242.9,188.2 L276.0,192.0" fill="none" style="stroke:var(--c-a)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="189.8" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="44.0" cy="189.8" r="10" data-tip="A · Zernike · K=3
+min_separation_ratio 0.020 ± 0.013"/><circle cx="77.1" cy="187.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="77.1" cy="187.0" r="10" data-tip="A · Zernike · K=4
+min_separation_ratio 0.030 ± 0.040"/><circle cx="110.3" cy="193.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="110.3" cy="193.0" r="10" data-tip="A · Zernike · K=5
+min_separation_ratio 0.010 ± 0.013"/><circle cx="143.4" cy="191.3" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="143.4" cy="191.3" r="10" data-tip="A · Zernike · K=6
+min_separation_ratio 0.015 ± 0.014"/><circle cx="176.6" cy="191.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="176.6" cy="191.0" r="10" data-tip="A · Zernike · K=7
+min_separation_ratio 0.016 ± 0.009"/><circle cx="209.7" cy="194.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="209.7" cy="194.0" r="10" data-tip="A · Zernike · K=8
+min_separation_ratio 0.007 ± 0.009"/><circle cx="242.9" cy="188.2" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="242.9" cy="188.2" r="10" data-tip="A · Zernike · K=9
+min_separation_ratio 0.026 ± 0.034"/><circle cx="276.0" cy="192.0" r="4" style="fill:var(--c-a)" class="ring"/><circle class="hit" cx="276.0" cy="192.0" r="10" data-tip="A · Zernike · K=10
+min_separation_ratio 0.013 ± 0.015"/><path d="M44.0,183.1 L77.1,190.0 L110.3,179.5 L143.4,181.7 L176.6,181.8 L209.7,178.0 L242.9,178.9 L276.0,177.7" fill="none" style="stroke:var(--c-d)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="183.1" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="44.0" cy="183.1" r="10" data-tip="D · Zernike · K=3
+min_separation_ratio 0.043 ± 0.087"/><circle cx="77.1" cy="190.0" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="77.1" cy="190.0" r="10" data-tip="D · Zernike · K=4
+min_separation_ratio 0.020 ± 0.015"/><circle cx="110.3" cy="179.5" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="110.3" cy="179.5" r="10" data-tip="D · Zernike · K=5
+min_separation_ratio 0.054 ± 0.053"/><circle cx="143.4" cy="181.7" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="143.4" cy="181.7" r="10" data-tip="D · Zernike · K=6
+min_separation_ratio 0.047 ± 0.048"/><circle cx="176.6" cy="181.8" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="176.6" cy="181.8" r="10" data-tip="D · Zernike · K=7
+min_separation_ratio 0.047 ± 0.091"/><circle cx="209.7" cy="178.0" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="209.7" cy="178.0" r="10" data-tip="D · Zernike · K=8
+min_separation_ratio 0.059 ± 0.095"/><circle cx="242.9" cy="178.9" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="242.9" cy="178.9" r="10" data-tip="D · Zernike · K=9
+min_separation_ratio 0.056 ± 0.059"/><circle cx="276.0" cy="177.7" r="4" style="fill:var(--c-d)" class="ring"/><circle class="hit" cx="276.0" cy="177.7" r="10" data-tip="D · Zernike · K=10
+min_separation_ratio 0.060 ± 0.049"/><path d="M44.0,162.5 L77.1,187.3 L110.3,177.3 L143.4,187.6 L176.6,193.3 L209.7,191.6 L242.9,189.5 L276.0,189.5" fill="none" style="stroke:var(--c-m)" stroke-width="2" stroke-linejoin="round"/><circle cx="44.0" cy="162.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="44.0" cy="162.5" r="10" data-tip="M · Zernike · K=3
+min_separation_ratio 0.111 ± 0.168"/><circle cx="77.1" cy="187.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="77.1" cy="187.3" r="10" data-tip="M · Zernike · K=4
+min_separation_ratio 0.029 ± 0.025"/><circle cx="110.3" cy="177.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="110.3" cy="177.3" r="10" data-tip="M · Zernike · K=5
+min_separation_ratio 0.062 ± 0.095"/><circle cx="143.4" cy="187.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="143.4" cy="187.6" r="10" data-tip="M · Zernike · K=6
+min_separation_ratio 0.028 ± 0.016"/><circle cx="176.6" cy="193.3" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="176.6" cy="193.3" r="10" data-tip="M · Zernike · K=7
+min_separation_ratio 0.009 ± 0.006"/><circle cx="209.7" cy="191.6" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="209.7" cy="191.6" r="10" data-tip="M · Zernike · K=8
+min_separation_ratio 0.015 ± 0.018"/><circle cx="242.9" cy="189.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="242.9" cy="189.5" r="10" data-tip="M · Zernike · K=9
+min_separation_ratio 0.021 ± 0.029"/><circle cx="276.0" cy="189.5" r="4" style="fill:var(--c-m)" class="ring"/><circle class="hit" cx="276.0" cy="189.5" r="10" data-tip="M · Zernike · K=10
+min_separation_ratio 0.022 ± 0.022"/><text class="dl" x="286.0" y="176.8">D</text><text class="dl" x="286.0" y="188.5">M</text><text class="dl" x="286.0" y="199.5">A</text></svg></figure></div>
+<p>Separasi turun tajam seiring K naik pada semua model, dan pada K besar nilainya mendekati 0 (ada pasangan label yang hampir berimpit).
+Ini konsisten dengan mekanisme <i>crowded quantum labels</i>. Keunggulan separasi D atas A paling terlihat pada PCA K=3–6 dan hilang pada K besar.</p>
+
+<h2 id="y">7 · Aktivasi observable Y-odd (<code>yodd_norm_fraction</code>)</h2>
+<p>Bagian norma readout yang berasal dari enam observable dengan jumlah faktor Y ganjil (IY, XY, YI, YX, YZ, ZY), dihitung pada semua kondisi fitur × K.</p>
+<div class="tw"><table class=""><thead><tr><th>Model</th><th>Min</th><th>Rata-rata</th><th>Maks</th></tr></thead><tbody><tr><td><i class="sw" style="background:var(--c-a)"></i>A · MORE-HD</td><td>0.000</td><td>0.000</td><td>0.000</td></tr><tr><td><i class="sw" style="background:var(--c-b)"></i>B · MORE-HD-60P</td><td>0.000</td><td>0.000</td><td>0.000</td></tr><tr><td><i class="sw" style="background:var(--c-c)"></i>C · MORE-HD-C-FixedRZ</td><td>0.294</td><td>0.364</td><td>0.451</td></tr><tr><td><i class="sw" style="background:var(--c-d)"></i>D · MORE-HD-C</td><td>0.218</td><td>0.440</td><td>0.600</td></tr><tr><td><i class="sw" style="background:var(--c-m)"></i>M · MORE-REPRO</td><td>0.279</td><td>0.342</td><td>0.464</td></tr></tbody></table></div>
+<p>A dan B bernilai <b>tepat 0</b> di semua kondisi, yang mengonfirmasi structural zero pada sirkuit riil. C dan D mengaktifkan dimensi tersebut secara substansial.
+Meski begitu, C (aktif tetapi beku) dan D (aktif dan trainable) memiliki akurasi yang mirip, dan keduanya kalah dari B yang Y-odd-nya nol.
+Jadi, aktivasi dimensi tambahan bukan penentu utama akurasi pada eksperimen ini.</p>
+
+<h2 id="69">8 · Analisis sensitivitas digit 6 ↔ 9 (K=10)</h2>
+<p>Laju kebingungan 6↔9 (proporsi sampel 6 dan 9 yang tertukar), dengan akurasi asli → akurasi jika 6 dan 9 digabung dalam kurung.</p>
+<div class="tw"><table class=""><thead><tr><th>Model (K=10)</th><th>PCA</th><th>Hu</th><th>Zernike</th></tr></thead><tbody><tr><td>A · MORE-HD</td><td>1.8% <small>(32% → 32%)</small></td><td>20.9% <small>(21% → 25%)</small></td><td>10.1% <small>(29% → 31%)</small></td></tr><tr><td>B · MORE-HD-60P</td><td>0.5% <small>(59% → 59%)</small></td><td>21.8% <small>(27% → 31%)</small></td><td>7.5% <small>(43% → 44%)</small></td></tr><tr><td>C · MORE-HD-C-FixedRZ</td><td>1.8% <small>(38% → 39%)</small></td><td>21.3% <small>(22% → 26%)</small></td><td>10.5% <small>(34% → 36%)</small></td></tr><tr><td>D · MORE-HD-C</td><td>2.1% <small>(42% → 43%)</small></td><td>23.3% <small>(18% → 23%)</small></td><td>10.8% <small>(39% → 41%)</small></td></tr><tr><td>M · MORE-REPRO</td><td>7.3% <small>(19% → 21%)</small></td><td>23.8% <small>(19% → 24%)</small></td><td>19.8% <small>(17% → 21%)</small></td></tr><tr><td>NC</td><td>0.1% <small>(73% → 73%)</small></td><td>26.6% <small>(34% → 40%)</small></td><td>3.6% <small>(58% → 59%)</small></td></tr><tr><td>LR</td><td>0.1% <small>(79% → 79%)</small></td><td>15.3% <small>(55% → 58%)</small></td><td>3.3% <small>(66% → 66%)</small></td></tr></tbody></table></div>
+<p>Hu dan Zernike invarian terhadap rotasi, sehingga laju kebingungan 6↔9 jauh lebih tinggi (sekitar 20% untuk Hu) dibanding PCA (sekitar 2%).
+Pola yang sama juga muncul pada baseline klasik NC dan LR, jadi kesalahan ini berasal dari tingkat fitur, bukan dari label kuantum yang berdesakan.
+Menggabungkan 6 dan 9 hanya menaikkan akurasi beberapa poin, sehingga 6↔9 bukan penyebab utama rendahnya akurasi pada K=10.</p>
+
+<h2 id="rt">9 · Biaya komputasi</h2>
+<div class="tw"><table class=""><thead><tr><th>Model</th><th>Param</th><th>Gate</th><th>Depth</th><th>Microbenchmark<br><small>median wall / eksekusi</small></th><th>Waktu run rata-rata</th><th>Waktu run K=10</th></tr></thead><tbody><tr><td><i class="sw" style="background:var(--c-a)"></i>A · MORE-HD</td><td>30</td><td>71</td><td>31</td><td>63.8 µs</td><td>8.8 mnt</td><td>12.0 mnt</td></tr><tr><td><i class="sw" style="background:var(--c-b)"></i>B · MORE-HD-60P</td><td>60</td><td>134</td><td>58</td><td>90.7 µs</td><td>10.2 mnt</td><td>13.5 mnt</td></tr><tr><td><i class="sw" style="background:var(--c-c)"></i>C · MORE-HD-C-FixedRZ</td><td>30</td><td>101</td><td>34</td><td>67.5 µs</td><td>8.8 mnt</td><td>12.1 mnt</td></tr><tr><td><i class="sw" style="background:var(--c-d)"></i>D · MORE-HD-C</td><td>60</td><td>101</td><td>34</td><td>64.3 µs</td><td>8.8 mnt</td><td>12.2 mnt</td></tr><tr><td><i class="sw" style="background:var(--c-m)"></i>M · MORE-REPRO</td><td>91</td><td>130</td><td>34</td><td>32.9 µs</td><td>4.6 mnt</td><td>5.9 mnt</td></tr></tbody></table></div>
+<p class="note">Microbenchmark (mesin konfirmatori, batch 1000 sampel) adalah satu-satunya sumber klaim biaya di paper (SAP §4.5). Waktu run
+produksi hanya deskriptif karena bergantung pada beban mesin dan jumlah proses paralel. Penambahan RZ (D) hampir tidak menambah waktu dibanding A,
+sedangkan B (6 lapis) adalah model yang paling mahal.</p>
+
+<h2 id="kesimpulan">10 · Kesimpulan dan implikasi untuk penulisan</h2>
+<div class="card">
+<ol class="key">
+<li><b>RQ1 (D vs A):</b> MORE-HD-C cenderung meningkatkan akurasi dan macro-F1 dibanding MORE-HD. Efeknya paling jelas pada PCA dan Zernike, dan hampir tidak ada pada Hu.
+Bukti berasal dari konsistensi arah, CI, dan McNemar. Dengan 5 seed, uji sign-flip tidak mungkin mencapai p &lt; 0,05, jadi gunakan bahasa seperti
+“konsisten” atau “cenderung”, bukan “signifikan”, untuk estimand primer.</li>
+<li><b>RQ2 (ablation):</b> Peningkatan itu <b>tidak dapat</b> dikaitkan terutama dengan akses state kompleks. Sirkuit riil dengan 60 parameter (B) lebih unggul.
+Ini temuan negatif yang penting dan perlu dilaporkan secara terbuka, termasuk catatan bahwa B lebih dalam daripada D.</li>
+<li><b>RQ3 (vs MORE):</b> Dalam protokol yang identik, arsitektur MORE-HD (dengan readout 2 qubit dan 15 observable) jauh lebih akurat daripada MORE pada PCA dan Zernike,
+meskipun memakai lebih sedikit parameter (30 atau 60 vs 91). Angka paper MORE hanya dipakai sebagai konteks deskriptif.</li>
+<li><b>RQ4 (fitur):</b> PCA adalah fitur terbaik, dan Hu paling lemah karena kehilangan informasi dan sifat invariansi rotasi.</li>
+<li><b>Batasan yang wajib disebut:</b> simulasi tanpa noise; urutan kelas kumulatif; 5 seed; budget evaluasi yang sama (fase supervised belum plateau di satu run pilot);
+dan model kuantum masih di bawah baseline klasik linear.</li>
+</ol>
+</div>
+<p class="note">Saran analisis lanjutan (eksploratif, harus diberi label “di luar SAP”): ablation B vs D dengan kedalaman yang disamakan, untuk memisahkan efek kedalaman dari efek parameter.</p>
+
+<h2 id="lampiran">Lampiran · Tabel akurasi lengkap</h2>
+<details><summary>Tampilkan akurasi rata-rata ± SD (5 seed) untuk semua model, fitur, dan K</summary>
+<div class="tw"><table class=""><thead><tr><th>Fitur</th><th>K</th><th>A</th><th>B</th><th>C</th><th>D</th><th>M</th><th>NC</th><th>LR</th><th>Chance</th></tr></thead><tbody><tr><td>PCA</td><td>3</td><td>80.8% <small>±14.1%</small></td><td>95.5% <small>±1.6%</small></td><td>89.4% <small>±7.1%</small></td><td>89.8% <small>±10.0%</small></td><td>55.9% <small>±9.5%</small></td><td>93.8%</td><td>97.7%</td><td>33.3%</td></tr><tr><td>PCA</td><td>4</td><td>56.9% <small>±11.4%</small></td><td>–</td><td>–</td><td>80.4% <small>±5.3%</small></td><td>45.8% <small>±2.2%</small></td><td>90.5%</td><td>94.4%</td><td>25.0%</td></tr><tr><td>PCA</td><td>5</td><td>66.7% <small>±5.9%</small></td><td>–</td><td>–</td><td>76.8% <small>±7.7%</small></td><td>37.3% <small>±2.3%</small></td><td>90.2%</td><td>93.4%</td><td>20.0%</td></tr><tr><td>PCA</td><td>6</td><td>52.6% <small>±7.9%</small></td><td>70.8% <small>±3.9%</small></td><td>59.5% <small>±9.3%</small></td><td>59.9% <small>±5.8%</small></td><td>31.5% <small>±2.0%</small></td><td>80.8%</td><td>87.0%</td><td>16.7%</td></tr><tr><td>PCA</td><td>7</td><td>58.0% <small>±12.1%</small></td><td>–</td><td>–</td><td>55.5% <small>±11.0%</small></td><td>25.5% <small>±3.8%</small></td><td>79.3%</td><td>84.4%</td><td>14.3%</td></tr><tr><td>PCA</td><td>8</td><td>52.6% <small>±9.5%</small></td><td>–</td><td>–</td><td>56.8% <small>±15.7%</small></td><td>21.3% <small>±3.9%</small></td><td>79.7%</td><td>83.7%</td><td>12.5%</td></tr><tr><td>PCA</td><td>9</td><td>34.2% <small>±8.8%</small></td><td>–</td><td>–</td><td>51.6% <small>±8.6%</small></td><td>20.4% <small>±3.0%</small></td><td>77.4%</td><td>82.6%</td><td>11.1%</td></tr><tr><td>PCA</td><td>10</td><td>31.8% <small>±6.7%</small></td><td>58.8% <small>±2.8%</small></td><td>38.4% <small>±6.0%</small></td><td>42.2% <small>±5.0%</small></td><td>19.2% <small>±2.2%</small></td><td>73.0%</td><td>78.6%</td><td>10.0%</td></tr><tr><td>Hu moments</td><td>3</td><td>62.8% <small>±12.5%</small></td><td>71.5% <small>±7.0%</small></td><td>64.2% <small>±6.0%</small></td><td>62.2% <small>±3.5%</small></td><td>65.7% <small>±6.7%</small></td><td>73.0%</td><td>92.0%</td><td>33.3%</td></tr><tr><td>Hu moments</td><td>4</td><td>44.9% <small>±7.5%</small></td><td>–</td><td>–</td><td>54.6% <small>±10.2%</small></td><td>50.2% <small>±3.9%</small></td><td>61.3%</td><td>83.0%</td><td>25.0%</td></tr><tr><td>Hu moments</td><td>5</td><td>34.2% <small>±7.4%</small></td><td>–</td><td>–</td><td>38.7% <small>±10.6%</small></td><td>42.1% <small>±2.7%</small></td><td>53.1%</td><td>72.9%</td><td>20.0%</td></tr><tr><td>Hu moments</td><td>6</td><td>26.8% <small>±3.5%</small></td><td>37.3% <small>±2.2%</small></td><td>32.1% <small>±3.4%</small></td><td>31.7% <small>±8.9%</small></td><td>31.3% <small>±3.8%</small></td><td>45.7%</td><td>62.8%</td><td>16.7%</td></tr><tr><td>Hu moments</td><td>7</td><td>24.0% <small>±4.2%</small></td><td>–</td><td>–</td><td>33.7% <small>±6.0%</small></td><td>29.6% <small>±3.0%</small></td><td>43.6%</td><td>63.8%</td><td>14.3%</td></tr><tr><td>Hu moments</td><td>8</td><td>23.4% <small>±5.1%</small></td><td>–</td><td>–</td><td>25.5% <small>±7.7%</small></td><td>26.2% <small>±4.0%</small></td><td>41.5%</td><td>62.8%</td><td>12.5%</td></tr><tr><td>Hu moments</td><td>9</td><td>20.6% <small>±1.6%</small></td><td>–</td><td>–</td><td>26.1% <small>±4.8%</small></td><td>21.2% <small>±4.9%</small></td><td>37.7%</td><td>59.2%</td><td>11.1%</td></tr><tr><td>Hu moments</td><td>10</td><td>20.8% <small>±2.8%</small></td><td>27.1% <small>±3.9%</small></td><td>21.7% <small>±5.5%</small></td><td>18.4% <small>±1.0%</small></td><td>19.5% <small>±2.5%</small></td><td>34.4%</td><td>54.9%</td><td>10.0%</td></tr><tr><td>Zernike</td><td>3</td><td>78.9% <small>±4.3%</small></td><td>76.7% <small>±6.5%</small></td><td>75.4% <small>±6.7%</small></td><td>69.1% <small>±6.2%</small></td><td>56.9% <small>±6.2%</small></td><td>91.1%</td><td>94.0%</td><td>33.3%</td></tr><tr><td>Zernike</td><td>4</td><td>54.5% <small>±7.6%</small></td><td>–</td><td>–</td><td>59.2% <small>±8.9%</small></td><td>44.0% <small>±3.5%</small></td><td>77.1%</td><td>82.4%</td><td>25.0%</td></tr><tr><td>Zernike</td><td>5</td><td>49.5% <small>±9.4%</small></td><td>–</td><td>–</td><td>58.0% <small>±6.8%</small></td><td>38.2% <small>±5.5%</small></td><td>77.6%</td><td>81.5%</td><td>20.0%</td></tr><tr><td>Zernike</td><td>6</td><td>46.5% <small>±4.2%</small></td><td>53.5% <small>±7.0%</small></td><td>42.7% <small>±4.5%</small></td><td>46.7% <small>±9.6%</small></td><td>28.3% <small>±4.9%</small></td><td>67.8%</td><td>72.3%</td><td>16.7%</td></tr><tr><td>Zernike</td><td>7</td><td>37.4% <small>±5.2%</small></td><td>–</td><td>–</td><td>40.0% <small>±4.8%</small></td><td>23.4% <small>±4.0%</small></td><td>65.3%</td><td>70.2%</td><td>14.3%</td></tr><tr><td>Zernike</td><td>8</td><td>31.7% <small>±6.1%</small></td><td>–</td><td>–</td><td>35.4% <small>±4.7%</small></td><td>21.8% <small>±4.3%</small></td><td>64.5%</td><td>70.2%</td><td>12.5%</td></tr><tr><td>Zernike</td><td>9</td><td>30.6% <small>±8.8%</small></td><td>–</td><td>–</td><td>39.9% <small>±4.4%</small></td><td>18.0% <small>±3.9%</small></td><td>61.5%</td><td>68.0%</td><td>11.1%</td></tr><tr><td>Zernike</td><td>10</td><td>29.4% <small>±3.3%</small></td><td>42.5% <small>±4.2%</small></td><td>33.9% <small>±4.6%</small></td><td>38.6% <small>±5.6%</small></td><td>16.6% <small>±3.2%</small></td><td>58.1%</td><td>65.6%</td><td>10.0%</td></tr></tbody></table></div>
+</details>
+<p class="note">Dibuat oleh <code>analysis/build_eda_report.py</code> dari tabel <code>research_data/analysis/*.csv</code> (output <code>run_analysis.py --run-mode CONFIRMATORY</code>),
+<code>runs/baselines/baseline_results.csv</code>, dan microbenchmark di <code>research_data/confirmatory_machine/benchmarks/</code>.</p>
+</main>
+<div id="tip" role="tooltip"></div>
+<script>
+const tip=document.getElementById('tip');
+document.addEventListener('pointerover',e=>{const t=e.target.closest('[data-tip]');if(!t)return;tip.textContent=t.dataset.tip;tip.style.opacity=1});
+document.addEventListener('pointermove',e=>{if(tip.style.opacity!=='1')return;const w=tip.offsetWidth,h=tip.offsetHeight;
+let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;tip.style.left=x+'px';tip.style.top=y+'px'});
+document.addEventListener('pointerout',e=>{if(e.target.closest('[data-tip]'))tip.style.opacity=0});
+</script></body></html>
