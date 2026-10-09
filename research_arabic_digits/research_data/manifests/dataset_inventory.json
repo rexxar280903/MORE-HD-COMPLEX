@@ -1,0 +1,86 @@
+{
+  "dataset_id": "MADBASE-AUC-V1",
+  "official_page": "https://datacenter.aucegypt.edu/shazeem/",
+  "snapshot_sha256": "8262dca2d3db6205e0112586dd9a02c35b0b371da292aab0a15dc92976793f78",
+  "archives": {
+    "MAHDBase_TestingSet.rar": {
+      "bytes": 5487352,
+      "sha256": "a8294a266f1843b4c659291dfda6e71620abbfcaec47e4313024c691eb494b1d"
+    },
+    "MAHDBase_TrainingSet.rar": {
+      "bytes": 31184713,
+      "sha256": "ae2d5bcd658320eaf054de1ba46aac187a0470830d685258a0a2b0659c8d2eb8"
+    }
+  },
+  "image_format": "BMP source; canonical uint8 array",
+  "raw_polarity": "white_background_dark_foreground",
+  "canonical_polarity": "black_background_bright_foreground",
+  "canonical_transform": "uint8 255 - raw_grayscale",
+  "train": {
+    "n_samples": 60000,
+    "shape": [
+      28,
+      28
+    ],
+    "dtype": "uint8",
+    "pixel_min": 0,
+    "pixel_max": 255,
+    "n_classes": 10,
+    "class_counts": {
+      "0": 6000,
+      "1": 6000,
+      "2": 6000,
+      "3": 6000,
+      "4": 6000,
+      "5": 6000,
+      "6": 6000,
+      "7": 6000,
+      "8": 6000,
+      "9": 6000
+    },
+    "n_writers": 600,
+    "writer_min": 1,
+    "writer_max": 600,
+    "blank_images": 0,
+    "images_touching_border": 1068
+  },
+  "test": {
+    "n_samples": 10000,
+    "shape": [
+      28,
+      28
+    ],
+    "dtype": "uint8",
+    "pixel_min": 0,
+    "pixel_max": 255,
+    "n_classes": 10,
+    "class_counts": {
+      "0": 1000,
+      "1": 1000,
+      "2": 1000,
+      "3": 1000,
+      "4": 1000,
+      "5": 1000,
+      "6": 1000,
+      "7": 1000,
+      "8": 1000,
+      "9": 1000
+    },
+    "n_writers": 100,
+    "writer_min": 601,
+    "writer_max": 700,
+    "blank_images": 0,
+    "images_touching_border": 155
+  },
+  "official_test_origin": "OFFICIAL_SOURCE",
+  "train_test_writer_overlap": 0,
+  "duplicate_audit": {
+    "exact_within_split_groups": 39,
+    "exact_cross_split_groups": 12,
+    "exact_label_conflict_groups": 0,
+    "dhash_distance_le_1_candidate_pairs_scanned": 532516,
+    "near_exact_cross_split_pairs_dhash_le_1_and_pixel_mae_le_2": 3879,
+    "candidate_rows_saved_cap": 500,
+    "candidate_method_warning": "dHash candidates require human review; they are not automatic exclusions"
+  }
+}

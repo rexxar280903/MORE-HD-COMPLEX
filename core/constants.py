@@ -8,6 +8,13 @@ import math
 PILOT_SEED = 42
 CONFIRMATORY_SEEDS = (101, 202, 303, 404, 505)
 RUN_MODES = ("PILOT", "CONFIRMATORY")
+DATASET_MNIST = "MNIST"
+DATASET_MADBASE = "MADBASE"
+DATASETS = (DATASET_MNIST, DATASET_MADBASE)
+DATASET_IDS = {
+    DATASET_MNIST: "MNIST-TORCHVISION-V1",
+    DATASET_MADBASE: "MADBASE-AUC-V1",
+}
 SUBSEED_RULE = (
     'SHA256(str(master_seed) + ":" + namespace), first 8 hex -> uint32; '
     "numpy.random.default_rng (PCG64)"
@@ -164,10 +171,23 @@ STATUS_FAILED = "FAILED"
 MASTER_SPREADSHEET_PATH = "research_data/MORE_HD_master_confirmatory_240runs.xlsx"
 ABLATION_SPREADSHEET_PATH = "research_data/MORE_HD_master_ablation_90runs.xlsx"
 MORE_REFERENCE_SPREADSHEET_PATH = "research_data/MORE_HD_master_more_reference_120runs.xlsx"
+MADBASE_MASTER_SPREADSHEET_PATH = "research_arabic_digits/research_data/MORE_HD_master_confirmatory_240runs.xlsx"
+MADBASE_ABLATION_SPREADSHEET_PATH = "research_arabic_digits/research_data/MORE_HD_master_ablation_90runs.xlsx"
+MADBASE_MORE_REFERENCE_SPREADSHEET_PATH = "research_arabic_digits/research_data/MORE_HD_master_more_reference_120runs.xlsx"
 LOCAL_RUN_SPREADSHEET_NAME = "run_result.xlsx"
 MNIST_ROOT = "data/"
+MADBASE_ROOT = "research_arabic_digits/research_data/"
 SPLITS_DIR = "splits/"
+MADBASE_SPLITS_DIR = "research_arabic_digits/splits/"
 RUNS_DIR = "runs/"
+
+# MADBase split policy.  Training and validation are writer-disjoint subsets of
+# the official training pool.  A PILOT uses a third writer-disjoint holdout from
+# that same pool; CONFIRMATORY uses a fixed subset of the official test writers.
+# The final-test writer seed is intentionally independent of the experiment seed
+# so all paired runs and replications see exactly the same final instances.
+MADBASE_FINAL_TEST_WRITER_SEED = 20261008
+MADBASE_LICENSE_POLICY = "LOCAL_RESEARCH_ONLY_NO_RAW_REDISTRIBUTION"
 
 # --- Jalur B scope (SAP §12.1; frozen 2026-10-04) ---------------------------------
 JALUR_B_K_VALUES = (3, 6, 10)

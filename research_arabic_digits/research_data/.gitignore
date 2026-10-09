@@ -1,0 +1,8 @@
+raw/
+extracted/
+processed/
+runs/
+local_cache/
+pytest_tmp*/
+*.tmp
+*.tmp.*

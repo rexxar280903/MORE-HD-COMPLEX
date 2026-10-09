@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "dataset": "MADBASE",
+  "dataset_id": "MADBASE-AUC-V1",
+  "status": "PILOT_FROZEN_CONFIRMATORY_BLOCKED_PENDING_CONVERGENCE",
+  "frozen_at": "2026-10-09T11:00:00+07:00",
+  "license_policy": "LOCAL_RESEARCH_ONLY_NO_RAW_REDISTRIBUTION",
+  "classes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "class_regime": "cumulative_nested_K_3_through_10",
+  "features": ["PCA", "HU", "ZERNIKE"],
+  "primary_architectures": ["MORE-HD", "MORE-HD-C"],
+  "ablation_architectures": ["MORE-HD-60P", "MORE-HD-C-FixedRZ"],
+  "reference_architectures": ["MORE-REPRO"],
+  "pilot_seed": 42,
+  "confirmatory_seeds": [101, 202, 303, 404, 505],
+  "n_train_per_class": 1000,
+  "n_validation_per_class": 100,
+  "n_final_test_per_class": 200,
+  "train_validation_policy": "writer_disjoint_from_official_train",
+  "pilot_test_policy": "writer_disjoint_holdout_from_official_train_only",
+  "confirmatory_test_policy": "fixed_official_test_writer_subset_shared_across_all_seeds",
+  "duplicate_policy": "retain_official_snapshot_and_report_flags_without_silent_exclusion",
+  "final_test_isolation": "preprocessing_and_model_access_only_inside_final_evaluation",
+  "metric_policy": {
+    "primary": ["accuracy", "macro_f1", "minimum_separation_ratio"],
+    "fixed_label_set": "classes_in_condition",
+    "zero_division": 0,
+    "prediction_tie_break": "lowest_class_index_via_numpy_argmin"
+  },
+  "retry_policy": "same_run_uid_seed_and_config; consecutive_attempt; one_completed_attempt_admitted",
+  "confirmatory_unblock_requirement": "FROZEN convergence_budget_decision.json generated from MADBase pilot"
+}

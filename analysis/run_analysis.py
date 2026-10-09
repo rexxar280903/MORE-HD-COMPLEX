@@ -44,11 +44,14 @@ METRICS = {
 PRIMARY_INFERENTIAL = ("accuracy", "f1_macro", "min_separation_ratio")
 
 
-def load_runs(runs_root: Path, run_mode: str, pilot_tag: str | None = None) -> list[dict]:
+def load_runs(runs_root: Path, run_mode: str, pilot_tag: str | None = None,
+              dataset: str = C.DATASET_MNIST) -> list[dict]:
     runs = []
     for cfg_path in sorted(runs_root.rglob("config.json")):
         m = load_json(cfg_path)
         if "track" not in m or m.get("track") == "JALUR_B" or m.get("run_mode") != run_mode:
+            continue
+        if m.get("dataset", C.DATASET_MNIST) != dataset:
             continue
         if run_mode == "PILOT" and pilot_tag is not None and m.get("pilot_tag") != pilot_tag:
             continue
@@ -160,8 +163,11 @@ def mcnemar_primary(idx, seeds):
                 ya = load_npy(ra["dir"] / "artifacts" / "y_test.npy")
                 pa = load_npy(ra["dir"] / "logs" / "test_predictions.npy")
                 pd_ = load_npy(rd["dir"] / "logs" / "test_predictions.npy")
-                if not np.array_equal(load_npy(rd["dir"] / "logs" / "test_mnist_index.npy"),
-                                      load_npy(ra["dir"] / "logs" / "test_mnist_index.npy")):
+                name = ("test_source_index.npy" if
+                        (ra["dir"] / "logs" / "test_source_index.npy").exists()
+                        else "test_mnist_index.npy")
+                if not np.array_equal(load_npy(rd["dir"] / "logs" / name),
+                                      load_npy(ra["dir"] / "logs" / name)):
                     raise SystemExit("A/D official-test identities differ")
                 res = mcnemar_exact(pa == ya, pd_ == ya)
                 fam.append({"seed": s, "feature_method": fm, "K": k, **res})
@@ -241,17 +247,26 @@ def write_csv(rows, path):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--run-mode", choices=C.RUN_MODES, default="CONFIRMATORY")
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--project-root", default=str(ROOT))
     p.add_argument("--out-dir", default=None)
     p.add_argument("--pilot-tag", default=None, help="PILOT only: analyse one pilot stage (e.g. convergence)")
     a = p.parse_args()
     root = Path(a.project_root)
-    runs = load_runs(root / C.RUNS_DIR, a.run_mode, a.pilot_tag)
+    runs = load_runs(root / C.RUNS_DIR, a.run_mode, a.pilot_tag, a.dataset)
     seeds = list(C.CONFIRMATORY_SEEDS) if a.run_mode == "CONFIRMATORY" else [C.PILOT_SEED]
-    out = Path(a.out_dir) if a.out_dir else root / "research_data" / ("analysis" if a.run_mode == "CONFIRMATORY" else "analysis_pilot")
+    if a.out_dir:
+        out = Path(a.out_dir)
+    elif a.dataset == C.DATASET_MADBASE:
+        out = root / "research_arabic_digits" / "research_data" / (
+            "analysis" if a.run_mode == "CONFIRMATORY" else "analysis_pilot"
+        )
+    else:
+        out = root / "research_data" / ("analysis" if a.run_mode == "CONFIRMATORY" else "analysis_pilot")
     out.mkdir(parents=True, exist_ok=True)
     idx = index_runs(runs)
-    broot = root / C.RUNS_DIR / ("baselines" if a.run_mode == "CONFIRMATORY" else "baselines_pilot")
+    base_name = "baselines" if a.run_mode == "CONFIRMATORY" else "baselines_pilot"
+    broot = root / C.RUNS_DIR / ("arabic_digits" if a.dataset == C.DATASET_MADBASE else "") / base_name
     tables = {
         "seed_aggregation": seed_aggregation(runs),
         "paired_primary_D_minus_A": paired_rows(idx, "A", "D", tuple(METRICS), seeds, "A-D (D-A)"),
@@ -272,7 +287,7 @@ def main():
             for r in rows:
                 ws.append([r.get(h) if not isinstance(r.get(h), (list, dict)) else str(r.get(h)) for h in hdr])
     wb.save(out / "MORE_HD_analysis_tables.xlsx")
-    print(f"{len(runs)} runs analysed ({a.run_mode}); tables in {out}")
+    print(f"{len(runs)} runs analysed ({a.dataset}, {a.run_mode}); tables in {out}")
     for name, rows in tables.items():
         print(f"  {name}: {len(rows)} rows")
 

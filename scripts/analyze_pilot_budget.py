@@ -47,6 +47,7 @@ def curve_stats(losses, stopped_by_budget):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--project-root", default=str(ROOT))
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--tag", default="convergence")
     p.add_argument("--cap", type=int, default=C.PILOT_MAX_NFEV_CAP)
     a = p.parse_args()
@@ -56,6 +57,8 @@ def main():
     for cfg_path in sorted((root / C.RUNS_DIR).rglob("config.json")):
         m = load_json(cfg_path)
         if m.get("run_mode") != "PILOT" or m.get("pilot_tag") != a.tag or m.get("track") == "JALUR_B":
+            continue
+        if m.get("dataset", C.DATASET_MNIST) != a.dataset:
             continue
         d = cfg_path.parent
         for loop in ("clustering", "supervised"):
@@ -68,7 +71,8 @@ def main():
                          "status": opt["status"], "message": opt["message"], **st})
     if not rows:
         raise SystemExit("no convergence pilot runs found")
-    decision = {"rule": "pseudocode §1.1 (frozen 2026-09-27; cap revised to %d on 2026-10-04 before any pilot run)" % a.cap,
+    decision = {"status": "FROZEN", "dataset": a.dataset, "dataset_id": C.DATASET_IDS[a.dataset],
+                "rule": "pseudocode §1.1 (frozen before confirmatory execution; cap=%d)" % a.cap,
                 "tol_fraction": TOL_FRACTION, "tail": TAIL, "cap": a.cap, "n_runs": len({r['run_uid'] for r in rows})}
     for loop in ("clustering", "supervised"):
         lr = [r for r in rows if r["loop"] == loop]
@@ -84,7 +88,8 @@ def main():
                           "not_plateaued_runs": not_plateaued, "final_max_nfev": final,
                           "rule5_floor_applied": rule5_applied,
                           "limitation": bool(not_plateaued)}
-    out = root / "research_data" / "pilot"
+    out = root / ("research_arabic_digits/research_data/pilot"
+                  if a.dataset == C.DATASET_MADBASE else "research_data/pilot")
     out.mkdir(parents=True, exist_ok=True)
     save_json_atomic(decision, out / "convergence_budget_decision.json")
     with open(out / "convergence_curves_summary.csv", "w", newline="", encoding="utf-8") as fh:

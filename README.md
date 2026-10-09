@@ -102,7 +102,23 @@ tests/                     unit + integration test per gate
 splits/                    split manifest seed 42/101/202/303/404/505
 research_data/             template workbook (primer, ablation, MORE reference), bukti pilot
 docs/                      METHODS_DRAFT.md (draf metode paper), RUNBOOK.md
+research_arabic_digits/    pipeline dan dossier MADBase (pilot-ready; konfirmatori budget-gated)
 ```
+
+## Penelitian dataset digit Arab (baru)
+
+Dossier terpisah untuk studi lanjutan menggunakan dataset digit Arab tersedia di
+[`research_arabic_digits/`](research_arabic_digits/README.md). Snapshot resmi
+MADBase AUC (70.000 citra, official split 60.000/10.000) telah diperoleh dan
+diaudit; checksum, inventaris, mapping label, serta loader lokal tersedia.
+Statusnya **siap untuk pilot**: pipeline dataset-aware, split writer-disjoint,
+lazy official-test vault, PCA/Hu/Zernike, lima arsitektur, baseline, Jalur B,
+workbook, konsolidasi, dan analisis telah diuji. Run konfirmatori sengaja
+ditolak sampai pilot konvergensi MADBase membekukan budget optimizer; budget
+MNIST tidak diwariskan. Karena sumber resmi tidak menyatakan lisensi
+redistribusi eksplisit, raw MADBase tetap lokal dan tidak boleh dibagikan.
+Lihat catatan lengkap di
+[`research_arabic_digits/PERBAIKAN_DAN_VERIFIKASI_2026-10-09.md`](research_arabic_digits/PERBAIKAN_DAN_VERIFIKASI_2026-10-09.md).
 
 ## Cara menjalankan (ringkas)
 

@@ -40,9 +40,14 @@ def _attempt_with_arrays(base: Path) -> Path | None:
 
 
 def resolve_baseline_source(root: Path, seed: int, feature: str, k: int, sizes=(1000, 100, 200),
-                            run_mode: str = "CONFIRMATORY", pilot_tag: str = "") -> dict:
-    a_base = root / C.RUNS_DIR / run_name_for(C.ARCH_MORE_HD, feature, k, seed, sizes, run_mode, pilot_tag)
-    d_base = root / C.RUNS_DIR / run_name_for(C.ARCH_MORE_HD_C, feature, k, seed, sizes, run_mode, pilot_tag)
+                            run_mode: str = "CONFIRMATORY", pilot_tag: str = "",
+                            dataset: str = C.DATASET_MNIST) -> dict:
+    a_base = root / C.RUNS_DIR / run_name_for(
+        C.ARCH_MORE_HD, feature, k, seed, sizes, run_mode, pilot_tag, dataset=dataset
+    )
+    d_base = root / C.RUNS_DIR / run_name_for(
+        C.ARCH_MORE_HD_C, feature, k, seed, sizes, run_mode, pilot_tag, dataset=dataset
+    )
     dir_a = _attempt_with_arrays(a_base)
     if dir_a is None:
         raise FileNotFoundError(f"primary MORE-HD data arrays not found for {a_base.name}")
@@ -54,11 +59,13 @@ def resolve_baseline_source(root: Path, seed: int, feature: str, k: int, sizes=(
         if hashes_d != hashes_a:
             raise RuntimeError(f"Array input A dan D berbeda untuk cell ini: {a_base.name}")
         hash_match = True
-    split_path = root / C.SPLITS_DIR / f"seed{seed}.json"
+    split_path = (root / C.MADBASE_SPLITS_DIR / f"{run_mode.lower()}_seed{seed}.json"
+                  if dataset == C.DATASET_MADBASE else root / C.SPLITS_DIR / f"seed{seed}.json")
+    prefix = "AD-" if dataset == C.DATASET_MADBASE else ""
     return {
         "dir_A": dir_a,
-        "run_uid_A": f"{primary_condition_id(k, feature, C.ARCH_MORE_HD)}-S{seed}",
-        "check_run_uid_D": f"{primary_condition_id(k, feature, C.ARCH_MORE_HD_C)}-S{seed}" if dir_d else None,
+        "run_uid_A": f"{prefix}{primary_condition_id(k, feature, C.ARCH_MORE_HD)}-S{seed}",
+        "check_run_uid_D": f"{prefix}{primary_condition_id(k, feature, C.ARCH_MORE_HD_C)}-S{seed}" if dir_d else None,
         "input_array_sha256": hashes_a,
         "input_hash_match_A_D": hash_match,
         "split_manifest_hash": sha256_file(split_path) if split_path.exists() else None,
@@ -76,8 +83,9 @@ def _fit_lr(x, y, c):
 
 
 def run_baseline_cell(root: Path, seed: int, feature: str, k: int, out_root: Path, sizes=(1000, 100, 200),
-                      access_log: list | None = None, run_mode: str = "CONFIRMATORY", pilot_tag: str = "") -> list:
-    src = resolve_baseline_source(root, seed, feature, k, sizes, run_mode, pilot_tag)
+                      access_log: list | None = None, run_mode: str = "CONFIRMATORY", pilot_tag: str = "",
+                      dataset: str = C.DATASET_MNIST) -> list:
+    src = resolve_baseline_source(root, seed, feature, k, sizes, run_mode, pilot_tag, dataset)
     cell_dir = out_root / f"S{seed}_cls-{'-'.join(str(c) for c in range(k))}_{feature}"
     cell_dir.mkdir(parents=True, exist_ok=False)
     art = src["dir_A"] / "artifacts"
@@ -127,6 +135,7 @@ def run_baseline_cell(root: Path, seed: int, feature: str, k: int, out_root: Pat
                  "check_run_uid_D": src["check_run_uid_D"], "input_hash_match_A_D": src["input_hash_match_A_D"]})
     save_json_atomic({
         "seed": seed, "feature_method": feature, "K": k,
+        "dataset": dataset, "dataset_id": C.DATASET_IDS[dataset],
         "source_run_uid_A": src["run_uid_A"], "source_run_dir_A": str(src["dir_A"]),
         "check_run_uid_D": src["check_run_uid_D"], "input_array_sha256": src["input_array_sha256"],
         "input_hash_match_A_D": src["input_hash_match_A_D"], "split_manifest_hash": src["split_manifest_hash"],

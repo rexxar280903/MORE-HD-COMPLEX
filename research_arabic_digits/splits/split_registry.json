@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "MADBASE-AUC-V1",
+  "dataset_snapshot_sha256": "8262dca2d3db6205e0112586dd9a02c35b0b371da292aab0a15dc92976793f78",
+  "policy": "writer-disjoint train/validation; pilot holdout from train; fixed official-test subset",
+  "manifests": [
+    {
+      "run_mode": "PILOT",
+      "seed": 42,
+      "path": "research_arabic_digits\\splits\\pilot_seed42.json",
+      "sha256": "9eccafb608759e319977a9cb3c69c39da4d447e8e4b8870a22457341e038caaf",
+      "test_sample_ids_sha256": "a1dd19cfbcc06039f6a48109be55da6143617021dd645ebc47e78d12ed2e9a8f",
+      "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL"
+    },
+    {
+      "run_mode": "CONFIRMATORY",
+      "seed": 101,
+      "path": "research_arabic_digits\\splits\\confirmatory_seed101.json",
+      "sha256": "7d84804418c27ca33bace8a8f59dd340a7759e086dbc71f72f75564585f04433",
+      "test_sample_ids_sha256": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e",
+      "test_origin": "OFFICIAL_SOURCE_FIXED_WRITER_SUBSET"
+    },
+    {
+      "run_mode": "CONFIRMATORY",
+      "seed": 202,
+      "path": "research_arabic_digits\\splits\\confirmatory_seed202.json",
+      "sha256": "09aad74d30eb07ab0f56c67c98cbd23a28b6312168024dc72bfddb425b7693c9",
+      "test_sample_ids_sha256": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e",
+      "test_origin": "OFFICIAL_SOURCE_FIXED_WRITER_SUBSET"
+    },
+    {
+      "run_mode": "CONFIRMATORY",
+      "seed": 303,
+      "path": "research_arabic_digits\\splits\\confirmatory_seed303.json",
+      "sha256": "24eaa97681f597b098decf88f9acc56a4adcb1f196851f45374eae98eed50049",
+      "test_sample_ids_sha256": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e",
+      "test_origin": "OFFICIAL_SOURCE_FIXED_WRITER_SUBSET"
+    },
+    {
+      "run_mode": "CONFIRMATORY",
+      "seed": 404,
+      "path": "research_arabic_digits\\splits\\confirmatory_seed404.json",
+      "sha256": "8c318a74909c77347e2311a64fce9fab588ac5a3b45fb86d30142b5f2bd5e1f0",
+      "test_sample_ids_sha256": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e",
+      "test_origin": "OFFICIAL_SOURCE_FIXED_WRITER_SUBSET"
+    },
+    {
+      "run_mode": "CONFIRMATORY",
+      "seed": 505,
+      "path": "research_arabic_digits\\splits\\confirmatory_seed505.json",
+      "sha256": "06771c886213f6b98856158ff7d7a07c5da1e7e37101b0c1e78b57c4eafeb600",
+      "test_sample_ids_sha256": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e",
+      "test_origin": "OFFICIAL_SOURCE_FIXED_WRITER_SUBSET"
+    }
+  ],
+  "confirmatory_test_sample_ids_sha256": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e"
+}

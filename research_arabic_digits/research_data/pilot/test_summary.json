@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-09T12:43:00+07:00",
+  "python": "3.13.15",
+  "command": "python -m pytest -q",
+  "pytest": "9.1.1",
+  "qiskit": "2.5.2",
+  "passed": 69,
+  "skipped": 11,
+  "failed": 0,
+  "duration_seconds": 19.28,
+  "skip_scope": "MNIST-local integration tests skipped because the MNIST raw snapshot is not installed; MADBase tests and Qiskit reference tests ran",
+  "verdict": "PASS"
+}

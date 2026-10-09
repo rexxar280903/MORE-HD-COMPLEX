@@ -42,30 +42,35 @@ def plan(stage: str) -> list[tuple]:
     raise ValueError(stage)
 
 
-def command(arch, feature, k, nfev, tag, n_parallel):
+def command(arch, feature, k, nfev, tag, n_parallel, dataset, sizes):
     script, flag = ENTRY[arch]
     cmd = [sys.executable, str(ROOT / script)]
     if flag:
         cmd += [flag, arch]
-    cmd += ["--feature", feature, "--k", str(k), "--seed", "42", "--run-mode", "PILOT",
+    cmd += ["--dataset", dataset, "--feature", feature, "--k", str(k), "--seed", "42", "--run-mode", "PILOT",
             "--max-nfev-clustering", str(nfev), "--max-nfev-supervised", str(nfev),
-            "--pilot-tag", tag, "--n-parallel-declared", str(n_parallel), "--project-root", str(ROOT)]
+            "--pilot-tag", tag, "--n-parallel-declared", str(n_parallel), "--project-root", str(ROOT),
+            "--n-train-per-class", str(sizes[0]), "--n-val-per-class", str(sizes[1]),
+            "--n-test-per-class", str(sizes[2]), "--no-workbook"]
     return cmd
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("stage", choices=["smoke", "timing", "convergence"])
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--parallel", type=int, default=1)
     p.add_argument("--first-only", action="store_true", help="convergence: run only the first check run")
     p.add_argument("--skip-first", action="store_true", help="convergence: run all but the first run")
     a = p.parse_args()
+    sizes = ((20, 6, 8) if a.stage in ("smoke", "timing")
+             else (C.N_TRAIN_PER_CLASS, C.N_VAL_PER_CLASS, C.N_TEST_PER_CLASS))
     runs = plan(a.stage)
     if a.stage == "convergence" and a.first_only:
         runs = runs[:1]
     if a.stage == "convergence" and a.skip_first:
         runs = runs[1:]
-    log_dir = ROOT / "runs" / "pilot_logs"
+    log_dir = ROOT / "runs" / ("arabic_digits" if a.dataset == C.DATASET_MADBASE else "") / "pilot_logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
     def launch(r):
@@ -73,7 +78,8 @@ def main():
         name = f"{a.stage}_{arch}_{feature}_K{k}"
         t0 = time.time()
         with open(log_dir / f"{name}.log", "w") as fh:
-            rc = subprocess.run(command(arch, feature, k, nfev, a.stage, a.parallel), stdout=fh, stderr=subprocess.STDOUT).returncode
+            rc = subprocess.run(command(arch, feature, k, nfev, a.stage, a.parallel, a.dataset, sizes),
+                                stdout=fh, stderr=subprocess.STDOUT).returncode
         return name, rc, time.time() - t0
 
     with ThreadPoolExecutor(max_workers=a.parallel) as ex:

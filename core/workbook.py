@@ -128,6 +128,7 @@ def _common(run: RunArtifacts) -> dict:
     return {
         "condition_id": m["condition_id"], "run_uid": m["run_uid"], "seed": m["seed"],
         "K": m["n_classes"], "feature_method": m["feature_method"], "architecture": m["architecture"],
+        "dataset": m.get("dataset", C.DATASET_MNIST), "dataset_id": m.get("dataset_id"),
     }
 
 
@@ -150,6 +151,7 @@ def build_run_summary(run: RunArtifacts) -> dict:
     k = m["n_classes"]
     row = {
         "condition_id": m["condition_id"], "run_uid": m["run_uid"], "run_name": m["run_name"],
+        "dataset": m.get("dataset", C.DATASET_MNIST), "dataset_id": m.get("dataset_id"),
         "status": run.status["status"] if run.status else None, "run_mode": m["run_mode"], "K": k,
         "classes": ",".join(str(c) for c in m["classes"]), "feature_method": m["feature_method"],
         "architecture": m["architecture"], "seed": m["seed"], "replication_id": f"S{m['seed']}",
@@ -213,6 +215,10 @@ def build_run_config(run: RunArtifacts) -> dict:
     m = run.manifest
     return {
         "condition_id": m["condition_id"], "run_uid": m["run_uid"], "run_name": m["run_name"],
+        "dataset": m.get("dataset", C.DATASET_MNIST), "dataset_id": m.get("dataset_id"),
+        "dataset_snapshot_sha256": m.get("dataset_snapshot_sha256"),
+        "dataset_license_policy": m.get("dataset_license_policy"),
+        "test_origin": m.get("test_origin"), "test_index_space": m.get("test_index_space"),
         "run_mode": m["run_mode"], "K": m["n_classes"], "classes": ",".join(str(c) for c in m["classes"]),
         "n_train_per_class": m["n_train_per_class"], "n_val_per_class": m["n_val_per_class"],
         "n_test_per_class": m["n_test_per_class"], "architecture": m["architecture"],
@@ -311,7 +317,14 @@ def build_confusion(run: RunArtifacts) -> list:
 def build_test_predictions(run: RunArtifacts) -> list:
     base = _common(run)
     y = run.npy("artifacts/y_test.npy")
-    idx = run.npy("logs/test_mnist_index.npy")
+    generic_idx = run.dir / "logs" / "test_source_index.npy"
+    generic_sid = run.dir / "logs" / "test_sample_id.npy"
+    if generic_idx.exists():
+        idx = load_npy(generic_idx)
+        sid = load_npy(generic_sid).astype(str)
+    else:
+        idx = run.npy("logs/test_mnist_index.npy")
+        sid = np.asarray([f"test/{int(i):05d}" for i in idx])
     pred = run.npy("logs/test_predictions.npy")
     dist = run.npy("logs/test_label_distances.npy")
     margin = run.npy("logs/test_margins.npy")
@@ -319,7 +332,10 @@ def build_test_predictions(run: RunArtifacts) -> list:
     col = {c: i for i, c in enumerate(classes)}
     rows = []
     for s in range(y.size):
-        rows.append({**base, "sample_id": s, "mnist_index": int(idx[s]), "true_class": int(y[s]),
+        rows.append({**base, "sample_id": str(sid[s]), "source_sample_id": str(sid[s]),
+                     "source_index": int(idx[s]),
+                     "mnist_index": int(idx[s]) if run.manifest.get("dataset", C.DATASET_MNIST) == C.DATASET_MNIST else None,
+                     "true_class": int(y[s]),
                      "pred_class": int(pred[s]), "distance_true": float(dist[s, col[int(y[s])]]),
                      "distance_pred": float(dist[s, col[int(pred[s])]]), "margin": float(margin[s]),
                      "correct": bool(pred[s] == y[s])})

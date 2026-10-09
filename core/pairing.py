@@ -16,7 +16,8 @@ from .constants import N_CLUSTER_PAIR_SAMPLES, PAIR_BALANCE_POLICY, PAIR_WEIGHTI
 from .seeds import derive_subseed
 
 
-def build_pairing(y_train: np.ndarray, train_mnist_index: np.ndarray, classes, seed: int) -> dict:
+def build_pairing(y_train: np.ndarray, train_source_index: np.ndarray, classes, seed: int,
+                  train_sample_id: np.ndarray | None = None) -> dict:
     classes = [int(c) for c in classes]
     selected_by_class = {}
     sel_positions = []
@@ -31,7 +32,11 @@ def build_pairing(y_train: np.ndarray, train_mnist_index: np.ndarray, classes, s
         selected_by_class[str(c)] = {
             "class_pair_seed": class_seed,
             "train_positions": [int(p) for p in chosen],
-            "mnist_indices": [int(train_mnist_index[p]) for p in chosen],
+            "source_indices": [int(train_source_index[p]) for p in chosen],
+            "sample_ids": ([str(train_sample_id[p]) for p in chosen]
+                           if train_sample_id is not None else None),
+            # Compatibility with the frozen MNIST schema.
+            "mnist_indices": [int(train_source_index[p]) for p in chosen],
         }
         sel_positions.extend(int(p) for p in chosen)
         sel_classes.extend([c] * N_CLUSTER_PAIR_SAMPLES)
