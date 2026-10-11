@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "dataset": "MADBASE",
+  "dataset_id": "MADBASE-AUC-V1",
+  "pilot_ready": true,
+  "confirmatory_ready": true,
+  "checks": {
+    "dataset_training_view": {
+      "ok": true,
+      "dataset_id": "MADBASE-AUC-V1",
+      "snapshot_sha256": "8262dca2d3db6205e0112586dd9a02c35b0b371da292aab0a15dc92976793f78",
+      "official_test_loaded": false
+    },
+    "split_manifests": {
+      "ok": true,
+      "count": 6,
+      "errors": [],
+      "fixed_confirmatory_test_hash": "fece765dd5f7e16f51d53c2fa9038ba3279d0ec0459060298e26c873bf1d9a2e"
+    },
+    "workbook_templates": {
+      "ok": true,
+      "count": 3,
+      "errors": []
+    },
+    "smoke_matrix": {
+      "ok": true,
+      "n_runs": 5,
+      "architectures": [
+        "MORE-HD",
+        "MORE-HD-60P",
+        "MORE-HD-C",
+        "MORE-HD-C-FixedRZ",
+        "MORE-REPRO"
+      ]
+    },
+    "tests": {
+      "ok": true,
+      "timestamp": "2026-10-09T19:35:36.953656+07:00",
+      "python": "3.13.15",
+      "command": "pytest tests -q -p no:cacheprovider (local .testdeps)",
+      "pytest": "9.1.1",
+      "qiskit": "2.5.2",
+      "passed": 74,
+      "skipped": 11,
+      "failed": 0,
+      "duration_seconds": 10.537,
+      "skip_scope": "MNIST-local integration tests only: raw MNIST absent; MADBase and reference tests ran",
+      "verdict": "PASS",
+      "evidence": "research_arabic_digits\\research_data\\reports\\pretraining_tests.xml"
+    },
+    "environment": {
+      "ok": true,
+      "python": "3.13.15",
+      "expected": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "scikit-learn": "1.9.0",
+        "pennylane": "0.45.1",
+        "joblib": "1.6.0",
+        "openpyxl": "3.1.5",
+        "threadpoolctl": "3.6.0",
+        "Pillow": "12.3.0"
+      },
+      "actual": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "scikit-learn": "1.9.0",
+        "pennylane": "0.45.1",
+        "joblib": "1.6.0",
+        "openpyxl": "3.1.5",
+        "threadpoolctl": "3.6.0",
+        "Pillow": "12.3.0"
+      }
+    },
+    "protocol_freeze": {
+      "ok": true,
+      "status": "FROZEN_FOR_CONFIRMATORY"
+    },
+    "disk": {
+      "ok": true,
+      "free_gb": 11.26,
+      "minimum_gb": 5.0
+    },
+    "convergence_budget": {
+      "ok": true,
+      "path": "research_arabic_digits\\research_data\\pilot\\convergence_budget_decision.json",
+      "status": "FROZEN"
+    }
+  },
+  "next_required_action": null
+}

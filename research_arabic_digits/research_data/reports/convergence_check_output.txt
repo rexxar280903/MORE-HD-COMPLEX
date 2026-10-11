@@ -1,0 +1,381 @@
+[
+ {
+  "run_uid": "AD-ABL013-S42",
+  "architecture": "MORE-HD-60P",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 8.326672684688674e-16,
+  "accuracy": 0.7615,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-ABL017-S42",
+  "architecture": "MORE-HD-60P",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 1.4988010832439613e-15,
+  "accuracy": 0.4485,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R044-S42",
+  "architecture": "MORE-HD-C",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 6.661338147750939e-16,
+  "accuracy": 0.433,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R043-S42",
+  "architecture": "MORE-HD",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 7.216449660063518e-16,
+  "accuracy": 0.356,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R048-S42",
+  "architecture": "MORE-HD-C",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 9.992007221626409e-16,
+  "accuracy": 0.305,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R047-S42",
+  "architecture": "MORE-HD",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 7.771561172376096e-16,
+  "accuracy": 0.4655,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R002-S42",
+  "architecture": "MORE-HD-C",
+  "K": 3,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 6.938893903907228e-16,
+  "accuracy": 0.925,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R001-S42",
+  "architecture": "MORE-HD",
+  "K": 3,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 8.326672684688674e-16,
+  "accuracy": 0.9916666666666667,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R006-S42",
+  "architecture": "MORE-HD-C",
+  "K": 3,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 61,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 8.881784197001252e-16,
+  "accuracy": 0.775,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-R005-S42",
+  "architecture": "MORE-HD",
+  "K": 3,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 31,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 5.828670879282072e-16,
+  "accuracy": 0.6616666666666666,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-MREF001-S42",
+  "architecture": "MORE-REPRO",
+  "K": 3,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 3.7816971776294395e-16,
+  "accuracy": 0.77,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-MREF003-S42",
+  "architecture": "MORE-REPRO",
+  "K": 3,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 4.718447854656915e-16,
+  "accuracy": 0.6016666666666667,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-MREF022-S42",
+  "architecture": "MORE-REPRO",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 5.551115123125783e-16,
+  "accuracy": 0.2385,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ },
+ {
+  "run_uid": "AD-MREF024-S42",
+  "architecture": "MORE-REPRO",
+  "K": 10,
+  "clustering": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "supervised": {
+   "nfev": 1000,
+   "first_optimization_eval_id": 92,
+   "len_log_eq_nfev": true,
+   "phase_switch_at_n_params_plus_1": true,
+   "final_point_eval_id_set": true,
+   "budget_respected": true
+  },
+  "status": "COMPLETED",
+  "backend_max_abs_diff": 4.996003610813204e-16,
+  "accuracy": 0.23,
+  "dataset_id": "MADBASE-AUC-V1",
+  "test_origin": "CONSTRUCTED_PILOT_TRAIN_POOL",
+  "pilot_uses_train_pool_only": true
+ }
+]
+ALL SMOKE CRITERIA OK

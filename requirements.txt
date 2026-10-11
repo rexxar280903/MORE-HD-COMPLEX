@@ -7,3 +7,4 @@ pennylane==0.45.1
 joblib==1.6.0
 openpyxl==3.1.5
 threadpoolctl==3.7.0
+Pillow==12.3.0

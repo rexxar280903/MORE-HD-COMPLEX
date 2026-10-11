@@ -1,0 +1,1466 @@
+{
+ "10.1038/nature23474": {
+  "title": "Quantum machine learning",
+  "journal": "Nature",
+  "short": "Nature",
+  "vol": "549",
+  "issue": "7671",
+  "page": "195-202",
+  "year": 2017,
+  "authors": [
+   [
+    "Jacob",
+    "Biamonte"
+   ],
+   [
+    "Peter",
+    "Wittek"
+   ],
+   [
+    "Nicola",
+    "Pancotti"
+   ],
+   [
+    "Patrick",
+    "Rebentrost"
+   ],
+   [
+    "Nathan",
+    "Wiebe"
+   ],
+   [
+    "Seth",
+    "Lloyd"
+   ]
+  ],
+  "n_auth": 6,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1038/s42254-021-00348-9": {
+  "title": "Variational quantum algorithms",
+  "journal": "Nature Reviews Physics",
+  "short": "Nat Rev Phys",
+  "vol": "3",
+  "issue": "9",
+  "page": "625-644",
+  "year": 2021,
+  "authors": [
+   [
+    "M.",
+    "Cerezo"
+   ],
+   [
+    "Andrew",
+    "Arrasmith"
+   ],
+   [
+    "Ryan",
+    "Babbush"
+   ],
+   [
+    "Simon C.",
+    "Benjamin"
+   ],
+   [
+    "Suguru",
+    "Endo"
+   ],
+   [
+    "Keisuke",
+    "Fujii"
+   ],
+   [
+    "Jarrod R.",
+    "McClean"
+   ],
+   [
+    "Kosuke",
+    "Mitarai"
+   ],
+   [
+    "Xiao",
+    "Yuan"
+   ],
+   [
+    "Lukasz",
+    "Cincio"
+   ],
+   [
+    "Patrick J.",
+    "Coles"
+   ]
+  ],
+  "n_auth": 11,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.22331/q-2018-08-06-79": {
+  "title": "Quantum Computing in the NISQ era and beyond",
+  "journal": "Quantum",
+  "short": "Quantum",
+  "vol": "2",
+  "issue": null,
+  "page": "79",
+  "year": 2018,
+  "authors": [
+   [
+    "John",
+    "Preskill"
+   ]
+  ],
+  "n_auth": 1,
+  "publisher": "Verein zur Forderung des Open Access Publizierens in den Quantenwissenschaften"
+ },
+ "10.1088/2058-9565/ab4eb5": {
+  "title": "Parameterized quantum circuits as machine learning models",
+  "journal": "Quantum Science and Technology",
+  "short": "Quantum Sci. Technol.",
+  "vol": "4",
+  "issue": "4",
+  "page": "043001",
+  "year": 2019,
+  "authors": [
+   [
+    "Marcello",
+    "Benedetti"
+   ],
+   [
+    "Erika",
+    "Lloyd"
+   ],
+   [
+    "Stefan",
+    "Sack"
+   ],
+   [
+    "Mattia",
+    "Fiorentini"
+   ]
+  ],
+  "n_auth": 4,
+  "publisher": "IOP Publishing"
+ },
+ "10.1038/s41586-019-0980-2": {
+  "title": "Supervised learning with quantum-enhanced feature spaces",
+  "journal": "Nature",
+  "short": "Nature",
+  "vol": "567",
+  "issue": "7747",
+  "page": "209-212",
+  "year": 2019,
+  "authors": [
+   [
+    "Vojtěch",
+    "Havlíček"
+   ],
+   [
+    "Antonio D.",
+    "Córcoles"
+   ],
+   [
+    "Kristan",
+    "Temme"
+   ],
+   [
+    "Aram W.",
+    "Harrow"
+   ],
+   [
+    "Abhinav",
+    "Kandala"
+   ],
+   [
+    "Jerry M.",
+    "Chow"
+   ],
+   [
+    "Jay M.",
+    "Gambetta"
+   ]
+  ],
+  "n_auth": 7,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1103/PhysRevA.101.032308": {
+  "title": "Circuit-centric quantum classifiers",
+  "journal": "Physical Review A",
+  "short": "Phys. Rev. A",
+  "vol": "101",
+  "issue": "3",
+  "page": "032308",
+  "year": 2020,
+  "authors": [
+   [
+    "Maria",
+    "Schuld"
+   ],
+   [
+    "Alex",
+    "Bocharov"
+   ],
+   [
+    "Krysta M.",
+    "Svore"
+   ],
+   [
+    "Nathan",
+    "Wiebe"
+   ]
+  ],
+  "n_auth": 4,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.1103/PhysRevA.98.032309": {
+  "title": "Quantum circuit learning",
+  "journal": "Physical Review A",
+  "short": "Phys. Rev. A",
+  "vol": "98",
+  "issue": "3",
+  "page": "032309",
+  "year": 2018,
+  "authors": [
+   [
+    "K.",
+    "Mitarai"
+   ],
+   [
+    "M.",
+    "Negoro"
+   ],
+   [
+    "M.",
+    "Kitagawa"
+   ],
+   [
+    "K.",
+    "Fujii"
+   ]
+  ],
+  "n_auth": 4,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.1038/s41567-019-0648-8": {
+  "title": "Quantum convolutional neural networks",
+  "journal": "Nature Physics",
+  "short": "Nat. Phys.",
+  "vol": "15",
+  "issue": "12",
+  "page": "1273-1278",
+  "year": 2019,
+  "authors": [
+   [
+    "Iris",
+    "Cong"
+   ],
+   [
+    "Soonwon",
+    "Choi"
+   ],
+   [
+    "Mikhail D.",
+    "Lukin"
+   ]
+  ],
+  "n_auth": 3,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1038/s41467-018-07090-4": {
+  "title": "Barren plateaus in quantum neural network training landscapes",
+  "journal": "Nature Communications",
+  "short": "Nat Commun",
+  "vol": "9",
+  "issue": "1",
+  "page": "4812",
+  "year": 2018,
+  "authors": [
+   [
+    "Jarrod R.",
+    "McClean"
+   ],
+   [
+    "Sergio",
+    "Boixo"
+   ],
+   [
+    "Vadim N.",
+    "Smelyanskiy"
+   ],
+   [
+    "Ryan",
+    "Babbush"
+   ],
+   [
+    "Hartmut",
+    "Neven"
+   ]
+  ],
+  "n_auth": 5,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1103/PRXQuantum.3.010313": {
+  "title": "Connecting Ansatz Expressibility to Gradient Magnitudes and Barren Plateaus",
+  "journal": "PRX Quantum",
+  "short": "PRX Quantum",
+  "vol": "3",
+  "issue": "1",
+  "page": "010313",
+  "year": 2022,
+  "authors": [
+   [
+    "Zoë",
+    "Holmes"
+   ],
+   [
+    "Kunal",
+    "Sharma"
+   ],
+   [
+    "M.",
+    "Cerezo"
+   ],
+   [
+    "Patrick J.",
+    "Coles"
+   ]
+  ],
+  "n_auth": 4,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.1002/qute.201900070": {
+  "title": "Expressibility and Entangling Capability of Parameterized Quantum Circuits for Hybrid Quantum‐Classical Algorithms",
+  "journal": "Advanced Quantum Technologies",
+  "short": "Adv Quantum Tech",
+  "vol": "2",
+  "issue": "12",
+  "page": "1900070",
+  "year": 2019,
+  "authors": [
+   [
+    "Sukin",
+    "Sim"
+   ],
+   [
+    "Peter D.",
+    "Johnson"
+   ],
+   [
+    "Alán",
+    "Aspuru‐Guzik"
+   ]
+  ],
+  "n_auth": 3,
+  "publisher": "Wiley"
+ },
+ "10.1103/PhysRevA.103.032430": {
+  "title": "Effect of data encoding on the expressive power of variational quantum-machine-learning models",
+  "journal": "Physical Review A",
+  "short": "Phys. Rev. A",
+  "vol": "103",
+  "issue": "3",
+  "page": "032430",
+  "year": 2021,
+  "authors": [
+   [
+    "Maria",
+    "Schuld"
+   ],
+   [
+    "Ryan",
+    "Sweke"
+   ],
+   [
+    "Johannes Jakob",
+    "Meyer"
+   ]
+  ],
+  "n_auth": 3,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.1038/s43588-021-00084-1": {
+  "title": "The power of quantum neural networks",
+  "journal": "Nature Computational Science",
+  "short": "Nat Comput Sci",
+  "vol": "1",
+  "issue": "6",
+  "page": "403-409",
+  "year": 2021,
+  "authors": [
+   [
+    "Amira",
+    "Abbas"
+   ],
+   [
+    "David",
+    "Sutter"
+   ],
+   [
+    "Christa",
+    "Zoufal"
+   ],
+   [
+    "Aurelien",
+    "Lucchi"
+   ],
+   [
+    "Alessio",
+    "Figalli"
+   ],
+   [
+    "Stefan",
+    "Woerner"
+   ]
+  ],
+  "n_auth": 6,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1038/s41467-021-22539-9": {
+  "title": "Power of data in quantum machine learning",
+  "journal": "Nature Communications",
+  "short": "Nat Commun",
+  "vol": "12",
+  "issue": "1",
+  "page": "2631",
+  "year": 2021,
+  "authors": [
+   [
+    "Hsin-Yuan",
+    "Huang"
+   ],
+   [
+    "Michael",
+    "Broughton"
+   ],
+   [
+    "Masoud",
+    "Mohseni"
+   ],
+   [
+    "Ryan",
+    "Babbush"
+   ],
+   [
+    "Sergio",
+    "Boixo"
+   ],
+   [
+    "Hartmut",
+    "Neven"
+   ],
+   [
+    "Jarrod R.",
+    "McClean"
+   ]
+  ],
+  "n_auth": 7,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1038/s43588-022-00311-3": {
+  "title": "Challenges and opportunities in quantum machine learning",
+  "journal": "Nature Computational Science",
+  "short": "Nat Comput Sci",
+  "vol": "2",
+  "issue": "9",
+  "page": "567-576",
+  "year": 2022,
+  "authors": [
+   [
+    "M.",
+    "Cerezo"
+   ],
+   [
+    "Guillaume",
+    "Verdon"
+   ],
+   [
+    "Hsin-Yuan",
+    "Huang"
+   ],
+   [
+    "Lukasz",
+    "Cincio"
+   ],
+   [
+    "Patrick J.",
+    "Coles"
+   ]
+  ],
+  "n_auth": 5,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1103/PRXQuantum.3.030101": {
+  "title": "Is Quantum Advantage the Right Goal for Quantum Machine Learning?",
+  "journal": "PRX Quantum",
+  "short": "PRX Quantum",
+  "vol": "3",
+  "issue": "3",
+  "page": "030101",
+  "year": 2022,
+  "authors": [
+   [
+    "Maria",
+    "Schuld"
+   ],
+   [
+    "Nathan",
+    "Killoran"
+   ]
+  ],
+  "n_auth": 2,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.22331/q-2020-02-06-226": {
+  "title": "Data re-uploading for a universal quantum classifier",
+  "journal": "Quantum",
+  "short": "Quantum",
+  "vol": "4",
+  "issue": null,
+  "page": "226",
+  "year": 2020,
+  "authors": [
+   [
+    "Adrián",
+    "Pérez-Salinas"
+   ],
+   [
+    "Alba",
+    "Cervera-Lierta"
+   ],
+   [
+    "Elies",
+    "Gil-Fuster"
+   ],
+   [
+    "José I.",
+    "Latorre"
+   ]
+  ],
+  "n_auth": 4,
+  "publisher": "Verein zur Forderung des Open Access Publizierens in den Quantenwissenschaften"
+ },
+ "10.1109/TIT.1962.1057692": {
+  "title": "Visual pattern recognition by moment invariants",
+  "journal": "IRE Transactions on Information Theory",
+  "short": "IRE Trans. Inf. Theory",
+  "vol": "8",
+  "issue": "2",
+  "page": "179-187",
+  "year": 1962,
+  "authors": [
+   [
+    "",
+    "Ming-Kuei Hu"
+   ]
+  ],
+  "n_auth": 1,
+  "publisher": "Institute of Electrical and Electronics Engineers (IEEE)"
+ },
+ "10.1364/JOSA.70.000920": {
+  "title": "Image analysis via the general theory of moments*",
+  "journal": "Journal of the Optical Society of America",
+  "short": "J. Opt. Soc. Am.",
+  "vol": "70",
+  "issue": "8",
+  "page": "920",
+  "year": 1980,
+  "authors": [
+   [
+    "Michael Reed",
+    "Teague"
+   ]
+  ],
+  "n_auth": 1,
+  "publisher": "Optica Publishing Group"
+ },
+ "10.1109/34.55109": {
+  "title": "Invariant image recognition by Zernike moments",
+  "journal": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+  "short": "IEEE Trans. Pattern Anal. Machine Intell.",
+  "vol": "12",
+  "issue": "5",
+  "page": "489-497",
+  "year": 1990,
+  "authors": [
+   [
+    "A.",
+    "Khotanzad"
+   ],
+   [
+    "Y.H.",
+    "Hong"
+   ]
+  ],
+  "n_auth": 2,
+  "publisher": "Institute of Electrical and Electronics Engineers (IEEE)"
+ },
+ "10.1109/5.726791": {
+  "title": "Gradient-based learning applied to document recognition",
+  "journal": "Proceedings of the IEEE",
+  "short": "Proc. IEEE",
+  "vol": "86",
+  "issue": "11",
+  "page": "2278-2324",
+  "year": 1998,
+  "authors": [
+   [
+    "Y.",
+    "Lecun"
+   ],
+   [
+    "L.",
+    "Bottou"
+   ],
+   [
+    "Y.",
+    "Bengio"
+   ],
+   [
+    "P.",
+    "Haffner"
+   ]
+  ],
+  "n_auth": 4,
+  "publisher": "Institute of Electrical and Electronics Engineers (IEEE)"
+ },
+ "10.1007/978-94-015-8330-5_4": {
+  "title": "A Direct Search Optimization Method That Models the Objective and Constraint Functions by Linear Interpolation",
+  "journal": "Advances in Optimization and Numerical Analysis",
+  "short": "",
+  "vol": null,
+  "issue": null,
+  "page": "51-67",
+  "year": 1994,
+  "authors": [
+   [
+    "M. J. D.",
+    "Powell"
+   ]
+  ],
+  "n_auth": 1,
+  "publisher": "Springer Netherlands"
+ },
+ "10.1038/s41592-019-0686-2": {
+  "title": "SciPy 1.0: fundamental algorithms for scientific computing in Python",
+  "journal": "Nature Methods",
+  "short": "Nat Methods",
+  "vol": "17",
+  "issue": "3",
+  "page": "261-272",
+  "year": 2020,
+  "authors": [
+   [
+    "Pauli",
+    "Virtanen"
+   ],
+   [
+    "Ralf",
+    "Gommers"
+   ],
+   [
+    "Travis E.",
+    "Oliphant"
+   ],
+   [
+    "Matt",
+    "Haberland"
+   ],
+   [
+    "Tyler",
+    "Reddy"
+   ],
+   [
+    "David",
+    "Cournapeau"
+   ],
+   [
+    "Evgeni",
+    "Burovski"
+   ],
+   [
+    "Pearu",
+    "Peterson"
+   ],
+   [
+    "Warren",
+    "Weckesser"
+   ],
+   [
+    "Jonathan",
+    "Bright"
+   ],
+   [
+    "Stéfan J.",
+    "van der Walt"
+   ],
+   [
+    "Matthew",
+    "Brett"
+   ],
+   [
+    "Joshua",
+    "Wilson"
+   ],
+   [
+    "K. Jarrod",
+    "Millman"
+   ],
+   [
+    "Nikolay",
+    "Mayorov"
+   ],
+   [
+    "Andrew R. J.",
+    "Nelson"
+   ],
+   [
+    "Eric",
+    "Jones"
+   ],
+   [
+    "Robert",
+    "Kern"
+   ],
+   [
+    "Eric",
+    "Larson"
+   ],
+   [
+    "C J",
+    "Carey"
+   ],
+   [
+    "İlhan",
+    "Polat"
+   ],
+   [
+    "Yu",
+    "Feng"
+   ],
+   [
+    "Eric W.",
+    "Moore"
+   ],
+   [
+    "Jake",
+    "VanderPlas"
+   ],
+   [
+    "Denis",
+    "Laxalde"
+   ],
+   [
+    "Josef",
+    "Perktold"
+   ],
+   [
+    "Robert",
+    "Cimrman"
+   ],
+   [
+    "Ian",
+    "Henriksen"
+   ],
+   [
+    "E. A.",
+    "Quintero"
+   ],
+   [
+    "Charles R.",
+    "Harris"
+   ],
+   [
+    "Anne M.",
+    "Archibald"
+   ],
+   [
+    "Antônio H.",
+    "Ribeiro"
+   ],
+   [
+    "Fabian",
+    "Pedregosa"
+   ],
+   [
+    "Paul",
+    "van Mulbregt"
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "Aditya",
+    "Vijaykumar"
+   ],
+   [
+    "Alessandro Pietro",
+    "Bardelli"
+   ],
+   [
+    "Alex",
+    "Rothberg"
+   ],
+   [
+    "Andreas",
+    "Hilboll"
+   ],
+   [
+    "Andreas",
+    "Kloeckner"
+   ],
+   [
+    "Anthony",
+    "Scopatz"
+   ],
+   [
+    "Antony",
+    "Lee"
+   ],
+   [
+    "Ariel",
+    "Rokem"
+   ],
+   [
+    "C. Nathan",
+    "Woods"
+   ],
+   [
+    "Chad",
+    "Fulton"
+   ],
+   [
+    "Charles",
+    "Masson"
+   ],
+   [
+    "Christian",
+    "Häggström"
+   ],
+   [
+    "Clark",
+    "Fitzgerald"
+   ],
+   [
+    "David A.",
+    "Nicholson"
+   ],
+   [
+    "David R.",
+    "Hagen"
+   ],
+   [
+    "Dmitrii V.",
+    "Pasechnik"
+   ],
+   [
+    "Emanuele",
+    "Olivetti"
+   ],
+   [
+    "Eric",
+    "Martin"
+   ],
+   [
+    "Eric",
+    "Wieser"
+   ],
+   [
+    "Fabrice",
+    "Silva"
+   ],
+   [
+    "Felix",
+    "Lenders"
+   ],
+   [
+    "Florian",
+    "Wilhelm"
+   ],
+   [
+    "G.",
+    "Young"
+   ],
+   [
+    "Gavin A.",
+    "Price"
+   ],
+   [
+    "Gert-Ludwig",
+    "Ingold"
+   ],
+   [
+    "Gregory E.",
+    "Allen"
+   ],
+   [
+    "Gregory R.",
+    "Lee"
+   ],
+   [
+    "Hervé",
+    "Audren"
+   ],
+   [
+    "Irvin",
+    "Probst"
+   ],
+   [
+    "Jörg P.",
+    "Dietrich"
+   ],
+   [
+    "Jacob",
+    "Silterra"
+   ],
+   [
+    "James T",
+    "Webber"
+   ],
+   [
+    "Janko",
+    "Slavič"
+   ],
+   [
+    "Joel",
+    "Nothman"
+   ],
+   [
+    "Johannes",
+    "Buchner"
+   ],
+   [
+    "Johannes",
+    "Kulick"
+   ],
+   [
+    "Johannes L.",
+    "Schönberger"
+   ],
+   [
+    "José Vinícius",
+    "de Miranda Cardoso"
+   ],
+   [
+    "Joscha",
+    "Reimer"
+   ],
+   [
+    "Joseph",
+    "Harrington"
+   ],
+   [
+    "Juan Luis Cano",
+    "Rodríguez"
+   ],
+   [
+    "Juan",
+    "Nunez-Iglesias"
+   ],
+   [
+    "Justin",
+    "Kuczynski"
+   ],
+   [
+    "Kevin",
+    "Tritz"
+   ],
+   [
+    "Martin",
+    "Thoma"
+   ],
+   [
+    "Matthew",
+    "Newville"
+   ],
+   [
+    "Matthias",
+    "Kümmerer"
+   ],
+   [
+    "Maximilian",
+    "Bolingbroke"
+   ],
+   [
+    "Michael",
+    "Tartre"
+   ],
+   [
+    "Mikhail",
+    "Pak"
+   ],
+   [
+    "Nathaniel J.",
+    "Smith"
+   ],
+   [
+    "Nikolai",
+    "Nowaczyk"
+   ],
+   [
+    "Nikolay",
+    "Shebanov"
+   ],
+   [
+    "Oleksandr",
+    "Pavlyk"
+   ],
+   [
+    "Per A.",
+    "Brodtkorb"
+   ],
+   [
+    "Perry",
+    "Lee"
+   ],
+   [
+    "Robert T.",
+    "McGibbon"
+   ],
+   [
+    "Roman",
+    "Feldbauer"
+   ],
+   [
+    "Sam",
+    "Lewis"
+   ],
+   [
+    "Sam",
+    "Tygier"
+   ],
+   [
+    "Scott",
+    "Sievert"
+   ],
+   [
+    "Sebastiano",
+    "Vigna"
+   ],
+   [
+    "Stefan",
+    "Peterson"
+   ],
+   [
+    "Surhud",
+    "More"
+   ],
+   [
+    "Tadeusz",
+    "Pudlik"
+   ],
+   [
+    "Takuya",
+    "Oshima"
+   ],
+   [
+    "Thomas J.",
+    "Pingel"
+   ],
+   [
+    "Thomas P.",
+    "Robitaille"
+   ],
+   [
+    "Thomas",
+    "Spura"
+   ],
+   [
+    "Thouis R.",
+    "Jones"
+   ],
+   [
+    "Tim",
+    "Cera"
+   ],
+   [
+    "Tim",
+    "Leslie"
+   ],
+   [
+    "Tiziano",
+    "Zito"
+   ],
+   [
+    "Tom",
+    "Krauss"
+   ],
+   [
+    "Utkarsh",
+    "Upadhyay"
+   ],
+   [
+    "Yaroslav O.",
+    "Halchenko"
+   ],
+   [
+    "Yoshiki",
+    "Vázquez-Baeza"
+   ]
+  ],
+  "n_auth": 112,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1038/s41586-020-2649-2": {
+  "title": "Array programming with NumPy",
+  "journal": "Nature",
+  "short": "Nature",
+  "vol": "585",
+  "issue": "7825",
+  "page": "357-362",
+  "year": 2020,
+  "authors": [
+   [
+    "Charles R.",
+    "Harris"
+   ],
+   [
+    "K. Jarrod",
+    "Millman"
+   ],
+   [
+    "Stéfan J.",
+    "van der Walt"
+   ],
+   [
+    "Ralf",
+    "Gommers"
+   ],
+   [
+    "Pauli",
+    "Virtanen"
+   ],
+   [
+    "David",
+    "Cournapeau"
+   ],
+   [
+    "Eric",
+    "Wieser"
+   ],
+   [
+    "Julian",
+    "Taylor"
+   ],
+   [
+    "Sebastian",
+    "Berg"
+   ],
+   [
+    "Nathaniel J.",
+    "Smith"
+   ],
+   [
+    "Robert",
+    "Kern"
+   ],
+   [
+    "Matti",
+    "Picus"
+   ],
+   [
+    "Stephan",
+    "Hoyer"
+   ],
+   [
+    "Marten H.",
+    "van Kerkwijk"
+   ],
+   [
+    "Matthew",
+    "Brett"
+   ],
+   [
+    "Allan",
+    "Haldane"
+   ],
+   [
+    "Jaime Fernández",
+    "del Río"
+   ],
+   [
+    "Mark",
+    "Wiebe"
+   ],
+   [
+    "Pearu",
+    "Peterson"
+   ],
+   [
+    "Pierre",
+    "Gérard-Marchant"
+   ],
+   [
+    "Kevin",
+    "Sheppard"
+   ],
+   [
+    "Tyler",
+    "Reddy"
+   ],
+   [
+    "Warren",
+    "Weckesser"
+   ],
+   [
+    "Hameer",
+    "Abbasi"
+   ],
+   [
+    "Christoph",
+    "Gohlke"
+   ],
+   [
+    "Travis E.",
+    "Oliphant"
+   ]
+  ],
+  "n_auth": 26,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1007/BF02295996": {
+  "title": "Note on the Sampling Error of the Difference Between Correlated Proportions or Percentages",
+  "journal": "Psychometrika",
+  "short": "Psychometrika",
+  "vol": "12",
+  "issue": "2",
+  "page": "153-157",
+  "year": 1947,
+  "authors": [
+   [
+    "Quinn",
+    "McNemar"
+   ]
+  ],
+  "n_auth": 1,
+  "publisher": "Cambridge University Press (CUP)"
+ },
+ "10.3102/10769986006002107": {
+  "title": "Distribution Theory for Glass's Estimator of Effect size and Related Estimators",
+  "journal": "Journal of Educational Statistics",
+  "short": "Journal of Educational Statistics",
+  "vol": "6",
+  "issue": "2",
+  "page": "107-128",
+  "year": 1981,
+  "authors": [
+   [
+    "Larry V.",
+    "Hedges"
+   ]
+  ],
+  "n_auth": 1,
+  "publisher": "American Educational Research Association (AERA)"
+ },
+ "10.1038/s41586-021-04160-4": {
+  "title": "Quantum theory based on real numbers can be experimentally falsified",
+  "journal": "Nature",
+  "short": "Nature",
+  "vol": "600",
+  "issue": "7890",
+  "page": "625-629",
+  "year": 2021,
+  "authors": [
+   [
+    "Marc-Olivier",
+    "Renou"
+   ],
+   [
+    "David",
+    "Trillo"
+   ],
+   [
+    "Mirjam",
+    "Weilenmann"
+   ],
+   [
+    "Thinh P.",
+    "Le"
+   ],
+   [
+    "Armin",
+    "Tavakoli"
+   ],
+   [
+    "Nicolas",
+    "Gisin"
+   ],
+   [
+    "Antonio",
+    "Acín"
+   ],
+   [
+    "Miguel",
+    "Navascués"
+   ]
+  ],
+  "n_auth": 8,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1103/RevModPhys.94.015004": {
+  "title": "Noisy intermediate-scale quantum algorithms",
+  "journal": "Reviews of Modern Physics",
+  "short": "Rev. Mod. Phys.",
+  "vol": "94",
+  "issue": "1",
+  "page": "015004",
+  "year": 2022,
+  "authors": [
+   [
+    "Kishor",
+    "Bharti"
+   ],
+   [
+    "Alba",
+    "Cervera-Lierta"
+   ],
+   [
+    "Thi Ha",
+    "Kyaw"
+   ],
+   [
+    "Tobias",
+    "Haug"
+   ],
+   [
+    "Sumner",
+    "Alperin-Lea"
+   ],
+   [
+    "Abhinav",
+    "Anand"
+   ],
+   [
+    "Matthias",
+    "Degroote"
+   ],
+   [
+    "Hermanni",
+    "Heimonen"
+   ],
+   [
+    "Jakob S.",
+    "Kottmann"
+   ],
+   [
+    "Tim",
+    "Menke"
+   ],
+   [
+    "Wai-Keong",
+    "Mok"
+   ],
+   [
+    "Sukin",
+    "Sim"
+   ],
+   [
+    "Leong-Chuan",
+    "Kwek"
+   ],
+   [
+    "Alán",
+    "Aspuru-Guzik"
+   ]
+  ],
+  "n_auth": 14,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.1038/s41534-018-0116-9": {
+  "title": "Hierarchical quantum classifiers",
+  "journal": "npj Quantum Information",
+  "short": "npj Quantum Inf",
+  "vol": "4",
+  "issue": "1",
+  "page": "65",
+  "year": 2018,
+  "authors": [
+   [
+    "Edward",
+    "Grant"
+   ],
+   [
+    "Marcello",
+    "Benedetti"
+   ],
+   [
+    "Shuxiang",
+    "Cao"
+   ],
+   [
+    "Andrew",
+    "Hallam"
+   ],
+   [
+    "Joshua",
+    "Lockhart"
+   ],
+   [
+    "Vid",
+    "Stojevic"
+   ],
+   [
+    "Andrew G.",
+    "Green"
+   ],
+   [
+    "Simone",
+    "Severini"
+   ]
+  ],
+  "n_auth": 8,
+  "publisher": "Springer Science and Business Media LLC"
+ },
+ "10.1103/PhysRevA.99.032331": {
+  "title": "Evaluating analytic gradients on quantum hardware",
+  "journal": "Physical Review A",
+  "short": "Phys. Rev. A",
+  "vol": "99",
+  "issue": "3",
+  "page": "032331",
+  "year": 2019,
+  "authors": [
+   [
+    "Maria",
+    "Schuld"
+   ],
+   [
+    "Ville",
+    "Bergholm"
+   ],
+   [
+    "Christian",
+    "Gogolin"
+   ],
+   [
+    "Josh",
+    "Izaac"
+   ],
+   [
+    "Nathan",
+    "Killoran"
+   ]
+  ],
+  "n_auth": 5,
+  "publisher": "American Physical Society (APS)"
+ },
+ "10.1007/s10032-008-0073-5": {
+  "title": "Arabic handwritten digit recognition",
+  "journal": "International Journal of Document Analysis and Recognition (IJDAR)",
+  "short": "IJDAR",
+  "vol": "11",
+  "issue": "3",
+  "page": "127-141",
+  "year": 2008,
+  "authors": [
+   [
+    "Sherif",
+    "Abdleazeem"
+   ],
+   [
+    "Ezzat",
+    "El-Sherif"
+   ]
+  ],
+  "n_auth": 2,
+  "publisher": "Springer Science and Business Media LLC",
+  "verified": "Crossref API 2026-10-11"
+ }
+}

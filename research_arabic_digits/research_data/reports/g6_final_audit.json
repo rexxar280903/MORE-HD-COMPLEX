@@ -1,0 +1,98 @@
+{
+  "generated_at": "2026-10-11T06:52:57+07:00",
+  "dataset": "MADBASE-AUC-V1",
+  "g6_status": "CLOSED",
+  "checks": {
+    "main_runs_completed": 450,
+    "main_runs_planned": 450,
+    "main_by_track": {
+      "PRIMARY": {
+        "COMPLETED": 240
+      },
+      "ABLATION": {
+        "COMPLETED": 90
+      },
+      "MORE_REFERENCE": {
+        "COMPLETED": 120
+      }
+    },
+    "main_attempts": {
+      "1": 450
+    },
+    "jalurB": {
+      "COMPLETED": 90
+    },
+    "classical_fits": {
+      "COMPLETED": 240
+    },
+    "chance_rows_analytic": 120,
+    "pilot_and_smoke_runs_excluded": {
+      "COMPLETED": 23
+    },
+    "final_admission": {
+      "timestamp": "2026-10-10T19:02:24.985450+07:00",
+      "dataset": "MADBASE",
+      "main_runs": 450,
+      "secondary_runs": 90,
+      "classical_fits": 240,
+      "errors": [],
+      "accepted": true
+    },
+    "budget_decision": {
+      "status": "FROZEN",
+      "dataset": "MADBASE",
+      "cap": 1000,
+      "n_runs": 14,
+      "clustering": 900,
+      "supervised": 940
+    }
+  },
+  "code": {
+    "run_git_commit": "188bab6a068afcb02d76b18bd23cf5449943ed2d",
+    "head_now": "188bab6a068afcb02d76b18bd23cf5449943ed2d",
+    "core_engine_diff_vs_commit": "NONE",
+    "untracked_or_modified_now": [
+      "M research_arabic_digits/DECISION_LOG.md",
+      " M research_arabic_digits/PROTOCOL_FREEZE.json",
+      " M research_arabic_digits/READINESS_GATES.md",
+      " M research_arabic_digits/README.md",
+      " M research_arabic_digits/RESEARCH_PROTOCOL.md",
+      " M research_arabic_digits/RUNBOOK.md",
+      " M research_arabic_digits/STATISTICAL_ANALYSIS_PLAN.md",
+      " M research_arabic_digits/research_data/manifests/readiness_report.json",
+      " M research_arabic_digits/research_data/pilot/test_summary.json",
+      " M scripts/analyze_pilot_budget.py",
+      " M scripts/check_pilot_runs.py",
+      " M scripts/circuit_microbenchmark.py",
+      "?? MORE-HD-COMPLEX.zip",
+      "?? app/",
+      "?? core/pilot_audit.py",
+      "?? paper/",
+      "?? research_arabic_digits/DEVIATION_LOG.md",
+      "?? research_arabic_digits/REPRODUCIBILITY_MANIFEST.json",
+      "?? research_arabic_digits/RESULTS.md",
+      "?? research_arabic_digits/paper/",
+      "?? research_arabic_digits/research_data/analysis/",
+      "?? research_arabic_digits/research_data/confirmatory_machine/",
+      "?? research_arabic_digits/research_data/consolidated/",
+      "?? research_arabic_digits/research_data/dashboard/",
+      "?? research_arabic_digits/research_data/pilot/convergence_budget_decision.json",
+      "?? research_arabic_digits/research_data/pilot/convergence_check.json",
+      "?? research_arabic_digits/research_data/pilot/convergence_curves_summary.csv",
+      "?? research_arabic_digits/research_data/pytest_full_readiness_20261009/",
+      "?? research_arabic_digits/research_data/pytest_queue6_control/",
+      "?? research_arabic_digits/research_data/pytest_readiness_final/",
+      "?? research_arabic_digits/research_data/pytest_training_preflight/",
+      "?? research_arabic_digits/research_data/reports/",
+      "?? research_arabic_digits/tools/",
+      "?? research_data/data_from_laptop/dashboard/",
+      "?? scripts/audit_confirmatory_readiness.py",
+      "?? scripts/confirmatory_worker.py",
+      "?? scripts/keep_training_awake.py",
+      "?? scripts/run_confirmatory_queue.py",
+      "?? scripts/verify_confirmatory_completion.py",
+      "?? tests/test_confirmatory_queue.py",
+      "?? tests/test_pilot_audit.py"
+    ]
+  }
+}

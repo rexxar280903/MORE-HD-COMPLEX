@@ -1,0 +1,71 @@
+{
+  "started_at": "2026-10-09T23:45:00.956517+07:00",
+  "pid": 2532,
+  "parallel": 8,
+  "dataset": "MADBASE",
+  "status": "RUNNING",
+  "completed_phases": {},
+  "main_total": 450,
+  "secondary_total": 90,
+  "baseline_cells_total": 120,
+  "phase": "MAIN",
+  "phase_total": 450,
+  "resource_hold": false,
+  "updated_at": "2026-10-10T00:03:37.865237+07:00",
+  "phase_completed": 8,
+  "completed_keys": [
+    "AD-R001-S101",
+    "AD-R002-S101",
+    "AD-R003-S101",
+    "AD-R004-S101",
+    "AD-R005-S101",
+    "AD-R006-S101",
+    "AD-R008-S101",
+    "AD-R007-S101"
+  ],
+  "pending_count": 434,
+  "active": [
+    {
+      "task": "AD-R009-S101",
+      "pid": 7552,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R009-S101_1791565167990201700.log"
+    },
+    {
+      "task": "AD-R010-S101",
+      "pid": 15872,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R010-S101_1791565168004398600.log"
+    },
+    {
+      "task": "AD-R011-S101",
+      "pid": 16164,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R011-S101_1791565168016061700.log"
+    },
+    {
+      "task": "AD-R012-S101",
+      "pid": 14968,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R012-S101_1791565168030237800.log"
+    },
+    {
+      "task": "AD-R013-S101",
+      "pid": 3636,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R013-S101_1791565168048996700.log"
+    },
+    {
+      "task": "AD-R014-S101",
+      "pid": 13928,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R014-S101_1791565168064540400.log"
+    },
+    {
+      "task": "AD-R015-S101",
+      "pid": 1620,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R015-S101_1791565210251946400.log"
+    },
+    {
+      "task": "AD-R016-S101",
+      "pid": 2616,
+      "log": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\research_arabic_digits\\research_data\\confirmatory_machine\\queue\\logs\\AD-R016-S101_1791565213286176700.log"
+    }
+  ],
+  "failures": [],
+  "free_disk_gb": 11.1
+}

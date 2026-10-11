@@ -30,6 +30,7 @@ def completed(d: Path) -> bool:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--run-mode", choices=C.RUN_MODES, default="CONFIRMATORY")
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--pilot-tag", default=None, help="PILOT only: consolidate one pilot stage (e.g. convergence)")
     p.add_argument("--project-root", default=str(ROOT))
     p.add_argument("--out-dir", default=None, help="default: research_data/consolidated[_pilot]")
@@ -40,11 +41,13 @@ def main() -> None:
     root = Path(a.project_root)
     runs = root / C.RUNS_DIR
     pilot = a.run_mode == "PILOT"
-    out = Path(a.out_dir) if a.out_dir else root / "research_data" / ("consolidated_pilot" if pilot else "consolidated")
+    study_root = root / ("research_arabic_digits/research_data" if a.dataset == C.DATASET_MADBASE else "research_data")
+    out = Path(a.out_dir) if a.out_dir else study_root / ("consolidated_pilot" if pilot else "consolidated")
     out.mkdir(parents=True, exist_ok=True)
 
     def tag_ok(cfg: dict) -> bool:
-        return not pilot or a.pilot_tag is None or cfg.get("pilot_tag") == a.pilot_tag
+        return (cfg.get("dataset", C.DATASET_MNIST) == a.dataset and
+                (not pilot or a.pilot_tag is None or cfg.get("pilot_tag") == a.pilot_tag))
 
     jalur_b = []
     for d in discover_runs(runs, "JALUR_B", a.run_mode):
@@ -52,11 +55,17 @@ def main() -> None:
         if completed(d) and tag_ok(load_json(root / m["source_run_dir"] / "config.json")):
             jalur_b.append(d)
     bench_dir = Path(a.benchmark_dir) if a.benchmark_dir else \
-        root / "research_data" / ("pilot" if pilot else "confirmatory_machine") / "benchmarks"
+        study_root / ("pilot" if pilot else "confirmatory_machine") / "benchmarks"
     bench = sorted(bench_dir.glob("circuit_microbenchmark_block*.json"))
-    baseline_csv = runs / ("baselines_pilot" if pilot else "baselines") / "baseline_results.csv"
+    baseline_csv = runs / ("arabic_digits" if a.dataset == C.DATASET_MADBASE else "") / \
+        ("baselines_pilot" if pilot else "baselines") / "baseline_results.csv"
 
-    for track, template, name in TRACKS:
+    templates = TRACKS if a.dataset == C.DATASET_MNIST else (
+        ("PRIMARY", C.MADBASE_MASTER_SPREADSHEET_PATH, "primary_240runs.xlsx"),
+        ("ABLATION", C.MADBASE_ABLATION_SPREADSHEET_PATH, "ablation_90runs.xlsx"),
+        ("MORE_REFERENCE", C.MADBASE_MORE_REFERENCE_SPREADSHEET_PATH, "more_reference_120runs.xlsx"),
+    )
+    for track, template, name in templates:
         dirs = [d for d in discover_runs(runs, track, a.run_mode) if tag_ok(load_json(d / "config.json"))]
         extra = {}
         if track == "PRIMARY":

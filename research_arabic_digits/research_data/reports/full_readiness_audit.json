@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-10-09T19:35:45.857609+07:00",
+  "dataset": "MADBASE",
+  "checks": {
+    "pilot_provenance_and_export": {
+      "ok": true,
+      "admitted": 14,
+      "excluded": [
+        {
+          "path": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\runs\\arabic_digits\\cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42_convergence",
+          "status": "FAILED",
+          "run_uid": "AD-R002-S42",
+          "attempt": 1
+        }
+      ],
+      "errors": []
+    },
+    "splits": {
+      "ok": true,
+      "count": 6,
+      "errors": [],
+      "official_test_loaded": false
+    },
+    "confirmatory_plan": {
+      "ok": true,
+      "tracks": {
+        "PRIMARY": 240,
+        "ABLATION": 90,
+        "MORE_REFERENCE": 120
+      },
+      "status_counts": {
+        "NOT_STARTED": 450
+      },
+      "errors": []
+    },
+    "budget": {
+      "ok": true,
+      "clustering": 900,
+      "supervised": 940,
+      "plateau_limitation": false
+    },
+    "workbooks": {
+      "ok": true,
+      "templates": 3,
+      "errors": [],
+      "max_primary_clustering_rows": 216000,
+      "max_primary_supervised_rows": 225600
+    },
+    "storage": {
+      "ok": true,
+      "free_gb": 11.26,
+      "estimated_primary_artifacts_and_workbooks_gb": 2.69,
+      "required_with_reserve_gb": 6.37,
+      "estimate": true
+    }
+  },
+  "ready": true,
+  "training_started_by_audit": false
+}

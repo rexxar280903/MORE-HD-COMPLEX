@@ -15,6 +15,7 @@ class RunConfig:
     feature_method: str
     k: int
     seed: int
+    dataset: str = C.DATASET_MNIST
     run_mode: str = "PILOT"
     max_nfev_clustering: int = C.SMOKE_MAX_NFEV
     max_nfev_supervised: int = C.SMOKE_MAX_NFEV
@@ -75,13 +76,14 @@ class RunConfig:
 
     @property
     def run_uid(self) -> str:
-        return f"{self.condition_id}-S{self.seed}"
+        base = f"{self.condition_id}-S{self.seed}"
+        return f"AD-{base}" if self.dataset == C.DATASET_MADBASE else base
 
     @property
     def run_name(self) -> str:
         return run_name_for(self.architecture, self.feature_method, self.k, self.seed,
                             (self.n_train_per_class, self.n_val_per_class, self.n_test_per_class),
-                            self.run_mode, self.pilot_tag, self.attempt)
+                            self.run_mode, self.pilot_tag, self.attempt, self.dataset)
 
     @property
     def run_dir(self) -> Path:
@@ -97,6 +99,7 @@ class RunConfig:
             "condition_id": self.condition_id,
             "run_uid": self.run_uid,
             "run_name": self.run_name,
+            "dataset_id": C.DATASET_IDS[self.dataset],
         })
         return d
 
@@ -110,7 +113,8 @@ def auto_generate_run_name(classes, n_train, n_val, n_test, architecture, featur
 
 
 def run_name_for(architecture: str, feature_method: str, k: int, seed: int, sizes=(1000, 100, 200),
-                 run_mode: str = "CONFIRMATORY", pilot_tag: str = "", attempt: int = 1) -> str:
+                 run_mode: str = "CONFIRMATORY", pilot_tag: str = "", attempt: int = 1,
+                 dataset: str = C.DATASET_MNIST) -> str:
     """Run folder name (relative to runs/). PILOT runs carry their pilot tag so that the
     smoke, timing and convergence stages of one condition never collide; confirmatory
     names are exactly AUTO_GENERATE (primary) or <uid>_cls-..._<feature>_<model>."""
@@ -125,6 +129,8 @@ def run_name_for(architecture: str, feature_method: str, k: int, seed: int, size
         base = f"{sub}/{cid}-S{seed}_cls-{'-'.join(str(c) for c in classes)}_{feature_method}_{architecture}"
     if run_mode == "PILOT" and pilot_tag:
         base = f"{base}_{pilot_tag}"
+    if dataset == C.DATASET_MADBASE:
+        base = f"arabic_digits/{base}"
     return base if attempt == 1 else f"{base}_attempt{attempt}"
 
 
@@ -156,6 +162,10 @@ def more_reference_condition_id(k: int, feature_method: str) -> str:
 def validate_config(cfg: RunConfig) -> list:
     """VALIDATE_CONFIG; returns warnings, raises on protocol violations."""
     warnings = []
+    if cfg.dataset not in C.DATASETS:
+        raise ValueError(f"dataset harus salah satu dari {C.DATASETS}")
+    if cfg.dataset == C.DATASET_MADBASE and cfg.mnist_download:
+        raise ValueError("mnist_download tidak berlaku untuk MADBase")
     if cfg.architecture not in C.ALL_ARCHITECTURES:
         raise ValueError(f"architecture tidak dikenali: {cfg.architecture}")
     if cfg.feature_method not in C.FEATURE_METHODS:

@@ -118,6 +118,7 @@ def run_jalur_b(source_run_dir, n_parallel_declared=None, project_root=".", writ
         max_nfev_supervised=sm["max_nfev_supervised"], n_train_per_class=sm["n_train_per_class"],
         n_val_per_class=sm["n_val_per_class"], n_test_per_class=sm["n_test_per_class"],
         n_parallel_declared=n_parallel_declared, project_root=str(root),
+        dataset=sm.get("dataset", C.DATASET_MNIST),
         val_monitor_policy=sm["val_monitor_policy"], n_val_monitor_per_class=sm["n_val_monitor_per_class"],
     )
     selected_eval_id, record = select_from_source(src)
@@ -181,7 +182,10 @@ def _execute(cfg, sm, src, run_dir, run_name, clock, env, selected_eval_id, reco
     clock.end_stage("structural_diagnostics")
 
     clock.begin_stage("final_evaluation")
-    test_hashes = {k: sm["input_array_sha256"][k] for k in ("X_test_scaled", "y_test", "test_mnist_index")}
+    identity_keys = (("test_source_index", "test_sample_id")
+                     if sm.get("dataset") == C.DATASET_MADBASE else ("test_mnist_index",))
+    test_hashes = {k: sm["input_array_sha256"][k]
+                   for k in ("X_test_scaled", "y_test", *identity_keys)}
     vault = OfficialTestVault(sa, test_hashes, clock)
     metrics = final_evaluation(engine, theta_f, ql["labels"], vault, cfg, run_dir)
     clock.end_stage("final_evaluation")
@@ -190,6 +194,9 @@ def _execute(cfg, sm, src, run_dir, run_name, clock, env, selected_eval_id, reco
     manifest = {
         "run_name": run_name,
         "run_uid": f"{sm['run_uid']}-JB",
+        "dataset": sm.get("dataset", C.DATASET_MNIST),
+        "dataset_id": sm.get("dataset_id", C.DATASET_IDS[C.DATASET_MNIST]),
+        "dataset_snapshot_sha256": sm.get("dataset_snapshot_sha256"),
         "source_run_uid": sm["run_uid"],
         "source_condition_id": sm["condition_id"],
         "track": "JALUR_B",

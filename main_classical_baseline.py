@@ -16,6 +16,7 @@ from core.classical_baselines import baseline_config, run_baseline_cell, write_r
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--run-mode", choices=C.RUN_MODES, default="CONFIRMATORY")
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--seeds", type=int, nargs="*", default=None)
     p.add_argument("--features", nargs="*", default=list(C.FEATURE_METHODS))
     p.add_argument("--ks", type=int, nargs="*", default=list(C.K_VALUES))
@@ -29,10 +30,14 @@ def main() -> None:
                                             tuple(args.sizes) != (C.N_TRAIN_PER_CLASS, C.N_VAL_PER_CLASS, C.N_TEST_PER_CLASS)):
         raise SystemExit("confirmatory baselines use seeds 101..505 and the 1000/100/200 protocol")
     root = Path(args.project_root).resolve()
-    out_root = root / C.RUNS_DIR / ("baselines" if args.run_mode == "CONFIRMATORY" else "baselines_pilot")
+    base_name = "baselines" if args.run_mode == "CONFIRMATORY" else "baselines_pilot"
+    out_root = root / C.RUNS_DIR
+    if args.dataset == C.DATASET_MADBASE:
+        out_root = out_root / "arabic_digits"
+    out_root = out_root / base_name
     out_root.mkdir(parents=True, exist_ok=True)
     cfg = {**baseline_config(), "seeds": seeds, "features": args.features, "K_values": args.ks,
-           "run_mode": args.run_mode}
+           "run_mode": args.run_mode, "dataset": args.dataset, "dataset_id": C.DATASET_IDS[args.dataset]}
     save_json_atomic(cfg, out_root / "baseline_config.json")
     rows, errors = [], []
     for seed in seeds:
@@ -40,7 +45,8 @@ def main() -> None:
             for feature in args.features:
                 try:
                     rows += run_baseline_cell(root, seed, feature, k, out_root, tuple(args.sizes),
-                                              run_mode=args.run_mode, pilot_tag=args.pilot_tag)
+                                              run_mode=args.run_mode, pilot_tag=args.pilot_tag,
+                                              dataset=args.dataset)
                 except Exception as exc:  # cell skipped and logged; rerun later in a new folder
                     errors.append({"seed": seed, "K": k, "feature_method": feature, "error": repr(exc)})
     write_results_csv(rows, out_root / "baseline_results.csv")

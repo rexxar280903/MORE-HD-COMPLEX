@@ -46,6 +46,7 @@ def status_of(cfg):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--pending", action="store_true")
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--track", choices=["PRIMARY", "ABLATION", "MORE_REFERENCE"], default=None)
     p.add_argument("--n-parallel", type=int, default=1, help="value written into --n-parallel-declared")
     a = p.parse_args()
@@ -53,13 +54,15 @@ def main():
     for track, script, flag, arch, fm, k, seed in entries():
         if a.track and track != a.track:
             continue
-        cfg = RunConfig(arch, fm, k, seed, run_mode="CONFIRMATORY", n_parallel_declared=a.n_parallel)
+        cfg = RunConfig(arch, fm, k, seed, dataset=a.dataset,
+                        run_mode="CONFIRMATORY", n_parallel_declared=a.n_parallel)
         st = status_of(cfg)
         n += 1
         done += st == C.STATUS_COMPLETED
         if a.pending and st == C.STATUS_COMPLETED:
             continue
-        cmd = f"python {script} {flag} --feature {fm} --k {k} --seed {seed} --run-mode CONFIRMATORY --n-parallel-declared {a.n_parallel}"
+        cmd = (f"python {script} {flag} --dataset {a.dataset} --feature {fm} --k {k} --seed {seed} "
+               f"--run-mode CONFIRMATORY --n-parallel-declared {a.n_parallel}")
         print(f"# {cfg.run_uid:<12} {st:<12} runs/{cfg.run_name}\n{' '.join(cmd.split())}")
     print(f"# {done}/{n} COMPLETED")
     if not a.track or a.track == "PRIMARY":

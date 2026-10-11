@@ -19,15 +19,15 @@ from .circuits import BatchedStatevector, backend_self_check, build_initializati
 from .clustering import ClusteringInputs, clustering_loop
 from .config import RunConfig, primary_condition_id, run_name_for, validate_config
 from .correlation import correlation_matrix
-from .data_pipeline import run_data_pipeline
+from .data_pipeline import prepare_test_artifacts, run_data_pipeline
+from .datasets import assert_dataset_matches, load_dataset
 from .environment import environment_record
 from .evaluation import OfficialTestVault, final_evaluation, structural_diagnostics
-from .mnist import load_mnist
 from .pairing import build_pairing, cluster_positions_from_manifest
 from .quantum_labels import extract_quantum_labels
 from .run_status import check_attempt_allowed, write_status
 from .seeds import manifest_seeds
-from .splits import create_or_load_split_manifest
+from .splits import create_or_load_dataset_split_manifest
 from .supervised import supervised_loop
 from .timing import RunClock
 
@@ -40,6 +40,11 @@ TEMPLATE = {
     C.TRACK_PRIMARY: C.MASTER_SPREADSHEET_PATH,
     C.TRACK_ABLATION: C.ABLATION_SPREADSHEET_PATH,
     C.TRACK_MORE_REFERENCE: C.MORE_REFERENCE_SPREADSHEET_PATH,
+}
+MADBASE_TEMPLATE = {
+    C.TRACK_PRIMARY: C.MADBASE_MASTER_SPREADSHEET_PATH,
+    C.TRACK_ABLATION: C.MADBASE_ABLATION_SPREADSHEET_PATH,
+    C.TRACK_MORE_REFERENCE: C.MADBASE_MORE_REFERENCE_SPREADSHEET_PATH,
 }
 
 
@@ -55,7 +60,9 @@ def select_val_monitor_set(y_val: np.ndarray, cfg: RunConfig) -> np.ndarray:
 
 
 def pair_identity_hash(pair_manifest: dict) -> str:
-    ident = {c: {"train_positions": v["train_positions"], "mnist_indices": v["mnist_indices"]}
+    ident = {c: {"train_positions": v["train_positions"],
+                 "source_indices": v.get("source_indices", v.get("mnist_indices")),
+                 "sample_ids": v.get("sample_ids")}
              for c, v in pair_manifest["selected_by_class"].items()}
     return sha256_json(ident)
 
@@ -63,7 +70,7 @@ def pair_identity_hash(pair_manifest: dict) -> str:
 def primary_run_dir(root: Path, cfg: RunConfig, architecture: str) -> Path:
     name = run_name_for(architecture, cfg.feature_method, cfg.k, cfg.seed,
                         (cfg.n_train_per_class, cfg.n_val_per_class, cfg.n_test_per_class),
-                        cfg.run_mode, cfg.pilot_tag)
+                        cfg.run_mode, cfg.pilot_tag, dataset=cfg.dataset)
     return root / C.RUNS_DIR / name
 
 
@@ -80,7 +87,10 @@ def paired_input_check(root: Path, cfg: RunConfig, input_hashes: dict) -> dict:
     return {"reference_run_dir": str(a_dir), "status": "MATCH"}
 
 
-def run_condition(cfg: RunConfig, mnist=None, write_workbook: bool = True) -> dict:
+def run_condition(cfg: RunConfig, mnist=None, write_workbook: bool = True, dataset=None) -> dict:
+    if mnist is not None and dataset is not None:
+        raise ValueError("pass only one injected dataset object")
+    injected_dataset = dataset if dataset is not None else mnist
     root = Path(cfg.project_root).resolve()
     warnings = validate_config(cfg)
     clock = RunClock(cfg.n_parallel_declared)
@@ -98,11 +108,11 @@ def run_condition(cfg: RunConfig, mnist=None, write_workbook: bool = True) -> di
         "track": cfg.track, "architecture": cfg.architecture, "git_commit": env["git_commit"],
         "git_dirty": env["git_dirty"], "config_warnings": warnings,
     })
-    template = root / TEMPLATE[cfg.track]
+    template = root / (MADBASE_TEMPLATE[cfg.track] if cfg.dataset == C.DATASET_MADBASE else TEMPLATE[cfg.track])
     if write_workbook and template.exists():
         shutil.copyfile(template, run_dir / C.LOCAL_RUN_SPREADSHEET_NAME)
     try:
-        result = _execute(cfg, root, run_dir, clock, env, warnings, mnist)
+        result = _execute(cfg, root, run_dir, clock, env, warnings, injected_dataset)
     except BaseException as exc:
         write_status(run_dir, cfg.run_uid, cfg.attempt, C.STATUS_FAILED, clock.started_at, error=exc)
         raise
@@ -114,7 +124,7 @@ def run_condition(cfg: RunConfig, mnist=None, write_workbook: bool = True) -> di
     return result
 
 
-def _execute(cfg: RunConfig, root: Path, run_dir: Path, clock: RunClock, env: dict, warnings: list, mnist) -> dict:
+def _execute(cfg: RunConfig, root: Path, run_dir: Path, clock: RunClock, env: dict, warnings: list, dataset) -> dict:
     art = run_dir / "artifacts"
     classes = cfg.classes
     k = cfg.k
@@ -122,12 +132,11 @@ def _execute(cfg: RunConfig, root: Path, run_dir: Path, clock: RunClock, env: di
 
     # ---- data_pipeline -------------------------------------------------------------
     clock.begin_stage("data_pipeline")
-    if mnist is None:
-        mnist = load_mnist(root / C.MNIST_ROOT, download=cfg.mnist_download)
-    split_manifest, split_path = create_or_load_split_manifest(
-        cfg.seed, mnist.train_labels, mnist.test_labels, root / C.SPLITS_DIR
-    )
-    data = run_data_pipeline(cfg, mnist, split_manifest, run_dir)
+    if dataset is None:
+        dataset = load_dataset(root, cfg.dataset, mnist_download=cfg.mnist_download)
+    assert_dataset_matches(cfg.dataset, dataset)
+    split_manifest, split_path = create_or_load_dataset_split_manifest(cfg, dataset, root)
+    data = run_data_pipeline(cfg, dataset, split_manifest, run_dir)
     clock.end_stage("data_pipeline")
 
     # ---- setup ------------------------------------------------------------------------
@@ -173,7 +182,8 @@ def _execute(cfg: RunConfig, root: Path, run_dir: Path, clock: RunClock, env: di
         "n_val_monitor_per_class": cfg.n_val_monitor_per_class,
         "n_val_monitor_total": int(mon.size),
         "val_positions": mon.tolist(),
-        "val_mnist_index": data.val_mnist_index[mon].tolist(),
+        "val_source_index": data.val_source_index[mon].tolist(),
+        "val_sample_id": data.val_sample_id[mon].tolist(),
     }, art / "val_monitor_manifest.json")
     class_index = {c: i for i, c in enumerate(classes)}
     y_train_idx = np.array([class_index[int(c)] for c in data.y_train])
@@ -186,7 +196,7 @@ def _execute(cfg: RunConfig, root: Path, run_dir: Path, clock: RunClock, env: di
 
     # ---- clustering_loop ----------------------------------------------------------------
     clock.begin_stage("clustering_loop")
-    pairing = build_pairing(data.y_train, data.train_mnist_index, classes, cfg.seed)
+    pairing = build_pairing(data.y_train, data.train_source_index, classes, cfg.seed, data.train_sample_id)
     save_json_atomic(pairing["manifest"], art / "pair_manifest.json")
     save_json_atomic(pairing["stats"], art / "pair_stats.json")
     sel = pairing["selected_positions"]
@@ -226,25 +236,28 @@ def _execute(cfg: RunConfig, root: Path, run_dir: Path, clock: RunClock, env: di
 
     # ---- final_evaluation -----------------------------------------------------------------
     clock.begin_stage("final_evaluation")
+    if not data.test_hashes:
+        prepare_test_artifacts(cfg, dataset, split_manifest, run_dir, data)
     vault = OfficialTestVault(art, data.test_hashes, clock)
     metrics = final_evaluation(engine, theta_f, labels, vault, cfg, run_dir)
     clock.end_stage("final_evaluation")
 
-    manifest = build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, data, corr, model,
+    manifest = build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, split_manifest, data, corr, model,
                               summary_c, summary_s, metrics, ql, pm, paired_check, self_check, executions)
     save_json_atomic(manifest, run_dir / "config.json")
     return manifest
 
 
-def build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, data, corr, model,
+def build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, split_manifest, data, corr, model,
                    summary_c, summary_s, metrics, ql, pair_manifest, paired_check, self_check, executions) -> dict:
     fm = cfg.feature_method
     seeds = manifest_seeds(cfg.seed)
     matching = {}
     if cfg.track != C.TRACK_PRIMARY:
+        uid_prefix = "AD-" if cfg.dataset == C.DATASET_MADBASE else ""
         matching = {
-            "matching_run_uid_A": f"{primary_condition_id(cfg.k, fm, C.ARCH_MORE_HD)}-S{cfg.seed}",
-            "matching_run_uid_D": f"{primary_condition_id(cfg.k, fm, C.ARCH_MORE_HD_C)}-S{cfg.seed}",
+            "matching_run_uid_A": f"{uid_prefix}{primary_condition_id(cfg.k, fm, C.ARCH_MORE_HD)}-S{cfg.seed}",
+            "matching_run_uid_D": f"{uid_prefix}{primary_condition_id(cfg.k, fm, C.ARCH_MORE_HD_C)}-S{cfg.seed}",
         }
     timing = clock.summary()
     resources = model.resource_summary()
@@ -257,6 +270,12 @@ def build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, data, c
         "condition_id": cfg.condition_id,
         "run_uid": cfg.run_uid,
         "run_name": cfg.run_name,
+        "dataset": cfg.dataset,
+        "dataset_id": split_manifest.get("dataset_id", C.DATASET_IDS[cfg.dataset]),
+        "dataset_snapshot_sha256": split_manifest.get("dataset_snapshot_sha256"),
+        "dataset_license_policy": (C.MADBASE_LICENSE_POLICY if cfg.dataset == C.DATASET_MADBASE else None),
+        "test_origin": split_manifest.get("test_origin", "OFFICIAL_SOURCE"),
+        "test_index_space": split_manifest.get("test_index_space", "OFFICIAL_TEST"),
         "attempt": cfg.attempt,
         "track": cfg.track,
         "path_type": PATH_TYPE[cfg.track],
@@ -303,7 +322,7 @@ def build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, data, c
         "subseed_rule": C.SUBSEED_RULE,
         "split_manifest": str(Path(split_path).relative_to(root)) if Path(split_path).is_absolute() else str(split_path),
         "split_manifest_sha256": sha256_file(split_path),
-        "paired_split_key": f"seed{cfg.seed}_K{cfg.k}",
+        "paired_split_key": f"{cfg.dataset}_seed{cfg.seed}_K{cfg.k}",
         "paired_pair_manifest_sha256": pair_identity_hash(pair_manifest),
         "input_array_sha256": data.input_hashes,
         "paired_input_check": paired_check,
@@ -322,8 +341,9 @@ def build_manifest(cfg, root, run_dir, clock, env, warnings, split_path, data, c
         "loss_adjuster_policy": cfg.loss_adjuster_policy,
         "n_parallel_declared": cfg.n_parallel_declared,
         "degenerate_quantum_label": ql["diagnostics"]["degenerate_quantum_label"],
-        "mnist_root": C.MNIST_ROOT,
-        "mnist_download": cfg.mnist_download,
+        "dataset_root": C.MNIST_ROOT if cfg.dataset == C.DATASET_MNIST else C.MADBASE_ROOT,
+        "mnist_root": C.MNIST_ROOT if cfg.dataset == C.DATASET_MNIST else None,
+        "mnist_download": cfg.mnist_download if cfg.dataset == C.DATASET_MNIST else False,
         "local_spreadsheet_path": str((run_dir / C.LOCAL_RUN_SPREADSHEET_NAME).relative_to(root)),
         "config_warnings": warnings,
         "circuit_resources": resources,
@@ -349,11 +369,14 @@ def artifact_paths(cfg, model) -> dict:
         "feature_metadata": "artifacts/feature_metadata.json",
         "scaler_params": "artifacts/scaler_params.json",
         "X_train_scaled": "artifacts/X_train_scaled.npy", "y_train": "artifacts/y_train.npy",
-        "train_mnist_index": "artifacts/train_mnist_index.npy",
+        "train_source_index": "artifacts/train_source_index.npy",
+        "train_sample_id": "artifacts/train_sample_id.npy",
         "X_val_scaled": "artifacts/X_val_scaled.npy", "y_val": "artifacts/y_val.npy",
-        "val_mnist_index": "artifacts/val_mnist_index.npy",
+        "val_source_index": "artifacts/val_source_index.npy",
+        "val_sample_id": "artifacts/val_sample_id.npy",
         "X_test_scaled": "artifacts/X_test_scaled.npy", "y_test": "artifacts/y_test.npy",
-        "test_mnist_index": "artifacts/test_mnist_index.npy",
+        "test_source_index": "artifacts/test_source_index.npy",
+        "test_sample_id": "artifacts/test_sample_id.npy",
         "val_monitor_manifest": "artifacts/val_monitor_manifest.json",
         "correlation_matrix": "artifacts/correlation_matrix.npy",
         "correlation_raw_mse": "artifacts/correlation_raw_mse.npy",
@@ -388,6 +411,12 @@ def artifact_paths(cfg, model) -> dict:
     }
     if cfg.feature_method == "PCA":
         paths["pca_model"] = "artifacts/pca_model.joblib"
+    if cfg.dataset == C.DATASET_MNIST:
+        paths.update({
+            "train_mnist_index": "artifacts/train_mnist_index.npy",
+            "val_mnist_index": "artifacts/val_mnist_index.npy",
+            "test_mnist_index": "artifacts/test_mnist_index.npy",
+        })
     if model.fixed_values is not None:
         paths["fixed_rz"] = "artifacts/fixed_rz.npy"
     return paths

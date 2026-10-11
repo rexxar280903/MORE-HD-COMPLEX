@@ -1,0 +1,6 @@
+{
+  "parallel": 2,
+  "cpu_priority": "BelowNormal",
+  "changed_at": "2026-10-10T16:49:13.580610+07:00",
+  "reason": "User needs CPU capacity for another task"
+}

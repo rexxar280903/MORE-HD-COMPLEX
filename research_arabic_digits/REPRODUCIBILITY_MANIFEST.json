@@ -1,0 +1,321 @@
+{
+  "generated_at": "2026-10-11T06:52:57+07:00",
+  "code": {
+    "run_git_commit": "188bab6a068afcb02d76b18bd23cf5449943ed2d",
+    "head_now": "188bab6a068afcb02d76b18bd23cf5449943ed2d",
+    "core_engine_diff_vs_commit": "NONE",
+    "untracked_or_modified_now": [
+      "M research_arabic_digits/DECISION_LOG.md",
+      " M research_arabic_digits/PROTOCOL_FREEZE.json",
+      " M research_arabic_digits/READINESS_GATES.md",
+      " M research_arabic_digits/README.md",
+      " M research_arabic_digits/RESEARCH_PROTOCOL.md",
+      " M research_arabic_digits/RUNBOOK.md",
+      " M research_arabic_digits/STATISTICAL_ANALYSIS_PLAN.md",
+      " M research_arabic_digits/research_data/manifests/readiness_report.json",
+      " M research_arabic_digits/research_data/pilot/test_summary.json",
+      " M scripts/analyze_pilot_budget.py",
+      " M scripts/check_pilot_runs.py",
+      " M scripts/circuit_microbenchmark.py",
+      "?? MORE-HD-COMPLEX.zip",
+      "?? app/",
+      "?? core/pilot_audit.py",
+      "?? paper/",
+      "?? research_arabic_digits/DEVIATION_LOG.md",
+      "?? research_arabic_digits/REPRODUCIBILITY_MANIFEST.json",
+      "?? research_arabic_digits/RESULTS.md",
+      "?? research_arabic_digits/paper/",
+      "?? research_arabic_digits/research_data/analysis/",
+      "?? research_arabic_digits/research_data/confirmatory_machine/",
+      "?? research_arabic_digits/research_data/consolidated/",
+      "?? research_arabic_digits/research_data/dashboard/",
+      "?? research_arabic_digits/research_data/pilot/convergence_budget_decision.json",
+      "?? research_arabic_digits/research_data/pilot/convergence_check.json",
+      "?? research_arabic_digits/research_data/pilot/convergence_curves_summary.csv",
+      "?? research_arabic_digits/research_data/pytest_full_readiness_20261009/",
+      "?? research_arabic_digits/research_data/pytest_queue6_control/",
+      "?? research_arabic_digits/research_data/pytest_readiness_final/",
+      "?? research_arabic_digits/research_data/pytest_training_preflight/",
+      "?? research_arabic_digits/research_data/reports/",
+      "?? research_arabic_digits/tools/",
+      "?? research_data/data_from_laptop/dashboard/",
+      "?? scripts/audit_confirmatory_readiness.py",
+      "?? scripts/confirmatory_worker.py",
+      "?? scripts/keep_training_awake.py",
+      "?? scripts/run_confirmatory_queue.py",
+      "?? scripts/verify_confirmatory_completion.py",
+      "?? tests/test_confirmatory_queue.py",
+      "?? tests/test_pilot_audit.py"
+    ]
+  },
+  "artifacts": {
+    "dataset_manifest": [
+      {
+        "path": "research_arabic_digits/research_data/manifests/raw_files.sha256",
+        "exists": true,
+        "bytes": 191,
+        "sha256": "99f474e8af096e0efa04ccf982851eee6b4aa3b413fb6e8b6952463cad6d5b69"
+      },
+      {
+        "path": "research_arabic_digits/research_data/manifests/dataset_inventory.json",
+        "exists": true,
+        "bytes": 2289,
+        "sha256": "9fee2ffa8c915e0a82fbdeffe2992ab4fad7cd85dfcdd4ed1f9d0574036bc195"
+      },
+      {
+        "path": "research_arabic_digits/research_data/manifests/label_mapping.json",
+        "exists": true,
+        "bytes": 529,
+        "sha256": "9d1e5c93e75322977a9e10f61612767475ca8524dbdf801fb7b94f786dfe21f9"
+      },
+      {
+        "path": "research_arabic_digits/research_data/manifests/duplicate_audit.csv",
+        "exists": true,
+        "bytes": 92474,
+        "sha256": "669739f23d691b027f13a9231c7509c335a73e49dc85919aed77f1229827fc20"
+      },
+      {
+        "path": "research_arabic_digits/research_data/manifests/data_audit_report.md",
+        "exists": true,
+        "bytes": 1059,
+        "sha256": "b0ca8eb8de9dacefdd5fba1a28c61fce456256f59b28185cc6976d503b626f25"
+      },
+      {
+        "path": "research_arabic_digits/DATASET_CARD.md",
+        "exists": true,
+        "bytes": 10337,
+        "sha256": "a7b2f182adaef4c21b0a69e989d739521c5b541ab4fa533073d920cb31d848da"
+      }
+    ],
+    "split_manifests": [
+      {
+        "path": "research_arabic_digits/splits/confirmatory_seed101.json",
+        "exists": true,
+        "bytes": 699343,
+        "sha256": "7d84804418c27ca33bace8a8f59dd340a7759e086dbc71f72f75564585f04433"
+      },
+      {
+        "path": "research_arabic_digits/splits/confirmatory_seed202.json",
+        "exists": true,
+        "bytes": 699645,
+        "sha256": "09aad74d30eb07ab0f56c67c98cbd23a28b6312168024dc72bfddb425b7693c9"
+      },
+      {
+        "path": "research_arabic_digits/splits/confirmatory_seed303.json",
+        "exists": true,
+        "bytes": 699343,
+        "sha256": "24eaa97681f597b098decf88f9acc56a4adcb1f196851f45374eae98eed50049"
+      },
+      {
+        "path": "research_arabic_digits/splits/confirmatory_seed404.json",
+        "exists": true,
+        "bytes": 699544,
+        "sha256": "8c318a74909c77347e2311a64fce9fab588ac5a3b45fb86d30142b5f2bd5e1f0"
+      },
+      {
+        "path": "research_arabic_digits/splits/confirmatory_seed505.json",
+        "exists": true,
+        "bytes": 699342,
+        "sha256": "06771c886213f6b98856158ff7d7a07c5da1e7e37101b0c1e78b57c4eafeb600"
+      },
+      {
+        "path": "research_arabic_digits/splits/pilot_seed42.json",
+        "exists": true,
+        "bytes": 702601,
+        "sha256": "9eccafb608759e319977a9cb3c69c39da4d447e8e4b8870a22457341e038caaf"
+      },
+      {
+        "path": "research_arabic_digits/splits/split_registry.json",
+        "exists": true,
+        "bytes": 2731,
+        "sha256": "b6ad3ef7cc95e801afc1aeb3fc07ed7bdadf8443bc806a5da432c532abf27e90"
+      }
+    ],
+    "protocol": [
+      {
+        "path": "research_arabic_digits/PROTOCOL_FREEZE.json",
+        "exists": true,
+        "bytes": 2157,
+        "sha256": "5f1ead3f5bd25c59fa4402b2f05c4e2d0982f3aa853c5b08144cdb5383f307a0"
+      },
+      {
+        "path": "research_arabic_digits/RESEARCH_PROTOCOL.md",
+        "exists": true,
+        "bytes": 6677,
+        "sha256": "5d703b18c0eafe69d8ea22fa8889e72ed403fe5ca3d2615925a618f77d4aa85c"
+      },
+      {
+        "path": "research_arabic_digits/STATISTICAL_ANALYSIS_PLAN.md",
+        "exists": true,
+        "bytes": 6691,
+        "sha256": "5359778ea3a8ad1cbada8365276d9e246e758e59c311dd2da53b182fb8137d05"
+      },
+      {
+        "path": "research_arabic_digits/DEVIATION_LOG.md",
+        "exists": true,
+        "bytes": 4882,
+        "sha256": "4d8641fc213f0de5e90861efe304873b1fd35ad0a15499ae7c0c04a6c2e2684f"
+      }
+    ],
+    "results": [
+      {
+        "path": "research_arabic_digits/RESULTS.md",
+        "exists": true,
+        "bytes": 31442,
+        "sha256": "73285ef66d75dad24010a41c8d01c678b67226403013330817c1dbe3f23822bf"
+      }
+    ],
+    "run_plan": [
+      {
+        "path": "research_arabic_digits/research_data/reports/confirmatory_run_plan.json",
+        "exists": true,
+        "bytes": 243455,
+        "sha256": "d6808a70c167b71d527ca7e423d4a6999e24c4abb817b9babef789dfa6d1273d"
+      },
+      {
+        "path": "research_arabic_digits/research_data/reports/queue8_plan.json",
+        "exists": true,
+        "bytes": 291,
+        "sha256": "6c396c1740ae1bf495f93b9c555dfc128b7c13017df03c623a732cf571b671b6"
+      }
+    ],
+    "budget_decision": [
+      {
+        "path": "research_arabic_digits/research_data/pilot/convergence_budget_decision.json",
+        "exists": true,
+        "bytes": 4370,
+        "sha256": "2cf051192907e376cbf520501998dd3c4e4e8c4862ed2f0a51816bec9582396d"
+      },
+      {
+        "path": "research_arabic_digits/research_data/pilot/convergence_check.json",
+        "exists": true,
+        "bytes": 12564,
+        "sha256": "4f701380349b59208551b0004020623bab26a8cb8a31ae98339e01a12966d3f7"
+      }
+    ],
+    "admission_report": [
+      {
+        "path": "research_arabic_digits/research_data/reports/final_admission.json",
+        "exists": true,
+        "bytes": 192,
+        "sha256": "b1db529ae6d9843a9bb6a6df9c5a48dae7ed8c691e338bbc07315bec389aa82b"
+      },
+      {
+        "path": "research_arabic_digits/research_data/reports/full_readiness_audit.json",
+        "exists": true,
+        "bytes": 1480,
+        "sha256": "842587053505cd556cf7046f7824803d4fa83c63d857fc9cd5f21584d1ba1495"
+      }
+    ],
+    "consolidated_workbooks": [
+      {
+        "path": "research_arabic_digits/research_data/consolidated/ablation_90runs.xlsx",
+        "exists": true,
+        "bytes": 35623570,
+        "sha256": "75bf161c7a4089b5f0509beee0d70279757674e3478bccddabbb87e3a87f7dda"
+      },
+      {
+        "path": "research_arabic_digits/research_data/consolidated/more_reference_120runs.xlsx",
+        "exists": true,
+        "bytes": 48856354,
+        "sha256": "24244408b05c6623d4f2df49560bb4eea744a2074c6d708cd1b14deec2241f9e"
+      },
+      {
+        "path": "research_arabic_digits/research_data/consolidated/primary_240runs.xlsx",
+        "exists": true,
+        "bytes": 95753309,
+        "sha256": "f5e0beed439331ef1ec97b3bfa0551f48a7908480f5e051c0cd7141d652e81b0"
+      }
+    ],
+    "analysis_tables": [
+      {
+        "path": "research_arabic_digits/research_data/analysis/MORE_HD_analysis_tables.xlsx",
+        "exists": true,
+        "bytes": 153897,
+        "sha256": "232ed828232a37f072b3a45543a267fe9e07cdfb9c82289573d423e68dbb4bfa"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/ablation_contrasts.csv",
+        "exists": true,
+        "bytes": 35695,
+        "sha256": "1a7b47451104a38c2bbcd0dd89f6966ebdd1015ac2b49338ae0ab1e8393734be"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/baseline_comparison.csv",
+        "exists": true,
+        "bytes": 39141,
+        "sha256": "f7be4eac4ad82bcf243e3c5b952e5a6096d5ed1af28a0067a817f4fea3169a8a"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/g1_11_six_nine.csv",
+        "exists": true,
+        "bytes": 6810,
+        "sha256": "496e7753db0737d956bc22d7364cbe4569d38ca9ba2354fbed838650d0757bb4"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/mcnemar_primary.csv",
+        "exists": true,
+        "bytes": 7361,
+        "sha256": "d088e2c9012eb45fc2d77a505c38a209f98e5c5a624f46308c03c0ec70a7403d"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/more_comparison.csv",
+        "exists": true,
+        "bytes": 50569,
+        "sha256": "eb79f817c06bf44194c3879b1d54cd05a5f39f8bdc82f922a45301eff3a1be79"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/paired_primary_D_minus_A.csv",
+        "exists": true,
+        "bytes": 37149,
+        "sha256": "7c72047dd07a466411c78adbf2b1067d27c4f8bc6dbbeaaf39564a818368c9ea"
+      },
+      {
+        "path": "research_arabic_digits/research_data/analysis/seed_aggregation.csv",
+        "exists": true,
+        "bytes": 50769,
+        "sha256": "a0d09fea5f4946a85d92a73eaecfefdeaff94e8aebf4bc82971088443157ab07"
+      }
+    ],
+    "environment": [
+      {
+        "path": "research_arabic_digits/requirements-lock-py313.txt",
+        "exists": true,
+        "bytes": 340,
+        "sha256": "587047f603050dfb1bcad4a8e8d63cbf28380ba677e039a750db177ca55e9c4e"
+      },
+      {
+        "path": "research_arabic_digits/research_data/confirmatory_machine/environment_pretraining.json",
+        "exists": true,
+        "bytes": 2031,
+        "sha256": "65c0cc5a5d660c9c9bef000c4591f4be5e6062872c55deda61c85e05c8df02a1"
+      },
+      {
+        "path": "research_arabic_digits/research_data/confirmatory_machine/hardware_pretraining.json",
+        "exists": true,
+        "bytes": 260,
+        "sha256": "458e0a47036970840859f47ee807b54e111eefefbee148399c609a8331d191ce"
+      }
+    ],
+    "paper_numbers": [
+      {
+        "path": "research_arabic_digits/paper/build/numbers.json",
+        "exists": true,
+        "bytes": 19666,
+        "sha256": "d691c74fabdbe4e2b12b19a4e50372888d99ef48c8e22c1168af4afd0acfae69"
+      },
+      {
+        "path": "research_arabic_digits/paper/build/tables.json",
+        "exists": true,
+        "bytes": 24614,
+        "sha256": "8ed4a618968d6abc4322e0e4ccdb58d67cdb0e776954ff1f3d072d40bdf95e0a"
+      },
+      {
+        "path": "research_arabic_digits/paper/build/runs_all.csv",
+        "exists": true,
+        "bytes": 93624,
+        "sha256": "3d34361769019e42cd346f3066b8a1c9374d51c4ac4f4cd7c0539d1b0f6784bb"
+      }
+    ]
+  }
+}

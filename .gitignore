@@ -5,6 +5,8 @@ benchmarks/
 __pycache__/
 *.pyc
 .pytest_cache/
+pytest-cache-files-*/
+.testdeps/
 *.tmp
 *.tmp.xlsx
 

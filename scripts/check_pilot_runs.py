@@ -10,18 +10,18 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from core.artifact_io import load_json, read_jsonl, save_json_atomic  # noqa: E402
+from core import constants as C  # noqa: E402
+from core.pilot_audit import completed_pilots  # noqa: E402
 
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument("--tag", default="smoke")
+p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
 p.add_argument("--out", default=None, help="optional JSON evidence file (runs + verdict)")
 a = p.parse_args()
 rows = []
 ok_all = True
-for cfg in sorted((ROOT / "runs").rglob("config.json")):
-    m = load_json(cfg)
-    if m.get("pilot_tag") != a.tag or m.get("track") == "JALUR_B":
-        continue
-    d = cfg.parent
+admitted, excluded = completed_pilots(ROOT, a.dataset, a.tag)
+for d, m in admitted:
     res = {"run_uid": m["run_uid"], "architecture": m["architecture"], "K": m["n_classes"]}
     for loop in ("clustering", "supervised"):
         log = read_jsonl(d / "logs" / f"{loop}_log.jsonl")
@@ -40,10 +40,21 @@ for cfg in sorted((ROOT / "runs").rglob("config.json")):
     res["status"] = st
     res["backend_max_abs_diff"] = m["backend_self_check"]["max_abs_diff"]
     res["accuracy"] = m["final_metrics"]["accuracy"]
+    res["dataset_id"] = m.get("dataset_id")
+    res["test_origin"] = m.get("test_origin")
+    if a.dataset == C.DATASET_MADBASE:
+        import numpy as np
+
+        sample_ids = np.load(d / "logs" / "test_sample_id.npy", allow_pickle=False).astype(str)
+        res["pilot_uses_train_pool_only"] = bool(np.all(np.char.startswith(sample_ids, "train/")))
+        ok_all &= res["pilot_uses_train_pool_only"]
     ok_all &= st == "COMPLETED"
     rows.append(res)
 ok_all = bool(ok_all and rows)
 if a.out:
-    save_json_atomic({"tag": a.tag, "n_runs": len(rows), "all_criteria_ok": ok_all, "runs": rows}, Path(a.out))
+    save_json_atomic({"dataset": a.dataset, "tag": a.tag, "n_runs": len(rows),
+                      "all_criteria_ok": ok_all, "runs": rows,
+                      "excluded_attempts": excluded}, Path(a.out))
 print(json.dumps(rows, indent=1))
 print("ALL SMOKE CRITERIA OK" if ok_all else "SMOKE CRITERIA FAILED")
+raise SystemExit(0 if ok_all else 1)

@@ -41,6 +41,7 @@ def n_exec(loop, k):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--project-root", default=str(ROOT))
+    p.add_argument("--dataset", choices=C.DATASETS, default=C.DATASET_MNIST)
     p.add_argument("--cap", type=int, default=C.PILOT_MAX_NFEV_CAP)
     p.add_argument("--out-dir", default=None,
                    help="default: research_data/pilot (reference evidence); use another folder on a new machine")
@@ -51,6 +52,8 @@ def main():
     for cfg_path in sorted((root / C.RUNS_DIR).rglob("config.json")):
         m = load_json(cfg_path)
         if m.get("run_mode") != "PILOT" or m.get("pilot_tag") not in ("smoke", "timing") or m.get("track") == "JALUR_B":
+            continue
+        if m.get("dataset", C.DATASET_MNIST) != a.dataset:
             continue
         if m["n_train_per_class"] != C.N_TRAIN_PER_CLASS or m["feature_method"] != "PCA":
             continue
@@ -106,8 +109,12 @@ def main():
         "full_val_infeasible": bool(cpu_hours > LIMIT_CPU_HOURS or share > LIMIT_VAL_SHARE),
         "machine_note": "single-thread projection on the machine that ran the timing pilot; rerun on the confirmatory machine",
     }
-    out = Path(a.out_dir) if a.out_dir else root / "research_data" / "pilot"
+    out = Path(a.out_dir) if a.out_dir else root / (
+        "research_arabic_digits/research_data/pilot" if a.dataset == C.DATASET_MADBASE else "research_data/pilot"
+    )
     out.mkdir(parents=True, exist_ok=True)
+    verdict["dataset"] = a.dataset
+    verdict["dataset_id"] = C.DATASET_IDS[a.dataset]
     save_json_atomic(verdict, out / "timing_projection.json")
     print(json.dumps({k: v for k, v in verdict.items() if k != "fits_sec"}, indent=2))
 

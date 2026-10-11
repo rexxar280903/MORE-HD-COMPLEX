@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Dashboard interaktif hasil training MORE-HD, MORE-HD-C, ablasi, dan reproduksi MORE pada digit tulisan tangan Arab (MADBase).">
+  <title>MORE-HD Observatory · MADBase</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307131f'/%3E%3Cpath d='M13 44V20l12 15 7-11 7 11 12-15v24' fill='none' stroke='%2346d6c3' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='16' r='4' fill='%23ffb36b'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div>
+        <strong>MORE-HD · MADBase</strong>
+        <span>Training Observatory · digit Arab ٠–٩</span>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <span class="data-status"><i></i><span id="dataset-status">Memuat data eksperimen</span></span>
+      <button class="button secondary" id="export-button" type="button">Ekspor data terfilter</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigasi dan filter analisis">
+      <nav class="nav-list" aria-label="Ruang analisis">
+        <button class="nav-item active" data-view="overview" type="button"><span>01</span>Ringkasan</button>
+        <button class="nav-item" data-view="comparison" type="button"><span>02</span>Bandingkan model</button>
+        <button class="nav-item" data-view="classes" type="button"><span>03</span>Analisis kelas</button>
+        <button class="nav-item" data-view="training" type="button"><span>04</span>Dinamika training</button>
+        <button class="nav-item" data-view="circuits" type="button"><span>05</span>Sirkuit &amp; fitur</button>
+        <button class="nav-item" data-view="statistics" type="button"><span>06</span>Bukti statistik</button>
+        <button class="nav-item" data-view="runs" type="button"><span>07</span>Semua run</button>
+        <button class="nav-item" data-view="findings" type="button"><span>08</span>Temuan &amp; replikasi</button>
+      </nav>
+
+      <section class="filter-panel" aria-labelledby="filter-heading">
+        <div class="section-label-row">
+          <h2 id="filter-heading">Filter global</h2>
+          <button class="text-button" id="reset-filters" type="button">Reset</button>
+        </div>
+        <label>Kelompok eksperimen
+          <select id="filter-track"><option value="ALL">Semua kelompok</option></select>
+        </label>
+        <label>Model / arsitektur
+          <select id="filter-model"><option value="ALL">Semua model</option></select>
+        </label>
+        <label>Representasi fitur
+          <select id="filter-feature"><option value="ALL">Semua fitur</option></select>
+        </label>
+        <label>Jumlah kelas (K)
+          <select id="filter-k"><option value="ALL">Semua K</option></select>
+        </label>
+        <label>Seed
+          <select id="filter-seed"><option value="ALL">Semua seed</option></select>
+        </label>
+      </section>
+
+      <section class="coverage-card" aria-labelledby="coverage-heading">
+        <h2 id="coverage-heading">Cakupan data</h2>
+        <div class="coverage-grid">
+          <div><strong id="coverage-runs">—</strong><span>run</span></div>
+          <div><strong id="coverage-evals">—</strong><span>kurva lengkap</span></div>
+          <div><strong id="coverage-classes">—</strong><span>metrik kelas</span></div>
+        </div>
+        <button class="text-button" id="show-methodology" type="button">Lihat sumber &amp; metodologi</button>
+      </section>
+    </aside>
+
+    <main id="main-content" class="main-content" tabindex="-1">
+      <div id="loading-state" class="loading-state" role="status">
+        <div class="loader" aria-hidden="true"></div>
+        <div><strong>Menyiapkan observatorium MADBase</strong><span>Membaca hasil eksperimen digit Arab lokal…</span></div>
+      </div>
+
+      <div id="error-state" class="error-state" hidden>
+        <strong>Data belum dapat dibaca.</strong>
+        <p id="error-message"></p>
+        <p>Jalankan <code>serve.ps1</code> dari folder dashboard, lalu buka alamat lokal yang ditampilkan.</p>
+      </div>
+
+      <div id="dashboard" hidden>
+        <header class="view-header">
+          <div>
+            <p class="eyebrow" id="view-eyebrow">Ringkasan eksperimen</p>
+            <h1 id="view-title">Kemampuan model pada seluruh protokol</h1>
+            <p id="view-subtitle">Gambaran kinerja, stabilitas, dan biaya komputasi dari data aktual.</p>
+          </div>
+          <div class="sample-pill"><strong id="filtered-count">0</strong><span>run aktif</span></div>
+        </header>
+
+        <section class="view active" id="view-overview" data-view-panel="overview">
+          <div class="kpi-grid" id="overview-kpis"></div>
+          <div class="grid two-thirds">
+            <article class="panel chart-panel">
+              <div class="panel-header">
+                <div><p class="panel-kicker">Performa lintas skala</p><h2>Akurasi menurut jumlah kelas</h2></div>
+                <div class="segmented" id="overview-metric-toggle" aria-label="Pilih metrik">
+                  <button type="button" class="active" data-metric="accuracy">Akurasi</button>
+                  <button type="button" data-metric="f1_macro">Macro-F1</button>
+                </div>
+              </div>
+              <div id="overview-line-chart" class="chart" aria-label="Grafik performa menurut jumlah kelas"></div>
+            </article>
+            <article class="panel insight-panel">
+              <div class="panel-header"><div><p class="panel-kicker">Pembacaan cepat</p><h2>Pola yang menonjol</h2></div></div>
+              <div id="overview-insights" class="insight-list"></div>
+            </article>
+          </div>
+          <div class="grid equal">
+            <article class="panel chart-panel">
+              <div class="panel-header"><div><p class="panel-kicker">Trade-off</p><h2>Akurasi dan waktu komputasi</h2></div></div>
+              <div id="runtime-scatter" class="chart compact"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-header"><div><p class="panel-kicker">Peringkat kondisi</p><h2>Kombinasi terkuat</h2></div><span class="muted">Rerata seed</span></div>
+              <div class="table-wrap"><table><thead><tr><th>Peringkat</th><th>Model</th><th>Fitur</th><th>K</th><th>Akurasi</th><th>F1</th></tr></thead><tbody id="top-conditions"></tbody></table></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-comparison" data-view-panel="comparison" hidden>
+          <div class="comparison-controls panel">
+            <div class="comparison-control-wide"><span class="toolbar-label">Kelompokkan hasil berdasarkan</span><div id="comparison-dimensions" class="checkbox-row"></div></div>
+            <label>Metrik utama<select id="comparison-metric"><optgroup label="Metrik setiap kelas"><option value="class_accuracy">Akurasi kelas</option><option value="precision">Precision kelas</option><option value="recall">Recall kelas</option><option value="f1">F1 kelas</option></optgroup><optgroup label="Metrik setiap run"><option value="accuracy">Akurasi model</option><option value="f1_macro">Macro-F1 model</option><option value="min_separation_ratio">Rasio separasi</option><option value="total_runtime_sec">Runtime</option></optgroup></select></label>
+            <label>Agregasi kelas<select id="comparison-weight"><option value="macro">Macro — setiap kelas setara</option><option value="support">Berbobot jumlah sampel</option></select></label>
+            <label>Minimum observasi<input id="comparison-min-n" type="number" min="1" max="100" step="1" value="1"></label>
+            <div class="comparison-control-wide"><span class="toolbar-label">Sirkuit / arsitektur yang dibandingkan</span><div id="model-checkboxes" class="checkbox-row"></div></div>
+            <button class="button secondary" id="export-comparison" type="button">Unduh tabel kelompok</button>
+          </div>
+          <div id="comparison-context" class="detail-summary"></div>
+          <div class="grid two-thirds">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Peringkat kombinasi</p><h2 id="comparison-chart-title">Performa menurut kelompok aktif</h2></div><span class="muted" id="comparison-chart-note">30 kelompok teratas</span></div><div id="comparison-chart" class="chart tall"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Ringkasan sirkuit</p><h2>Profil model pada subset aktif</h2></div></div><div id="comparison-summary" class="model-profile-list"></div></article>
+          </div>
+          <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Matriks multidimensi</p><h2 id="comparison-matrix-title">Sirkuit × representasi × kelas</h2></div><span class="muted" id="comparison-matrix-note">Warna lebih kuat = nilai lebih tinggi</span></div><div id="comparison-matrix" class="table-wrap comparison-matrix"></div></article>
+          <div class="grid equal">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Pembanding klasik</p><h2>Selisih akurasi terhadap baseline</h2></div></div><div id="baseline-chart" class="chart compact"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Tabel kelompok lengkap</p><h2>Rerata, variasi, rentang, dan ketidakpastian</h2></div></div><div class="table-wrap comparison-detail-table"><table><thead id="comparison-table-head"></thead><tbody id="comparison-table"></tbody></table></div></article>
+          </div>
+        </section>
+
+        <section class="view" id="view-classes" data-view-panel="classes" hidden>
+          <div class="analysis-toolbar">
+            <label>Metrik kelas<select id="class-metric"><option value="class_accuracy">Akurasi kelas</option><option value="precision">Precision</option><option value="recall">Recall</option><option value="f1">F1-score</option></select></label>
+            <div class="toolbar-note">Nilai diagregasi dari semua run yang lolos filter global.</div>
+          </div>
+          <div class="grid two-thirds">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Ketahanan per kelas</p><h2 id="class-chart-title">Akurasi setiap kelas</h2></div></div><div id="class-bar-chart" class="chart tall"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Kesulitan kelas</p><h2>Kelas yang perlu perhatian</h2></div></div><div id="class-insights" class="insight-list"></div></article>
+          </div>
+          <div class="grid two-thirds reverse">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Prediksi agregat</p><h2>Confusion matrix</h2></div><label class="inline-control"><input type="checkbox" id="normalize-confusion" checked> Normalisasi per kelas</label></div><div id="confusion-heatmap" class="chart heatmap"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Pasangan yang tertukar</p><h2>Kebingungan terbesar</h2></div></div><div class="table-wrap"><table><thead><tr><th>Aktual</th><th>Prediksi</th><th>Jumlah</th><th>Porsi</th></tr></thead><tbody id="confusion-pairs"></tbody></table></div></article>
+          </div>
+        </section>
+
+        <section class="view" id="view-training" data-view-panel="training" hidden>
+          <div class="training-controls panel">
+            <div class="run-picker"><label>Pilih run untuk dibandingkan<select id="training-run-select"></select></label><button class="button primary" id="add-training-run" type="button">Tambahkan run</button></div>
+            <div><span class="toolbar-label">Run aktif (maks. 4)</span><div id="selected-run-chips" class="chip-row"></div></div>
+            <div class="control-cluster">
+              <div class="segmented" id="training-phase-toggle"><button type="button" class="active" data-phase="supervised">Supervised</button><button type="button" data-phase="clustering">Clustering</button></div>
+              <label>Metrik<select id="training-metric"></select></label>
+            </div>
+          </div>
+          <div class="kpi-grid small" id="training-kpis"></div>
+          <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Setiap evaluasi optimizer</p><h2 id="training-chart-title">Kurva supervised</h2></div><span class="muted" id="training-point-count">—</span></div><div id="training-line-chart" class="chart extra-tall"></div></article>
+          <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Data evaluasi mentah</p><h2>Nilai per evaluasi</h2></div><div class="pagination" id="eval-pagination"></div></div><div class="table-wrap evaluation-table"><table><thead id="eval-table-head"></thead><tbody id="eval-table-body"></tbody></table></div></article>
+          <article class="panel">
+            <div class="panel-header">
+              <div><p class="panel-kicker">Detail run lengkap</p><h2>Artefak dan keluaran per run</h2></div>
+              <div class="detail-controls">
+                <label>Dataset<select id="run-detail-type"><option value="config">Konfigurasi run</option><option value="correlation">Correlation matrix</option><option value="quantum_labels">Quantum labels</option><option value="pairwise_distance">Pairwise distance</option><option value="dimension_activity">Aktivitas dimensi</option><option value="test_predictions">Prediksi tiap sampel</option></select></label>
+                <div class="pagination" id="run-detail-pagination"></div>
+              </div>
+            </div>
+            <div id="run-detail-summary" class="detail-summary"></div>
+            <div class="table-wrap run-detail-table"><table><thead id="run-detail-head"></thead><tbody id="run-detail-body"></tbody></table></div>
+          </article>
+        </section>
+
+        <section class="view" id="view-circuits" data-view-panel="circuits" hidden>
+          <div class="grid equal">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Microbenchmark</p><h2>Biaya eksekusi sirkuit</h2></div></div><div id="circuit-benchmark-chart" class="chart"></div></article>
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Kompleksitas</p><h2>Depth sirkuit dan akurasi</h2></div></div><div id="complexity-scatter" class="chart"></div></article>
+          </div>
+          <div class="grid two-thirds">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Diagnostik struktur</p><h2>Dimensi aktif terhadap threshold</h2></div></div><div id="threshold-chart" class="chart tall"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Representasi fitur</p><h2>Profil PCA, HU, dan Zernike</h2></div></div><div id="feature-profiles" class="feature-profile-list"></div></article>
+          </div>
+        </section>
+
+        <section class="view" id="view-statistics" data-view-panel="statistics" hidden>
+          <div class="stat-note"><strong>Cara membaca:</strong> delta positif menguntungkan model di sisi kiri kontras. Interval yang melintasi nol menunjukkan ketidakpastian arah efek.</div>
+          <div class="grid two-thirds">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Efek berpasangan</p><h2>Delta akurasi dan interval 95%</h2></div></div><div id="forest-chart" class="chart extra-tall"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Uji signifikansi</p><h2>Kontras terkuat</h2></div></div><div id="significance-list" class="insight-list"></div></article>
+          </div>
+          <div class="grid equal">
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">McNemar</p><h2>Ketidaksepakatan MORE-HD-C vs MORE-HD</h2></div></div><div id="mcnemar-summary" class="stat-block"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Diagnosis khusus</p><h2>Kebingungan kelas 6 (٦) dan 9 (٩) · pra-spesifikasi</h2></div></div><div id="six-nine-summary" class="stat-block"></div></article>
+          </div>
+          <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Tabel statistik</p><h2>Semua kontras yang sesuai filter</h2></div></div><div class="table-wrap"><table><thead><tr><th>Kontras</th><th>Fitur</th><th>K</th><th>Metrik</th><th>n</th><th>Delta</th><th>CI 95%</th><th>Hedges g</th><th>p terkoreksi</th></tr></thead><tbody id="statistics-table"></tbody></table></div></article>
+        </section>
+
+        <section class="view" id="view-findings" data-view-panel="findings" hidden>
+          <div class="stat-note"><strong>Cara membaca:</strong> angka konfirmatori berasal dari 450 run yang lolos admission. Tabel MNIST hanya pembanding deskriptif (SAP §8), dan panel bertanda <em>eksploratif</em> dirancang setelah hasil diketahui. Filter global tidak berlaku pada tab ini.</div>
+          <div class="kpi-grid" id="findings-kpis"></div>
+          <div class="grid two-thirds">
+            <article class="panel chart-panel"><div class="panel-header"><div><p class="panel-kicker">Replikasi lintas dataset (deskriptif)</p><h2>Kontras primer dan ablasi: MNIST vs MADBase</h2></div></div><div id="cross-chart" class="chart"></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Kesimpulan</p><h2>Apa yang tereplikasi</h2></div></div><div id="findings-insights" class="insight-list"></div></article>
+          </div>
+          <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Ringkasan berdampingan</p><h2>MNIST vs MADBase pada protokol sejajar</h2></div></div><div class="table-wrap"><table><thead><tr><th>Ukuran</th><th>MNIST</th><th>MADBase</th></tr></thead><tbody id="cross-table"></tbody></table></div></article>
+          <div class="grid equal">
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Eksploratif · K = 10</p><h2>Pasangan glif yang paling sering tertukar</h2></div></div><div class="table-wrap"><table><thead><tr><th>Fitur</th><th>Pasangan</th><th>Glif</th><th>Porsi galat A–D</th></tr></thead><tbody id="pairs-table"></tbody></table></div></article>
+            <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Eksploratif · sel ablasi</p><h2>Mengapa dimensi tambahan kurang membantu</h2></div></div><div class="table-wrap"><table><thead><tr><th>Model</th><th>Rank</th><th>Eff. rank</th><th>Probe 15</th><th>Probe 9</th><th>Akurasi</th><th>Selisih</th><th>Membaik</th></tr></thead><tbody id="mech-table"></tbody></table></div></article>
+          </div>
+          <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Analisis sensitivitas sekunder</p><h2>Jalur B: checkpoint clustering terpilih dari validasi</h2></div></div><div class="table-wrap"><table><thead><tr><th>Fitur</th><th>K</th><th>A (titik akhir)</th><th>A (Jalur B)</th><th>D (titik akhir)</th><th>D (Jalur B)</th><th>D − A titik akhir</th><th>D − A Jalur B [CI 95%]</th></tr></thead><tbody id="jalurb-table"></tbody></table></div></article>
+        </section>
+
+        <section class="view" id="view-runs" data-view-panel="runs" hidden>
+          <div class="analysis-toolbar">
+            <label class="search-field">Cari run<input type="search" id="run-search" placeholder="UID, model, fitur, seed…"></label>
+            <label>Urutkan<select id="run-sort"><option value="accuracy-desc">Akurasi tertinggi</option><option value="accuracy-asc">Akurasi terendah</option><option value="runtime-asc">Runtime tercepat</option><option value="runtime-desc">Runtime terlama</option><option value="uid-asc">UID run</option></select></label>
+          </div>
+          <article class="panel"><div class="panel-header"><div><p class="panel-kicker">Audit run</p><h2>Semua hasil training</h2></div><div class="pagination" id="run-pagination"></div></div><div class="table-wrap runs-table"><table><thead><tr><th>Run</th><th>Kelompok</th><th>Model</th><th>Fitur</th><th>K</th><th>Seed</th><th>Akurasi</th><th>F1</th><th>Loss val</th><th>Runtime</th><th>Status</th></tr></thead><tbody id="runs-table-body"></tbody></table></div></article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="methodology-dialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-header"><div><p class="panel-kicker">Provenans data</p><h2>Sumber dan cara membaca dashboard</h2></div><button class="icon-button" value="cancel" aria-label="Tutup dialog">×</button></div>
+      <div id="methodology-content"></div>
+      <div class="dialog-actions"><button class="button primary" value="cancel">Tutup</button></div>
+    </form>
+  </dialog>
+
+  <script src="app.js?v=6" defer></script>
+</body>
+</html>
