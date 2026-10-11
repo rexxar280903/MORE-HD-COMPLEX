@@ -1,0 +1,10 @@
+{
+  "RecordedAt": "2026-10-09T19:36:05.4917396+07:00",
+  "CPU": "12th Gen Intel(R) Core(TM) i3-12100F",
+  "PhysicalCores": 4,
+  "LogicalThreads": 8,
+  "TotalRamGB": 15.82,
+  "AvailableRamGB": 6.55,
+  "CpuLoadPercent": 25,
+  "PlannedMaxParallel": 6
+}

@@ -1,8 +1,8 @@
 # Runbook MADBase
 
-**Status:** `PILOT READY / CONFIRMATORY BUDGET GATED`  
-**Versi:** 1.0  
-**Tanggal:** 2026-10-09
+**Status:** `SELESAI — G6 CLOSED`  
+**Versi:** 1.1  
+**Tanggal:** 2026-10-11
 
 Semua perintah dijalankan dari root repositori. Gunakan environment yang cocok
 dengan `research_arabic_digits/requirements-lock-py313.txt`.
@@ -53,6 +53,9 @@ python analysis/run_analysis.py --dataset MADBASE --run-mode PILOT --pilot-tag s
 ```
 
 ## 5. Pilot konvergensi wajib
+
+Tahap ini telah selesai pada 2026-10-09. Jangan mengulang run yang sudah
+COMPLETED; keputusan 900/940 telah dibekukan dari 14 kondisi lengkap.
 
 Jalankan satu kondisi pertama untuk memeriksa mesin, lalu lanjutkan matriks
 sisanya. Tahap ini dapat memakan waktu lama.
@@ -105,3 +108,22 @@ Jangan commit atau membagikan arsip, BMP, cache array, atau contoh mentah
 MADBase. Bagikan hanya kode, checksum, manifest ID, konfigurasi, dan hasil
 turunan yang tidak merekonstruksi data mentah sampai izin resmi tersedia.
 
+## 10. Penutupan G6, laporan, paper, dan dashboard
+
+Semua langkah di bawah hanya membaca run/workbook yang sudah ada (tidak melatih ulang) dan tidak menyentuh file
+studi MNIST.
+
+```powershell
+python research_arabic_digits/tools/finalize_g6.py                  # audit G6 + REPRODUCIBILITY_MANIFEST.json
+python research_arabic_digits/paper/build/extract_workbooks.py     # sheet ringkas workbook -> paper/build/data/*.csv
+python research_arabic_digits/paper/build/collect_jalurb.py        # 90 run Jalur B -> data/jalurB_runs.csv
+python research_arabic_digits/paper/build/mechanism/pack_inputs.py # input analisis mekanistik (eksploratif)
+python research_arabic_digits/paper/build/mechanism/mechanism_analysis_madbase.py --src <folder ekstrak mech_inputs.tar.gz> --out research_arabic_digits/paper/build/mechanism --workers 6
+python research_arabic_digits/paper/build/analyze_madbase.py       # numbers.json, tables.json, runs_all.csv
+python research_arabic_digits/paper/build/write_results.py         # RESULTS.md
+python research_arabic_digits/paper/build/make_figures.py          # paper/figures/id/*.png
+python research_arabic_digits/paper/build/build_paper.py           # paper/MORE-HD-C_MADBase_paper_ID.docx
+python research_arabic_digits/research_data/dashboard/build_data.py  # data dashboard (atau refresh_data.ps1)
+```
+
+`build_paper.py` memakai `MML2OMML.XSL` milik Microsoft Office bila ada; bila tidak, perlu `pandoc` di PATH.

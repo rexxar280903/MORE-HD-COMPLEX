@@ -26,6 +26,7 @@ import numpy as np  # noqa: E402
 
 from core import constants as C  # noqa: E402
 from core.artifact_io import load_json, read_jsonl, save_json_atomic  # noqa: E402
+from core.pilot_audit import completed_pilots  # noqa: E402
 
 TOL_FRACTION = 0.02
 TAIL = 30
@@ -54,16 +55,15 @@ def main():
     root = Path(a.project_root)
     rows = []
     max_params = 0
-    for cfg_path in sorted((root / C.RUNS_DIR).rglob("config.json")):
-        m = load_json(cfg_path)
-        if m.get("run_mode") != "PILOT" or m.get("pilot_tag") != a.tag or m.get("track") == "JALUR_B":
-            continue
-        if m.get("dataset", C.DATASET_MNIST) != a.dataset:
-            continue
-        d = cfg_path.parent
+    admitted, excluded = completed_pilots(root, a.dataset, a.tag)
+    for d, m in admitted:
         for loop in ("clustering", "supervised"):
             log = read_jsonl(d / "logs" / f"{loop}_log.jsonl")
             opt = load_json(d / "logs" / f"{loop}_optimizer_result.json")
+            if (not log or len(log) != opt["nfev"] or opt["max_nfev"] != a.cap or
+                    not all(np.isfinite(r["train_loss"]) for r in log) or
+                    opt["final_point_eval_id"] is None):
+                raise ValueError(f"Invalid optimizer evidence: {d} {loop}")
             st = curve_stats([r["train_loss"] for r in log], bool(opt["stopped_by_budget"]))
             max_params = max(max_params, opt["n_params"])
             rows.append({"run_uid": m["run_uid"], "architecture": m["architecture"], "feature_method": m["feature_method"],
@@ -73,7 +73,10 @@ def main():
         raise SystemExit("no convergence pilot runs found")
     decision = {"status": "FROZEN", "dataset": a.dataset, "dataset_id": C.DATASET_IDS[a.dataset],
                 "rule": "pseudocode §1.1 (frozen before confirmatory execution; cap=%d)" % a.cap,
-                "tol_fraction": TOL_FRACTION, "tail": TAIL, "cap": a.cap, "n_runs": len({r['run_uid'] for r in rows})}
+                "tol_fraction": TOL_FRACTION, "tail": TAIL, "cap": a.cap, "n_runs": len({r['run_uid'] for r in rows}),
+                "admitted_attempts": [{"run_uid": m["run_uid"], "attempt": m.get("attempt", 1),
+                                       "path": str(d.relative_to(root))} for d, m in admitted],
+                "excluded_attempts": excluded}
     for loop in ("clustering", "supervised"):
         lr = [r for r in rows if r["loop"] == loop]
         n_star_max = max(r["n_star"] for r in lr)

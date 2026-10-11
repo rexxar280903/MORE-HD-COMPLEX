@@ -15,6 +15,7 @@ for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXP
     os.environ[_v] = "1"
 
 import argparse  # noqa: E402
+import platform  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
@@ -77,7 +78,7 @@ def run_block(block: int, batch: int, repeats: int, warmup: int, out_dir: Path) 
     save_json_atomic({
         "rows": rows, "per_sample_basis": f"forward pass of {batch} samples incl. one U(theta) build, divided by {batch}",
         "device_name": C.DEVICE_NAME, "sim_dtype": C.SIM_DTYPE, "pennylane_version": v.get("pennylane"),
-        "numpy_version": v.get("numpy"), "hostname": os.uname().nodename, "cpu_model": cpu_model(),
+        "numpy_version": v.get("numpy"), "hostname": platform.node(), "cpu_model": cpu_model(),
         "thread_env": thread_env(), "timestamp": now_iso(),
     }, out_dir / f"circuit_microbenchmark_block{block}.json")
 

@@ -140,14 +140,14 @@ hanya memverifikasi mekanisme dan tidak boleh disalin ke tabel hasil final.
 
 ## 10. Boundary dan amendemen
 
-Freeze desain dilakukan 2026-10-09 Asia/Jakarta. Confirmatory boundary belum
-dibuka karena budget MADBase belum tersedia. Saat gate lulus, timestamp,
-commit/ref, environment, serta hash keputusan budget dicatat pada run
-manifests. Perubahan setelahnya masuk amendment log dan menyebut outcome apa
+Freeze desain dilakukan 2026-10-09 Asia/Jakarta. Confirmatory boundary dibuka
+2026-10-09 ±23:45 WIB setelah budget MADBase 900/940 dibekukan; timestamp,
+commit/ref (`188bab6`), environment, serta hash keputusan budget tercatat pada run
+manifests. (Amendemen administratif 1.0.1, DEV-04.) Perubahan setelahnya masuk amendment log dan menyebut outcome apa
 yang sudah tersedia.
 
 | Tanggal | Versi | Perubahan | Outcome official test tersedia? |
 |---|---|---|---|
 | 2026-10-08 | 0.1 | Kerangka awal | Tidak |
 | 2026-10-09 | 1.0 | Dataset, split, matriks, metrik, inferensi, admission, dan batas klaim dibekukan; budget tetap digated oleh pilot | Tidak ada metrik model konfirmatori |
-
+| 2026-10-11 | 1.0.1 | Administratif: status boundary, penutupan G6, label eksploratif untuk analisis pasca-hasil (DEV-04, DEV-05) | Ya — tidak ada perubahan analisis konfirmatori |

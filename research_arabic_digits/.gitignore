@@ -1,0 +1,20 @@
+# Studi MADBase (digit Arab) — file yang sengaja TIDAK di-push (repo publik)
+
+# Workbook konsolidasi besar (≈172 MB); disimpan lokal, sama seperti konvensi studi MNIST
+research_data/consolidated/
+
+# Draf naskah dan pratinjau PDF tetap lokal sampai siap dipublikasikan (template VJCS juga .docx)
+paper/**/*.docx
+paper/**/*.pdf
+
+# Input analisis mekanistik (fitur terskala per sel; dapat dibuat ulang dengan pack_inputs.py)
+paper/build/mechanism/mech_inputs.tar.gz
+
+# Artefak runtime antrean training (pid, lock, log per proses)
+research_data/confirmatory_machine/queue/logs/
+research_data/confirmatory_machine/queue/*.pid
+research_data/confirmatory_machine/queue/*.lock
+research_data/confirmatory_machine/queue/*.log
+
+# Folder sementara pytest
+research_data/pytest_*/

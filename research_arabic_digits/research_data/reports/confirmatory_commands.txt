@@ -1,0 +1,903 @@
+# AD-R001-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R002-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R003-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R004-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R005-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R006-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R007-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R008-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R009-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R010-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R011-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R012-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R013-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R014-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R015-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R016-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R017-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R018-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R019-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R020-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R021-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R022-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R023-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R024-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R025-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R026-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R027-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R028-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R029-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R030-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R031-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R032-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R033-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R034-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R035-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R036-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R037-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R038-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R039-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R040-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R041-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R042-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R043-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R044-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R045-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R046-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R047-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed101
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R048-S101 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed101
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R001-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R002-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R003-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R004-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R005-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R006-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R007-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R008-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R009-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R010-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R011-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R012-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R013-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R014-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R015-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R016-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R017-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R018-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R019-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R020-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R021-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R022-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R023-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R024-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R025-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R026-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R027-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R028-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R029-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R030-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R031-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R032-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R033-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R034-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R035-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R036-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R037-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R038-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R039-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R040-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R041-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R042-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R043-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R044-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R045-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R046-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R047-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed202
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R048-S202 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed202
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R001-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R002-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R003-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R004-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R005-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R006-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R007-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R008-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R009-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R010-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R011-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R012-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R013-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R014-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R015-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R016-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R017-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R018-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R019-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R020-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R021-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R022-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R023-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R024-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R025-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R026-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R027-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R028-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R029-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R030-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R031-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R032-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R033-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R034-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R035-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R036-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R037-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R038-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R039-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R040-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R041-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R042-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R043-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R044-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R045-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R046-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R047-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed303
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R048-S303 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed303
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R001-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R002-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R003-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R004-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R005-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R006-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R007-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R008-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R009-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R010-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R011-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R012-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R013-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R014-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R015-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R016-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R017-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R018-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R019-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R020-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R021-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R022-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R023-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R024-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R025-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R026-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R027-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R028-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R029-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R030-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R031-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R032-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R033-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R034-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R035-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R036-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R037-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R038-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R039-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R040-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R041-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R042-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R043-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R044-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R045-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R046-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R047-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed404
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R048-S404 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed404
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R001-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R002-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R003-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R004-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R005-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R006-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R007-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R008-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R009-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R010-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R011-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R012-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R013-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R014-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R015-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R016-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R017-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R018-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R019-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R020-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R021-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R022-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R023-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R024-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R025-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R026-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R027-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R028-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R029-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R030-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R031-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R032-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R033-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R034-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R035-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R036-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R037-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R038-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R039-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R040-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R041-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R042-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R043-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature PCA --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R044-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature PCA --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R045-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature HU --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R046-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_HU_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature HU --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R047-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed505
+python main_train.py --architecture MORE-HD --dataset MADBASE --feature ZERNIKE --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-R048-S505 NOT_STARTED  runs/arabic_digits/cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed505
+python main_train.py --architecture MORE-HD-C --dataset MADBASE --feature ZERNIKE --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL001-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL001-S101_cls-0-1-2_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL002-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL002-S101_cls-0-1-2_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL003-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL003-S101_cls-0-1-2_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL004-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL004-S101_cls-0-1-2_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL005-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL005-S101_cls-0-1-2_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL006-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL006-S101_cls-0-1-2_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL007-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL007-S101_cls-0-1-2-3-4-5_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL008-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL008-S101_cls-0-1-2-3-4-5_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL009-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL009-S101_cls-0-1-2-3-4-5_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL010-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL010-S101_cls-0-1-2-3-4-5_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL011-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL011-S101_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL012-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL012-S101_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL013-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL013-S101_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL014-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL014-S101_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL015-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL015-S101_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL016-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL016-S101_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL017-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL017-S101_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL018-S101 NOT_STARTED  runs/arabic_digits/ablation/ABL018-S101_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL001-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL001-S202_cls-0-1-2_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL002-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL002-S202_cls-0-1-2_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL003-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL003-S202_cls-0-1-2_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL004-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL004-S202_cls-0-1-2_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL005-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL005-S202_cls-0-1-2_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL006-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL006-S202_cls-0-1-2_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL007-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL007-S202_cls-0-1-2-3-4-5_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL008-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL008-S202_cls-0-1-2-3-4-5_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL009-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL009-S202_cls-0-1-2-3-4-5_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL010-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL010-S202_cls-0-1-2-3-4-5_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL011-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL011-S202_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL012-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL012-S202_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL013-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL013-S202_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL014-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL014-S202_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL015-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL015-S202_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL016-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL016-S202_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL017-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL017-S202_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL018-S202 NOT_STARTED  runs/arabic_digits/ablation/ABL018-S202_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL001-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL001-S303_cls-0-1-2_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL002-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL002-S303_cls-0-1-2_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL003-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL003-S303_cls-0-1-2_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL004-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL004-S303_cls-0-1-2_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL005-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL005-S303_cls-0-1-2_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL006-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL006-S303_cls-0-1-2_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL007-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL007-S303_cls-0-1-2-3-4-5_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL008-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL008-S303_cls-0-1-2-3-4-5_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL009-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL009-S303_cls-0-1-2-3-4-5_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL010-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL010-S303_cls-0-1-2-3-4-5_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL011-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL011-S303_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL012-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL012-S303_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL013-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL013-S303_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL014-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL014-S303_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL015-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL015-S303_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL016-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL016-S303_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL017-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL017-S303_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL018-S303 NOT_STARTED  runs/arabic_digits/ablation/ABL018-S303_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL001-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL001-S404_cls-0-1-2_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL002-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL002-S404_cls-0-1-2_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL003-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL003-S404_cls-0-1-2_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL004-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL004-S404_cls-0-1-2_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL005-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL005-S404_cls-0-1-2_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL006-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL006-S404_cls-0-1-2_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL007-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL007-S404_cls-0-1-2-3-4-5_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL008-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL008-S404_cls-0-1-2-3-4-5_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL009-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL009-S404_cls-0-1-2-3-4-5_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL010-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL010-S404_cls-0-1-2-3-4-5_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL011-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL011-S404_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL012-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL012-S404_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL013-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL013-S404_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL014-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL014-S404_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL015-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL015-S404_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL016-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL016-S404_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL017-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL017-S404_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL018-S404 NOT_STARTED  runs/arabic_digits/ablation/ABL018-S404_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL001-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL001-S505_cls-0-1-2_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL002-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL002-S505_cls-0-1-2_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL003-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL003-S505_cls-0-1-2_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL004-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL004-S505_cls-0-1-2_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL005-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL005-S505_cls-0-1-2_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL006-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL006-S505_cls-0-1-2_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL007-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL007-S505_cls-0-1-2-3-4-5_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL008-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL008-S505_cls-0-1-2-3-4-5_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL009-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL009-S505_cls-0-1-2-3-4-5_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL010-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL010-S505_cls-0-1-2-3-4-5_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL011-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL011-S505_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL012-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL012-S505_cls-0-1-2-3-4-5_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL013-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL013-S505_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature PCA --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL014-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL014-S505_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature PCA --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL015-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL015-S505_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature HU --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL016-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL016-S505_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature HU --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL017-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL017-S505_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-60P
+python main_ablation.py --model MORE-HD-60P --dataset MADBASE --feature ZERNIKE --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-ABL018-S505 NOT_STARTED  runs/arabic_digits/ablation/ABL018-S505_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-C-FixedRZ
+python main_ablation.py --model MORE-HD-C-FixedRZ --dataset MADBASE --feature ZERNIKE --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF001-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF001-S101_cls-0-1-2_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF002-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF002-S101_cls-0-1-2_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF003-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF003-S101_cls-0-1-2_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 3 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF004-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF004-S101_cls-0-1-2-3_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF005-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF005-S101_cls-0-1-2-3_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF006-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF006-S101_cls-0-1-2-3_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 4 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF007-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF007-S101_cls-0-1-2-3-4_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF008-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF008-S101_cls-0-1-2-3-4_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF009-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF009-S101_cls-0-1-2-3-4_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 5 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF010-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF010-S101_cls-0-1-2-3-4-5_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF011-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF011-S101_cls-0-1-2-3-4-5_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF012-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF012-S101_cls-0-1-2-3-4-5_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 6 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF013-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF013-S101_cls-0-1-2-3-4-5-6_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF014-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF014-S101_cls-0-1-2-3-4-5-6_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF015-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF015-S101_cls-0-1-2-3-4-5-6_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 7 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF016-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF016-S101_cls-0-1-2-3-4-5-6-7_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF017-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF017-S101_cls-0-1-2-3-4-5-6-7_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF018-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF018-S101_cls-0-1-2-3-4-5-6-7_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 8 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF019-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF019-S101_cls-0-1-2-3-4-5-6-7-8_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF020-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF020-S101_cls-0-1-2-3-4-5-6-7-8_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF021-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF021-S101_cls-0-1-2-3-4-5-6-7-8_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 9 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF022-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF022-S101_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF023-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF023-S101_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF024-S101 NOT_STARTED  runs/arabic_digits/more_reference/MREF024-S101_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 10 --seed 101 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF001-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF001-S202_cls-0-1-2_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF002-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF002-S202_cls-0-1-2_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF003-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF003-S202_cls-0-1-2_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 3 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF004-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF004-S202_cls-0-1-2-3_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF005-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF005-S202_cls-0-1-2-3_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF006-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF006-S202_cls-0-1-2-3_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 4 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF007-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF007-S202_cls-0-1-2-3-4_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF008-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF008-S202_cls-0-1-2-3-4_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF009-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF009-S202_cls-0-1-2-3-4_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 5 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF010-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF010-S202_cls-0-1-2-3-4-5_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF011-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF011-S202_cls-0-1-2-3-4-5_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF012-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF012-S202_cls-0-1-2-3-4-5_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 6 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF013-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF013-S202_cls-0-1-2-3-4-5-6_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF014-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF014-S202_cls-0-1-2-3-4-5-6_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF015-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF015-S202_cls-0-1-2-3-4-5-6_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 7 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF016-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF016-S202_cls-0-1-2-3-4-5-6-7_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF017-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF017-S202_cls-0-1-2-3-4-5-6-7_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF018-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF018-S202_cls-0-1-2-3-4-5-6-7_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 8 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF019-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF019-S202_cls-0-1-2-3-4-5-6-7-8_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF020-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF020-S202_cls-0-1-2-3-4-5-6-7-8_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF021-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF021-S202_cls-0-1-2-3-4-5-6-7-8_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 9 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF022-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF022-S202_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF023-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF023-S202_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF024-S202 NOT_STARTED  runs/arabic_digits/more_reference/MREF024-S202_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 10 --seed 202 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF001-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF001-S303_cls-0-1-2_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF002-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF002-S303_cls-0-1-2_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF003-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF003-S303_cls-0-1-2_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 3 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF004-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF004-S303_cls-0-1-2-3_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF005-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF005-S303_cls-0-1-2-3_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF006-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF006-S303_cls-0-1-2-3_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 4 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF007-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF007-S303_cls-0-1-2-3-4_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF008-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF008-S303_cls-0-1-2-3-4_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF009-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF009-S303_cls-0-1-2-3-4_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 5 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF010-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF010-S303_cls-0-1-2-3-4-5_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF011-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF011-S303_cls-0-1-2-3-4-5_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF012-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF012-S303_cls-0-1-2-3-4-5_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 6 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF013-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF013-S303_cls-0-1-2-3-4-5-6_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF014-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF014-S303_cls-0-1-2-3-4-5-6_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF015-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF015-S303_cls-0-1-2-3-4-5-6_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 7 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF016-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF016-S303_cls-0-1-2-3-4-5-6-7_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF017-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF017-S303_cls-0-1-2-3-4-5-6-7_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF018-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF018-S303_cls-0-1-2-3-4-5-6-7_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 8 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF019-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF019-S303_cls-0-1-2-3-4-5-6-7-8_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF020-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF020-S303_cls-0-1-2-3-4-5-6-7-8_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF021-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF021-S303_cls-0-1-2-3-4-5-6-7-8_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 9 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF022-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF022-S303_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF023-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF023-S303_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF024-S303 NOT_STARTED  runs/arabic_digits/more_reference/MREF024-S303_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 10 --seed 303 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF001-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF001-S404_cls-0-1-2_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF002-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF002-S404_cls-0-1-2_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF003-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF003-S404_cls-0-1-2_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 3 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF004-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF004-S404_cls-0-1-2-3_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF005-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF005-S404_cls-0-1-2-3_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF006-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF006-S404_cls-0-1-2-3_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 4 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF007-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF007-S404_cls-0-1-2-3-4_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF008-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF008-S404_cls-0-1-2-3-4_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF009-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF009-S404_cls-0-1-2-3-4_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 5 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF010-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF010-S404_cls-0-1-2-3-4-5_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF011-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF011-S404_cls-0-1-2-3-4-5_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF012-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF012-S404_cls-0-1-2-3-4-5_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 6 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF013-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF013-S404_cls-0-1-2-3-4-5-6_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF014-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF014-S404_cls-0-1-2-3-4-5-6_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF015-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF015-S404_cls-0-1-2-3-4-5-6_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 7 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF016-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF016-S404_cls-0-1-2-3-4-5-6-7_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF017-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF017-S404_cls-0-1-2-3-4-5-6-7_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF018-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF018-S404_cls-0-1-2-3-4-5-6-7_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 8 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF019-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF019-S404_cls-0-1-2-3-4-5-6-7-8_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF020-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF020-S404_cls-0-1-2-3-4-5-6-7-8_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF021-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF021-S404_cls-0-1-2-3-4-5-6-7-8_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 9 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF022-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF022-S404_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF023-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF023-S404_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF024-S404 NOT_STARTED  runs/arabic_digits/more_reference/MREF024-S404_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 10 --seed 404 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF001-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF001-S505_cls-0-1-2_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF002-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF002-S505_cls-0-1-2_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF003-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF003-S505_cls-0-1-2_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 3 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF004-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF004-S505_cls-0-1-2-3_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF005-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF005-S505_cls-0-1-2-3_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF006-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF006-S505_cls-0-1-2-3_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 4 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF007-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF007-S505_cls-0-1-2-3-4_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF008-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF008-S505_cls-0-1-2-3-4_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF009-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF009-S505_cls-0-1-2-3-4_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 5 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF010-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF010-S505_cls-0-1-2-3-4-5_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF011-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF011-S505_cls-0-1-2-3-4-5_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF012-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF012-S505_cls-0-1-2-3-4-5_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 6 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF013-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF013-S505_cls-0-1-2-3-4-5-6_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF014-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF014-S505_cls-0-1-2-3-4-5-6_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF015-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF015-S505_cls-0-1-2-3-4-5-6_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 7 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF016-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF016-S505_cls-0-1-2-3-4-5-6-7_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF017-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF017-S505_cls-0-1-2-3-4-5-6-7_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF018-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF018-S505_cls-0-1-2-3-4-5-6-7_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 8 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF019-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF019-S505_cls-0-1-2-3-4-5-6-7-8_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF020-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF020-S505_cls-0-1-2-3-4-5-6-7-8_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF021-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF021-S505_cls-0-1-2-3-4-5-6-7-8_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 9 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF022-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF022-S505_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature PCA --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF023-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF023-S505_cls-0-1-2-3-4-5-6-7-8-9_HU_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature HU --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# AD-MREF024-S505 NOT_STARTED  runs/arabic_digits/more_reference/MREF024-S505_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-REPRO
+python main_more_reference.py --dataset MADBASE --feature ZERNIKE --k 10 --seed 505 --run-mode CONFIRMATORY --n-parallel-declared 6
+# 0/450 COMPLETED
+# Jalur B (secondary, after the source run is COMPLETED): K in {3,6,10}, A and D, 5 seeds = 90
+#   python main_selected_clustering.py --source-run-dir runs/<primary run> --n-parallel-declared N

@@ -1,6 +1,6 @@
 # Protokol Penelitian — MORE-HD-C pada MADBase
 
-**Status:** `FROZEN FOR PILOT / CONFIRMATORY PENDING OPTIMIZER BUDGET`  
+**Status:** `FROZEN — EKSEKUSI SELESAI / G6 CLOSED (amendemen administratif 1.0.1)`  
 **Versi:** 1.0  
 **Tanggal:** 2026-10-09
 
@@ -86,6 +86,11 @@ Budget MNIST 840/1000 tidak otomatis sah untuk MADBase. Guard CLI menolak run
 konfirmatori sampai keputusan MADBase berstatus `FROZEN`. Pilot tidak masuk
 estimasi final.
 
+Keputusan 2026-10-09 setelah 14 kondisi pilot selesai: clustering **900 NFEV**,
+supervised **940 NFEV**. Seluruh kurva memenuhi aturan plateau pra-spesifikasi.
+Budget sama untuk semua model dan berasal hanya dari train loss, tanpa memakai
+official-test outcome. Bukti: `research_data/pilot/convergence_budget_decision.json`.
+
 ## 7. Baseline dan analisis tambahan
 
 - Chance dihitung analitik sebagai `1/K` untuk accuracy dan expected macro-F1
@@ -130,3 +135,8 @@ Boundary baru terbuka bila:
 
 Setiap perubahan setelah boundary adalah amendemen bertanggal.
 
+## 11. Catatan eksekusi (amendemen administratif 1.0.1, 2026-10-11)
+
+Boundary konfirmatori dibuka 2026-10-09 ±23:45 WIB; seluruh 450 run utama, 90 run Jalur B, dan 240 fit baseline
+diterima pada 2026-10-10 19:02 WIB. Deviasi operasional dan analisis eksploratif pasca-hasil dicatat di
+`DEVIATION_LOG.md`; hasil final di `RESULTS.md`. Tidak ada perubahan desain.

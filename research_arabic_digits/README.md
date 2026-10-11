@@ -1,29 +1,30 @@
 # Penelitian MORE-HD-C pada Digit Arab (MADBase)
 
-**Status:** `SIAP UNTUK PILOT — KONFIRMATORI DIKUNCI SAMPAI BUDGET KONVERGENSI MADBASE BEKU`  
-**Versi dokumentasi:** 1.0  
-**Terakhir diperbarui:** 2026-10-09
+**Status:** `SELESAI — 450/450 RUN KONFIRMATORI DITERIMA, G6 CLOSED`  
+**Versi dokumentasi:** 1.1  
+**Terakhir diperbarui:** 2026-10-11
 
 Folder ini adalah dossier terpisah untuk studi MORE-HD/MORE-HD-C pada Modified
 Arabic Digits Database (MADBase). Studi MNIST tetap dapat direproduksi melalui
 jalur lama; setiap perintah studi Arab harus menyebut `--dataset MADBASE`.
 
-## Putusan kesiapan
+## Status penelitian (2026-10-11)
 
-- **Pilot teknis siap dijalankan.** Loader, split writer-disjoint, fitur,
-  final-test vault, lima arsitektur, baseline, Jalur B, workbook, konsolidasi,
-  dan analisis sudah diuji end-to-end.
-- **Konfirmatori belum boleh dijalankan.** Guard CLI menolak run
-  `CONFIRMATORY` sampai
-  `research_data/pilot/convergence_budget_decision.json` berstatus `FROZEN`
-  untuk MADBase.
-- **Official test tidak dipakai pada pilot.** Pilot memakai holdout penulis dari
-  official training pool. Official test baru dimuat secara lazy di tahap
-  `final_evaluation` pada run konfirmatori.
-- **Data mentah hanya untuk riset lokal dan tidak boleh didistribusikan.**
-  Halaman resmi menyediakan unduhan tetapi tidak menyatakan lisensi
-  redistribusi secara eksplisit. Kebijakan proyek adalah
-  `LOCAL_RESEARCH_ONLY_NO_RAW_REDISTRIBUTION`.
+- **Eksekusi selesai.** 450 run konfirmatori (240 primer, 90 ablasi, 120 MORE-REPRO), 90 run Jalur B, dan
+  240 fit baseline klasik diterima oleh `research_data/reports/final_admission.json` (2026-10-10 19:02 WIB,
+  `accepted = true`, tanpa galat). Semua run selesai pada attempt pertama.
+- **G6 ditutup.** Audit `research_data/reports/g6_final_audit.json`, hasil lengkap `RESULTS.md`, deviasi
+  `DEVIATION_LOG.md`, dan paket reproduksi `REPRODUCIBILITY_MANIFEST.md`/`.json`.
+- **Temuan utama.** MORE-HD-C − MORE-HD = +5,9 pp akurasi (positif pada 22/24 sel; SK 95% di atas nol pada
+  3 sel, tidak ada di bawah nol). Ablasi: B − A +12,3 pp, C − A +2,5 pp, D − B −9,0 pp (9/9 sel negatif),
+  D − C +0,7 pp. Kenaikan D tidak dapat diatribusikan pada fase kompleks; kesimpulan MNIST tereplikasi.
+  Semua model kuantum tetap jauh di bawah regresi logistik (85,2%) dan nearest centroid (73,3%).
+- **Paper.** Draf bahasa Indonesia (template VJCS): `paper/MORE-HD-C_MADBase_paper_ID.docx`; catatan
+  diskusi dan cara build ulang: `paper/CATATAN_DISKUSI_PAPER_MADBASE.md`.
+- **Dashboard.** `research_data/dashboard/` (jalankan `serve.ps1`, buka `http://localhost:4174`).
+- **Data mentah hanya untuk riset lokal dan tidak boleh didistribusikan** (`LOCAL_RESEARCH_ONLY_NO_RAW_REDISTRIBUTION`).
+- Studi MNIST di root repositori tidak diubah oleh pekerjaan ini; angkanya hanya dibaca untuk perbandingan
+  deskriptif (SAP §8).
 
 ## Kontrak studi yang sudah dibekukan
 
@@ -52,10 +53,14 @@ jalur lama; setiap perintah studi Arab harus menyebut `--dataset MADBASE`.
 | Artefak dan workbook | `CLOSED` | tiga template di `research_data/` |
 | Baseline/Jalur B | `CLOSED` untuk pilot | output lokal di `runs/arabic_digits/` |
 | Konsolidasi/analisis | `CLOSED` untuk pilot | `research_data/consolidated_pilot/`, `analysis_pilot/` |
-| Budget optimizer MADBase | `BLOCKED` | pilot konvergensi belum dijalankan |
+| Budget optimizer MADBase | `CLOSED` | 14 pilot lengkap; keputusan beku 900/940 |
+| Eksekusi konfirmatori + Jalur B + baseline | `CLOSED` | `research_data/reports/final_admission.json` |
+| Konsolidasi dan analisis final | `CLOSED` | `research_data/consolidated/`, `research_data/analysis/`, `RESULTS.md` |
+| G6 (pelaporan, deviasi, reproduksi) | `CLOSED` | `research_data/reports/g6_final_audit.json`, `DEVIATION_LOG.md`, `REPRODUCIBILITY_MANIFEST.md` |
 
 Metrik smoke hanya bukti teknis dan **bukan hasil penelitian**. Tidak ada metrik
-model dari official test konfirmatori yang digunakan untuk memilih desain.
+model dari official test konfirmatori yang digunakan untuk memilih desain. Hasil
+penelitian yang sah hanya yang tercantum di `RESULTS.md`.
 
 ## Perintah operasional
 
@@ -72,7 +77,7 @@ python scripts/run_pilot.py smoke --dataset MADBASE --parallel 1
 python scripts/check_pilot_runs.py --dataset MADBASE --tag smoke
 ```
 
-Tahap berikutnya yang wajib sebelum konfirmatori:
+Pilot konvergensi yang telah selesai (jangan menjalankan ulang kondisi yang sudah selesai):
 
 ```powershell
 python scripts/run_pilot.py convergence --dataset MADBASE --first-only
@@ -84,7 +89,26 @@ python scripts/check_arabic_readiness.py --require-confirmatory
 Pilot konvergensi merupakan pekerjaan komputasi panjang. Jangan memulai run
 konfirmatori hanya dengan menghapus guard atau menyalin budget dari MNIST.
 
+Penutupan dan pelaporan (setelah konsolidasi dan analisis final; lihat `RUNBOOK.md` §10):
+
+```powershell
+python research_arabic_digits/tools/finalize_g6.py
+python research_arabic_digits/paper/build/extract_workbooks.py
+python research_arabic_digits/paper/build/collect_jalurb.py
+python research_arabic_digits/paper/build/analyze_madbase.py
+python research_arabic_digits/paper/build/write_results.py
+python research_arabic_digits/paper/build/make_figures.py
+python research_arabic_digits/paper/build/build_paper.py
+```
+
 ## Peta dokumen
+
+- `RESULTS.md`: hasil final (struktur `RESULTS_TEMPLATE.md`), angka dari artefak yang lolos admission.
+- `DEVIATION_LOG.md`: deviasi dan amendemen setelah boundary konfirmatori.
+- `REPRODUCIBILITY_MANIFEST.md` / `.json`: SHA-256 artefak, commit, environment.
+- `paper/`: naskah, gambar, dan skrip build paper (`paper/build/`).
+- `research_data/dashboard/`: dashboard HTML lokal hasil training MADBase.
+- `tools/finalize_g6.py`: audit penutupan G6 dan pembuat manifest reproduksi.
 
 - `PERBAIKAN_DAN_VERIFIKASI_2026-10-09.md`: catatan lengkap pekerjaan dan bukti.
 - `DATASET_CARD.md`: identitas, snapshot, audit, lisensi, dan preprocessing.
@@ -94,4 +118,3 @@ konfirmatori hanya dengan menghapus guard atau menyalin budget dari MNIST.
 - `RUNBOOK.md`: urutan perintah aman.
 - `PROTOCOL_FREEZE.json`: kontrak mesin-terbaca.
 - `splits/split_registry.json`: registry split yang dibekukan.
-

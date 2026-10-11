@@ -1,0 +1,136 @@
+{
+  "status": "FROZEN",
+  "dataset": "MADBASE",
+  "dataset_id": "MADBASE-AUC-V1",
+  "rule": "pseudocode §1.1 (frozen before confirmatory execution; cap=1000)",
+  "tol_fraction": 0.02,
+  "tail": 30,
+  "cap": 1000,
+  "n_runs": 14,
+  "admitted_attempts": [
+    {
+      "run_uid": "AD-ABL013-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\ablation\\ABL013-S42_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-HD-60P_convergence"
+    },
+    {
+      "run_uid": "AD-ABL017-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\ablation\\ABL017-S42_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-HD-60P_convergence"
+    },
+    {
+      "run_uid": "AD-R044-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-R043-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-R048-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-R047-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2-3-4-5-6-7-8-9_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-R002-S42",
+      "attempt": 2,
+      "path": "runs\\arabic_digits\\cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42_convergence_attempt2"
+    },
+    {
+      "run_uid": "AD-R001-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-R006-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD-C_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-R005-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\cls-0-1-2_ntrain1000_nval100_ntest200_ZERNIKE_MORE-HD_seed42_convergence"
+    },
+    {
+      "run_uid": "AD-MREF001-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\more_reference\\MREF001-S42_cls-0-1-2_PCA_MORE-REPRO_convergence"
+    },
+    {
+      "run_uid": "AD-MREF003-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\more_reference\\MREF003-S42_cls-0-1-2_ZERNIKE_MORE-REPRO_convergence"
+    },
+    {
+      "run_uid": "AD-MREF022-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\more_reference\\MREF022-S42_cls-0-1-2-3-4-5-6-7-8-9_PCA_MORE-REPRO_convergence"
+    },
+    {
+      "run_uid": "AD-MREF024-S42",
+      "attempt": 1,
+      "path": "runs\\arabic_digits\\more_reference\\MREF024-S42_cls-0-1-2-3-4-5-6-7-8-9_ZERNIKE_MORE-REPRO_convergence"
+    }
+  ],
+  "excluded_attempts": [
+    {
+      "path": "C:\\Users\\rexxa\\Videos\\LLL-Wiki\\raw\\MORE-HD-COMPLEX\\MORE-HD-COMPLEX\\runs\\arabic_digits\\cls-0-1-2_ntrain1000_nval100_ntest200_PCA_MORE-HD-C_seed42_convergence",
+      "status": "FAILED",
+      "run_uid": "AD-R002-S42",
+      "attempt": 1
+    }
+  ],
+  "clustering": {
+    "n_star_max": 893,
+    "n_star_by_run": {
+      "AD-ABL013-S42": 591,
+      "AD-ABL017-S42": 821,
+      "AD-R044-S42": 357,
+      "AD-R043-S42": 731,
+      "AD-R048-S42": 872,
+      "AD-R047-S42": 770,
+      "AD-R002-S42": 339,
+      "AD-R001-S42": 429,
+      "AD-R006-S42": 679,
+      "AD-R005-S42": 428,
+      "AD-MREF001-S42": 784,
+      "AD-MREF003-S42": 368,
+      "AD-MREF022-S42": 893,
+      "AD-MREF024-S42": 757
+    },
+    "not_plateaued_runs": [],
+    "final_max_nfev": 900,
+    "rule5_floor_applied": false,
+    "limitation": false
+  },
+  "supervised": {
+    "n_star_max": 934,
+    "n_star_by_run": {
+      "AD-ABL013-S42": 908,
+      "AD-ABL017-S42": 916,
+      "AD-R044-S42": 796,
+      "AD-R043-S42": 885,
+      "AD-R048-S42": 925,
+      "AD-R047-S42": 821,
+      "AD-R002-S42": 782,
+      "AD-R001-S42": 828,
+      "AD-R006-S42": 848,
+      "AD-R005-S42": 673,
+      "AD-MREF001-S42": 934,
+      "AD-MREF003-S42": 744,
+      "AD-MREF022-S42": 816,
+      "AD-MREF024-S42": 712
+    },
+    "not_plateaued_runs": [],
+    "final_max_nfev": 940,
+    "rule5_floor_applied": false,
+    "limitation": false
+  }
+}

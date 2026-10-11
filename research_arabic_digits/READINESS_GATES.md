@@ -1,8 +1,8 @@
 # Research Readiness Gates — MADBase
 
-**Status keseluruhan:** `PILOT READY / CONFIRMATORY BLOCKED AT AD-G3-03`  
-**Versi:** 1.0  
-**Tanggal:** 2026-10-09
+**Status keseluruhan:** `ALL GATES CLOSED / G6 CLOSED — STUDI SELESAI`  
+**Versi:** 1.1  
+**Tanggal:** 2026-10-11
 
 `CLOSED` berarti keputusan dan bukti tersedia. `BLOCKED` menghalangi
 konfirmatori. G6 baru dapat ditutup setelah seluruh run konfirmatori selesai.
@@ -46,7 +46,7 @@ konfirmatori. G6 baru dapat ditutup setelah seluruh run konfirmatori selesai.
 |---|---|---|---|
 | AD-G3-01 | `CLOSED` | Pertanyaan, estimand, outcome, unit replikasi dibekukan | protocol/SAP v1.0 |
 | AD-G3-02 | `CLOSED` | A/D, B/C, M; PCA/Hu/Zernike; K 3..10 | `PROTOCOL_FREEZE.json` |
-| AD-G3-03 | `BLOCKED` | Budget optimizer harus berasal dari pilot konvergensi MADBase | decision file belum ada |
+| AD-G3-03 | `CLOSED` | 14 pilot lengkap; budget clustering 900 / supervised 940 beku | `research_data/pilot/convergence_budget_decision.json`, `research_data/reports/full_readiness_audit.json` |
 | AD-G3-04 | `CLOSED` | Ablation, NC/LR/chance, dan planned contrasts dibekukan | SAP v1.0 |
 | AD-G3-05 | `CLOSED` | CI, effect size, sign-flip, Holm, dan batas n=5 ditulis | SAP v1.0 |
 | AD-G3-06 | `CLOSED` | Confusion lengkap; fokus 6↔9 dipra-spesifikasi sebagai sekunder | SAP v1.0 |
@@ -78,10 +78,15 @@ konfirmatori. G6 baru dapat ditutup setelah seluruh run konfirmatori selesai.
 
 ## G6 — Eksekusi final
 
-Seluruh item berikut `NOT STARTED`: kelengkapan 450 run dan 90 Jalur B,
-admission final, tabel primer/ablation/baseline, deviation log final, pengisian
-hasil, dan paket reproduksi. G6 tidak menghalangi pilot, tetapi wajib ditutup
-sebelum penelitian dinyatakan selesai.
+| ID | Status | Keputusan | Bukti |
+|---|---|---|---|
+| AD-G6-01 | `CLOSED` | 450/450 run utama `COMPLETED`, attempt 1, tanpa run ganda | `research_data/reports/final_admission.json`, `g6_final_audit.json` |
+| AD-G6-02 | `CLOSED` | 90/90 run Jalur B `COMPLETED`; test tidak dipakai untuk seleksi | `paper/build/data/jalurB_runs.csv`, `g6_final_audit.json` |
+| AD-G6-03 | `CLOSED` | Admission final diterima tanpa galat; 240 fit baseline klasik | `final_admission.json` |
+| AD-G6-04 | `CLOSED` | Tabel primer, ablasi, MORE-REPRO, baseline, McNemar, 6↔9 dibuat oleh `analysis/run_analysis.py` dan dicek silang (selisih ≤ 2e-16) | `research_data/analysis/`, `paper/build/analyze_madbase.py` |
+| AD-G6-05 | `CLOSED` | Deviation log final (DEV-01 … DEV-05); tidak ada deviasi yang mengubah analisis konfirmatori | `DEVIATION_LOG.md` |
+| AD-G6-06 | `CLOSED` | Hasil diisi pada `RESULTS.md` mengikuti `RESULTS_TEMPLATE.md` | `RESULTS.md` |
+| AD-G6-07 | `CLOSED` | Paket reproduksi: SHA-256 artefak, commit run, diff engine `core/` kosong | `REPRODUCIBILITY_MANIFEST.md`/`.json` |
 
 ## Ringkasan
 
@@ -90,10 +95,10 @@ sebelum penelitian dinyatakan selesai.
 | G0 | 6 | 0 | redistribusi raw dilarang oleh kebijakan risiko |
 | G1 | 6 | 0 | official test lazy dan paired |
 | G2 | 6 | 0 | tiga fitur tervalidasi |
-| G3 | 8 | 1 | hanya budget konvergensi MADBase |
+| G3 | 9 | 0 | budget konvergensi MADBase 900/940 telah dibekukan |
 | G4 | 7 | 0 | implementasi dan smoke lulus |
 | G5 | 5 | 0 | keluaran hilir pilot lulus |
-| G6 | 0 | 0 | belum dimulai; pasca-konfirmatori |
+| G6 | 7 | 0 | eksekusi, admission, hasil, deviasi, dan reproduksi ditutup 2026-10-11 |
 
 ## Log perubahan
 
@@ -101,4 +106,6 @@ sebelum penelitian dinyatakan selesai.
 |---|---|
 | 2026-10-08 | Snapshot dan audit MADBase dibuat. |
 | 2026-10-09 | Pipeline dataset-aware, split, vault, fitur, workbook, tes, smoke, baseline, Jalur B, konsolidasi, dan analisis ditutup. AD-G3-03 sengaja tetap memblokir konfirmatori sampai pilot konvergensi selesai. |
-
+| 2026-10-09 (setelah pilot) | Empat belas kondisi pilot lengkap; satu attempt gagal teknis dipertahankan dan retry diterima. Seluruh aturan plateau lulus; budget MADBase beku 900/940. AD-G3-03 ditutup; audit pra-training lengkap lulus. |
+| 2026-10-10 | Eksekusi konfirmatori 450 run, Jalur B 90 run, baseline 240 fit; konsolidasi dan analisis otomatis; admission final diterima 19:02 WIB. |
+| 2026-10-11 | G6 ditutup: `RESULTS.md`, `DEVIATION_LOG.md`, `REPRODUCIBILITY_MANIFEST.*`, audit `g6_final_audit.json`, paper dan dashboard MADBase. |

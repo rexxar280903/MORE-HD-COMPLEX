@@ -1,0 +1,15 @@
+{
+  "main": 450,
+  "tracks": {
+    "PRIMARY": 240,
+    "ABLATION": 90,
+    "MORE_REFERENCE": 120
+  },
+  "secondary_runs": 90,
+  "baseline_cells": 120,
+  "baseline_fits": 240,
+  "parallel": 8,
+  "per_run_workbook": true,
+  "auto_consolidation": true,
+  "auto_analysis": true
+}

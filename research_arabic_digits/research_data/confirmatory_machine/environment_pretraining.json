@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "python": "3.13.15",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.0",
+    "pennylane": "0.45.1",
+    "joblib": "1.6.0",
+    "openpyxl": "3.1.5"
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "blas_threads": {
+    "openblas:C:\\Users\\rexxa\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\numpy.libs\\libscipy_openblas64_-327b2e0bcffce2882e0dc04cdeb4eaa6.dll": 8,
+    "openmp:C:\\Users\\rexxa\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\sklearn\\.libs\\vcomp140.dll": 8,
+    "openblas:C:\\Users\\rexxa\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\scipy.libs\\libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 8
+  },
+  "thread_env": {
+    "OMP_NUM_THREADS": "",
+    "MKL_NUM_THREADS": "",
+    "OPENBLAS_NUM_THREADS": "",
+    "NUMEXPR_NUM_THREADS": ""
+  },
+  "git_commit": "188bab6a068afcb02d76b18bd23cf5449943ed2d",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "M research_arabic_digits/PROTOCOL_FREEZE.json",
+    " M research_arabic_digits/READINESS_GATES.md",
+    " M research_arabic_digits/README.md",
+    " M research_arabic_digits/RESEARCH_PROTOCOL.md",
+    " M research_arabic_digits/RUNBOOK.md",
+    " M research_arabic_digits/research_data/manifests/readiness_report.json",
+    " M research_arabic_digits/research_data/pilot/test_summary.json",
+    " M scripts/analyze_pilot_budget.py",
+    " M scripts/check_pilot_runs.py",
+    "?? MORE-HD-COMPLEX.zip",
+    "?? app/",
+    "?? core/pilot_audit.py",
+    "?? paper/",
+    "?? research_arabic_digits/research_data/pilot/convergence_budget_decision.json",
+    "?? research_arabic_digits/research_data/pilot/convergence_check.json",
+    "?? research_arabic_digits/research_data/pilot/convergence_curves_summary.csv",
+    "?? research_arabic_digits/research_data/reports/",
+    "?? research_data/data_from_laptop/dashboard/",
+    "?? scripts/audit_confirmatory_readiness.py",
+    "?? tests/test_pilot_audit.py"
+  ]
+}

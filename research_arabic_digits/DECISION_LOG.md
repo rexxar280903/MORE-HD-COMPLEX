@@ -137,6 +137,33 @@ Status keputusan:
   `PERBAIKAN_DAN_VERIFIKASI_2026-10-09.md`.
 - Outcome official test tersedia?: tidak; smoke memakai holdout training pool.
 
+### AD-D011 — Nilai budget konfirmatori MADBase
+
+- Tanggal: 2026-10-09 (Asia/Jakarta)
+- Status: `LOCKED`
+- Keputusan: clustering 900 NFEV dan supervised 940 NFEV, dipilih mekanis oleh aturan plateau dari 14 pilot
+  konvergensi (seed 42; K = 3/10; PCA/Zernike; cap 1000) hanya dari train loss.
+- Bukti: `research_data/pilot/convergence_budget_decision.json` (status `FROZEN`).
+- Outcome official test tersedia?: tidak.
+
+### AD-D012 — Eksekusi konfirmatori dan admission
+
+- Tanggal: 2026-10-09 23:45 – 2026-10-10 19:02 (Asia/Jakarta)
+- Status: `LOCKED`
+- Keputusan: 450 run utama, 90 run Jalur B, dan 240 fit baseline dijalankan dengan commit `188bab6`; admission
+  final diterima tanpa galat.
+- Bukti: `research_data/reports/final_admission.json`, `research_data/reports/g6_final_audit.json`.
+- Catatan: paralelisme dan provenance skrip orkestrasi dicatat di `DEVIATION_LOG.md` (DEV-01, DEV-02).
+
+### AD-D013 — Penutupan G6, pelaporan, dan analisis eksploratif
+
+- Tanggal: 2026-10-11 (Asia/Jakarta)
+- Status: `LOCKED`
+- Keputusan: hasil final dilaporkan di `RESULTS.md`; analisis mekanistik dan pasangan kelas diberi label
+  eksploratif (DEV-05); perbandingan dengan MNIST hanya deskriptif (AD-D005); file studi MNIST tidak diubah.
+- Bukti: `RESULTS.md`, `DEVIATION_LOG.md`, `REPRODUCIBILITY_MANIFEST.md`, `paper/`.
+- Outcome official test tersedia?: ya — tidak ada perubahan pada analisis konfirmatori.
+
 ## Keputusan terbuka
 
 | ID | Pertanyaan | Pemilik | Target fase | Status |
@@ -147,7 +174,7 @@ Status keputusan:
 | AD-O004 | Class regimes/K apa yang dipakai? | Pemilik studi | Protocol freeze | `CLOSED — AD-D008` |
 | AD-O005 | Model/fitur/ablation/referensi mana yang dipertahankan? | Pemilik studi | Sebelum pilot | `CLOSED — AD-D008` |
 | AD-O006 | Seed dan ukuran per split berapa? | Pemilik studi | Setelah inventaris | `CLOSED — AD-D008` |
-| AD-O007 | Bagaimana budget optimizer dipilih? | Pemilik studi | Sebelum konfirmatori | `METHOD CLOSED / VALUE PENDING — AD-D009` |
+| AD-O007 | Bagaimana budget optimizer dipilih? | Pemilik studi | Sebelum konfirmatori | `CLOSED — AD-D011: 900/940` |
 | AD-O008 | Format artefak dan workbook final? | Pemilik studi | Sebelum confirmatory | `CLOSED — AD-D010` |
 
 ## Template entri berikutnya
